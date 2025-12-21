@@ -4,7 +4,7 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/mini-apps/random-picker/",
+  base: "/random-picker/",
   plugins: [react()],
   resolve: {
     alias: {
