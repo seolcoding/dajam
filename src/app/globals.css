@@ -1,0 +1,298 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  /* Ideal Worldcup color scale */
+  .bg-primary-50 { background-color: #f0f9ff; }
+  .bg-primary-100 { background-color: #e0f2fe; }
+  .bg-primary-200 { background-color: #bae6fd; }
+  .text-primary-200 { color: #bae6fd; }
+  .bg-primary-800 { background-color: #075985; }
+  .bg-primary-900 { background-color: #0c4a6e; }
+  .from-primary-900 { --tw-gradient-from: #0c4a6e; }
+  .bg-primary-950 { background-color: #082f49; }
+  .border-primary-500 { border-color: #0ea5e9; }
+  .from-primary-500\/0 { --tw-gradient-from: rgb(14 165 233 / 0); }
+  .from-primary-500\/20 { --tw-gradient-from: rgb(14 165 233 / 0.2); }
+  .to-primary-500\/10 { --tw-gradient-to: rgb(14 165 233 / 0.1); }
+  .shadow-primary-500\/50 { --tw-shadow-color: rgb(14 165 233 / 0.5); }
+
+  .bg-accent-900 { background-color: #701a75; }
+  .to-accent-900 { --tw-gradient-to: #701a75; }
+  .border-accent-500 { border-color: #d946ef; }
+  .from-accent-500\/0 { --tw-gradient-from: rgb(217 70 239 / 0); }
+  .to-accent-500\/0 { --tw-gradient-to: rgb(217 70 239 / 0); }
+  .from-accent-500\/20 { --tw-gradient-from: rgb(217 70 239 / 0.2); }
+  .to-accent-500\/10 { --tw-gradient-to: rgb(217 70 239 / 0.1); }
+  .shadow-accent-500\/50 { --tw-shadow-color: rgb(217 70 239 / 0.5); }
+  .from-primary-400 { --tw-gradient-from: #38bdf8; }
+  .to-accent-500 { --tw-gradient-to: #d946ef; }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Chosung Quiz Custom Animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-4px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes success-burst {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+.animate-success-burst {
+  animation: success-burst 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1s ease-out infinite;
+}
+
+/* Ideal Worldcup Custom Animations */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slide-up-delayed {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Bingo Game Custom Animations */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.bingo-card-texture {
+  background-image:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}
+
+/* Stamp effect for marked cells */
+@keyframes stamp {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.stamp-animation {
+  animation: stamp 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Bingo line celebration */
+@keyframes bingo-line-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(234, 179, 8, 0);
+  }
+}
+
+.bingo-line-cell {
+  animation: bingo-line-pulse 1.5s ease-in-out infinite;
+}
+
+/* Number call bounce */
+@keyframes call-bounce {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  25% {
+    transform: scale(1.1) translateY(-10px);
+  }
+  50% {
+    transform: scale(1) translateY(0);
+  }
+  75% {
+    transform: scale(1.05) translateY(-5px);
+  }
+}
+
+.call-bounce {
+  animation: call-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}

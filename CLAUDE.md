@@ -574,9 +574,61 @@ apps.seolcoding.com   CNAME  cname.vercel-dns.com
 
 ---
 
+---
+
+## Claude 개발 규칙
+
+### UI 작성 시 필수 스킬
+
+**UI 컴포넌트 작성 시 반드시 `frontend-for-opus-4.5` 스킬을 사용한다.**
+
+```
+/frontend-for-opus-4.5
+```
+
+#### 스킬 활성화 조건
+- 새로운 UI 컴포넌트 생성
+- 기존 UI 개선/리디자인
+- 페이지 레이아웃 작성
+- 스타일링 작업
+
+#### 스킬이 제공하는 것
+- 독창적인 디자인 (AI 슬롭 방지)
+- 프로덕션 품질 코드
+- 타이포그래피/색상/애니메이션 가이드
+- Tailwind CSS 최적화 패턴
+
+#### 예시
+```tsx
+// ❌ 일반적인 AI 스타일 (금지)
+<button className="bg-purple-500 text-white rounded-lg p-4">
+  Click me
+</button>
+
+// ✅ frontend-for-opus-4.5 스타일 (권장)
+<button className="
+  bg-gradient-to-r from-amber-500 to-orange-600
+  text-white font-semibold tracking-tight
+  px-6 py-3 rounded-full
+  shadow-lg shadow-orange-500/30
+  hover:shadow-xl hover:shadow-orange-500/40
+  hover:-translate-y-0.5
+  transition-all duration-200
+">
+  Click me
+</button>
+```
+
+---
+
 ## 참고 문서
 
 - PRD 문서: `prd/*.md` (16개 앱 상세 요구사항)
 - Shadcn UI: https://ui.shadcn.com/
 - Radix UI: https://www.radix-ui.com/primitives
 - Tailwind CSS v4: https://tailwindcss.com/docs
+- **스펙 문서**:
+  - `MIGRATION_PLAN.md` - Next.js 마이그레이션 전략
+  - `ARCHITECTURE_SPEC.md` - 서버/클라이언트 역할 분담
+  - `REALTIME_SESSION_SPEC.md` - 실시간 세션 통합 로직
+  - `AUTH_SPEC.md` - Google/Kakao 소셜 로그인
