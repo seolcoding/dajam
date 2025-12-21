@@ -7,6 +7,7 @@
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
     "build:ui": "pnpm --filter @mini-apps/ui build",
+    "build:all": "pnpm build:ui && pnpm build && node scripts/collect-dist.js",
     "lint": "pnpm -r lint",
     "clean": "pnpm -r exec rm -rf node_modules dist .turbo",
     "test": "playwright test",
