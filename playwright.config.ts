@@ -1,49 +1,34 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Mini Apps Playwright E2E Test Configuration
+ * SeolCoding Apps - Playwright E2E Test Configuration
  *
- * 각 앱은 개발 서버에서 동적 포트를 사용하므로,
- * 테스트 전에 앱을 수동으로 실행하거나 CI에서 빌드된 파일을 사용합니다.
- *
- * 로컬 개발: pnpm --filter {app-name} dev
- * 테스트 실행: pnpm test
+ * Next.js 15 App Router 기반 통합 테스트 설정
+ * - 시나리오 테스트: 사용자 플로우 검증
+ * - UI 테스트: 컴포넌트 렌더링 검증
+ * - 스마트 테스트: 접근성, 반응형, 성능
  */
 
-// 앱별 포트 매핑 (개발 서버 기본 포트: 5173)
-const APP_PORTS: Record<string, number> = {
-  'ideal-worldcup': 5173,
-  'balance-game': 5174,
-  'chosung-quiz': 5175,
-  'bingo-game': 5176,
-  'lunch-roulette': 5177,
-  'random-picker': 5178,
-  'ladder-game': 5179,
-  'team-divider': 5180,
-  'salary-calculator': 5181,
-  'rent-calculator': 5182,
-  'gpa-calculator': 5183,
-  'id-validator': 5184,
-  'live-voting': 5185,
-  'group-order': 5186,
-  'dutch-pay': 5187,
-  'student-network': 5188,
-};
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: './e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ['html', { open: 'never' }],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
     ['list'],
+    ['json', { outputFile: 'test-results/results.json' }],
   ],
   timeout: 30000,
+  expect: {
+    timeout: 10000,
+  },
 
   use: {
-    // 기본 URL은 테스트 파일에서 앱별로 설정
+    baseURL: BASE_URL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -52,34 +37,63 @@ export default defineConfig({
   },
 
   projects: [
+    // Desktop browsers
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
     {
-      name: 'mobile',
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // Mobile devices
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'mobile-safari',
       use: { ...devices['iPhone 14'] },
     },
+    // Tablet
     {
       name: 'tablet',
       use: { ...devices['iPad (gen 7)'] },
     },
   ],
 
-  // 테스트 전 앱 서버를 시작하려면 주석 해제
-  // CI 환경에서는 빌드된 정적 파일을 serve하는 것을 권장
-  // webServer: {
-  //   command: 'pnpm --filter ideal-worldcup dev',
-  //   url: 'http://localhost:5173/mini-apps/ideal-worldcup/',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 120000,
-  // },
+  // Next.js dev server
+  webServer: {
+    command: 'npm run dev',
+    url: BASE_URL,
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
 });
 
-// 앱 URL 헬퍼 함수 export
-export function getAppUrl(appName: string): string {
-  const port = APP_PORTS[appName] || 5173;
-  return `http://localhost:${port}/mini-apps/${appName}/`;
-}
+// App routes for testing
+export const APP_ROUTES = {
+  home: '/',
+  balanceGame: '/balance-game',
+  bingoGame: '/bingo-game',
+  chosungQuiz: '/chosung-quiz',
+  dutchPay: '/dutch-pay',
+  gpaCalculator: '/gpa-calculator',
+  groupOrder: '/group-order',
+  idValidator: '/id-validator',
+  idealWorldcup: '/ideal-worldcup',
+  ladderGame: '/ladder-game',
+  liveVoting: '/live-voting',
+  lunchRoulette: '/lunch-roulette',
+  randomPicker: '/random-picker',
+  rentCalculator: '/rent-calculator',
+  salaryCalculator: '/salary-calculator',
+  studentNetwork: '/student-network',
+  teamDivider: '/team-divider',
+} as const;
 
-export { APP_PORTS };
+export type AppRoute = keyof typeof APP_ROUTES;
