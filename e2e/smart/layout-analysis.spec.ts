@@ -5,6 +5,11 @@ import {
   compareViewportSpacing,
   generateSpacingReport,
 } from '../utils/spacing-analyzer';
+import {
+  analyzeAllElementPairs,
+  generatePairAnalysisReport,
+  quickPairCheck,
+} from '../utils/element-pair-analyzer';
 
 /**
  * Layout Analysis Tests
@@ -509,5 +514,130 @@ test.describe('Layout Analysis - Spacing Consistency', () => {
         console.log(`Gaps not aligned to ${baseUnit}px grid: ${notAligned.join(', ')}`);
       }
     }
+  });
+});
+
+/**
+ * Element Pair Analysis Tests
+ *
+ * 모든 요소 쌍의 N(N-1)/2 조합 탐색
+ * - 요소 간 겹침 감지
+ * - 인접 요소 간 간격 검사
+ * - 패딩 적절성 분석
+ */
+test.describe('Layout Analysis - Element Pair Combinations', () => {
+  const CRITICAL_ROUTES = [
+    { path: '/salary-calculator', name: 'Salary Calculator' },
+    { path: '/team-divider', name: 'Team Divider' },
+    { path: '/rent-calculator', name: 'Rent Calculator' },
+  ];
+
+  for (const route of CRITICAL_ROUTES) {
+    test(`${route.name} - all element pairs should have proper spacing`, async ({ page }) => {
+      await page.goto(route.path);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(500);
+
+      const result = await analyzeAllElementPairs(page);
+      const report = generatePairAnalysisReport(result);
+
+      console.log(report);
+
+      // 분석 결과 통계
+      console.log(`\n📊 Pair Analysis Summary for ${route.name}:`);
+      console.log(`   Total elements: ${result.totalElements}`);
+      console.log(`   Analyzed pairs: ${result.analyzedPairs}`);
+      console.log(`   Overlapping: ${result.summary.overlappingPairs}`);
+      console.log(`   Too close: ${result.summary.tooClosePairs}`);
+      console.log(`   Insufficient padding: ${result.summary.insufficientPaddingElements}`);
+
+      // Critical: 심각한 겹침만 error로 처리
+      expect(result.issues.errors).toBeLessThanOrEqual(3);
+    });
+  }
+
+  test('Quick pair check for all apps', async ({ page }) => {
+    const apps = [
+      '/salary-calculator',
+      '/ladder-game',
+      '/balance-game',
+      '/dutch-pay',
+    ];
+
+    const results: { app: string; passed: boolean; errors: number }[] = [];
+
+    for (const app of apps) {
+      await page.goto(app);
+      await page.waitForLoadState('networkidle');
+
+      const { passed, criticalIssues } = await quickPairCheck(page);
+      results.push({ app, passed, errors: criticalIssues.length });
+    }
+
+    console.log('\n🔍 Quick Pair Check Results:');
+    console.log('─'.repeat(50));
+    results.forEach(r => {
+      const icon = r.passed ? '✅' : '❌';
+      console.log(`${icon} ${r.app}: ${r.errors} critical issues`);
+    });
+
+    // 전체 앱 중 절반 이상이 통과해야 함
+    const passedCount = results.filter(r => r.passed).length;
+    expect(passedCount).toBeGreaterThanOrEqual(Math.floor(apps.length / 2));
+  });
+});
+
+/**
+ * Full Layout Audit Test
+ *
+ * 한 앱에 대해 모든 레이아웃 분석 실행
+ */
+test.describe('Layout Analysis - Full Audit', () => {
+  test('Salary Calculator full layout audit', async ({ page }) => {
+    await page.goto('/salary-calculator');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    console.log('\n' + '═'.repeat(60));
+    console.log('📋 FULL LAYOUT AUDIT: Salary Calculator');
+    console.log('═'.repeat(60));
+
+    // 1. Basic layout analysis
+    const { issues: layoutIssues } = await analyzePageLayout(page);
+    console.log(`\n1️⃣ Layout Issues: ${layoutIssues.length}`);
+    layoutIssues.slice(0, 5).forEach(i => console.log(`   - ${i.type}: ${i.message}`));
+
+    // 2. Spacing analysis
+    const spacingIssues = await analyzeSpacing(page);
+    console.log(`\n2️⃣ Spacing Issues: ${spacingIssues.length}`);
+    spacingIssues.slice(0, 5).forEach(i => console.log(`   - ${i.type}: ${i.message}`));
+
+    // 3. Proportional spacing
+    const metrics = await collectSpacingMetrics(page);
+    const propIssues = analyzeProportionalSpacing(metrics);
+    console.log(`\n3️⃣ Proportional Spacing Issues: ${propIssues.length}`);
+    propIssues.slice(0, 5).forEach(i => console.log(`   - ${i.type}: ${i.message}`));
+
+    // 4. Element pairs
+    const pairResult = await analyzeAllElementPairs(page);
+    console.log(`\n4️⃣ Element Pair Analysis:`);
+    console.log(`   Elements: ${pairResult.totalElements}`);
+    console.log(`   Pairs analyzed: ${pairResult.analyzedPairs}`);
+    console.log(`   Overlaps: ${pairResult.summary.overlappingPairs}`);
+    console.log(`   Too close: ${pairResult.summary.tooClosePairs}`);
+
+    console.log('\n' + '═'.repeat(60));
+
+    // Total error count
+    const totalErrors =
+      layoutIssues.filter(i => i.severity === 'error').length +
+      spacingIssues.filter(i => i.severity === 'error').length +
+      propIssues.filter(i => i.severity === 'error').length +
+      pairResult.issues.errors;
+
+    console.log(`\n🎯 Total Errors: ${totalErrors}`);
+
+    // 최대 5개 error까지 허용
+    expect(totalErrors).toBeLessThanOrEqual(5);
   });
 });
