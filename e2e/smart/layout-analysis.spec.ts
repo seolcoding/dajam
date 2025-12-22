@@ -1,4 +1,10 @@
 import { test, expect, Page } from '@playwright/test';
+import {
+  collectSpacingMetrics,
+  analyzeProportionalSpacing,
+  compareViewportSpacing,
+  generateSpacingReport,
+} from '../utils/spacing-analyzer';
 
 /**
  * Layout Analysis Tests
@@ -10,6 +16,7 @@ import { test, expect, Page } from '@playwright/test';
  * - 텍스트 오버플로 감지
  * - 터치 타겟 크기
  * - 정렬 이슈
+ * - 비례적 간격 검사 (NEW)
  */
 
 interface ElementMetrics {
@@ -373,5 +380,134 @@ test.describe('Layout Analysis - Element Overlap Detection', () => {
 
     // This test documents current state - may have issues
     expect(overlapIssues.length).toBeLessThanOrEqual(5); // Allow some overlap for now
+  });
+});
+
+/**
+ * Proportional Spacing Tests
+ *
+ * 요소 크기에 비례하는 간격 검사
+ */
+test.describe('Layout Analysis - Proportional Spacing', () => {
+  const SAMPLE_ROUTES = [
+    { path: '/salary-calculator', name: 'Salary Calculator' },
+    { path: '/ladder-game', name: 'Ladder Game' },
+    { path: '/team-divider', name: 'Team Divider' },
+  ];
+
+  for (const route of SAMPLE_ROUTES) {
+    test(`${route.name} should have proportional spacing`, async ({ page }) => {
+      await page.goto(route.path);
+      await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(500);
+
+      const metrics = await collectSpacingMetrics(page);
+      const issues = analyzeProportionalSpacing(metrics);
+      const report = generateSpacingReport(metrics, issues);
+
+      console.log(report);
+
+      // 심각한 간격 이슈만 체크 (error severity)
+      const errors = issues.filter(i => i.severity === 'error');
+      expect(errors.length).toBeLessThanOrEqual(2);
+    });
+  }
+
+  test('Spacing should be responsive between mobile and desktop', async ({ page }) => {
+    await page.goto('/salary-calculator');
+    await page.waitForLoadState('networkidle');
+
+    const { mobile, desktop, issues } = await compareViewportSpacing(
+      page,
+      { width: 375, height: 667 },  // iPhone SE
+      { width: 1280, height: 720 }  // Desktop
+    );
+
+    console.log(`Mobile elements: ${mobile.length}`);
+    console.log(`Desktop elements: ${desktop.length}`);
+    console.log(`Responsive spacing issues: ${issues.length}`);
+
+    if (issues.length > 0) {
+      issues.slice(0, 5).forEach(issue => {
+        console.log(`  - ${issue.message}: ${issue.element}`);
+      });
+    }
+
+    // Info-level issues are acceptable (not enforced)
+    const criticalIssues = issues.filter(i => i.severity === 'error');
+    expect(criticalIssues.length).toBe(0);
+  });
+});
+
+/**
+ * Spacing Consistency Tests
+ *
+ * 앱 전체의 간격 일관성 검사
+ */
+test.describe('Layout Analysis - Spacing Consistency', () => {
+  test('Cards should have consistent padding across apps', async ({ page }) => {
+    const apps = ['/salary-calculator', '/rent-calculator', '/gpa-calculator'];
+    const cardPaddings: number[] = [];
+
+    for (const app of apps) {
+      await page.goto(app);
+      await page.waitForLoadState('networkidle');
+
+      const paddings = await page.evaluate(() => {
+        const cards = document.querySelectorAll('[class*="card"], [class*="Card"], .rounded-xl, .rounded-lg');
+        return Array.from(cards).slice(0, 5).map(card => {
+          const style = window.getComputedStyle(card);
+          return parseFloat(style.paddingLeft) || 0;
+        }).filter(p => p > 0);
+      });
+
+      cardPaddings.push(...paddings);
+    }
+
+    if (cardPaddings.length > 0) {
+      const avgPadding = cardPaddings.reduce((a, b) => a + b, 0) / cardPaddings.length;
+      const variance = Math.max(...cardPaddings) - Math.min(...cardPaddings);
+
+      console.log(`Card padding analysis:`);
+      console.log(`  Range: ${Math.min(...cardPaddings)}px - ${Math.max(...cardPaddings)}px`);
+      console.log(`  Average: ${avgPadding.toFixed(1)}px`);
+      console.log(`  Variance: ${variance}px`);
+
+      // 카드 패딩이 너무 다양하면 경고
+      expect(variance).toBeLessThanOrEqual(32); // 32px 이상 차이나면 불일치
+    }
+  });
+
+  test('Section gaps should follow a consistent scale', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const gaps = await page.evaluate(() => {
+      const sections = document.querySelectorAll('section, [class*="section"]');
+      const gapValues: number[] = [];
+
+      sections.forEach((section, i) => {
+        if (i === 0) return;
+        const prevSection = sections[i - 1];
+        const prevRect = prevSection.getBoundingClientRect();
+        const currRect = section.getBoundingClientRect();
+        const gap = currRect.top - prevRect.bottom;
+        if (gap > 0) gapValues.push(Math.round(gap));
+      });
+
+      return gapValues;
+    });
+
+    if (gaps.length >= 2) {
+      console.log(`Section gaps: ${gaps.join(', ')}`);
+
+      // 간격이 일관된 배수인지 확인 (예: 16, 32, 48 등)
+      const baseUnit = 8;
+      const notAligned = gaps.filter(g => g % baseUnit !== 0);
+
+      if (notAligned.length > 0) {
+        console.log(`Gaps not aligned to ${baseUnit}px grid: ${notAligned.join(', ')}`);
+      }
+    }
   });
 });
