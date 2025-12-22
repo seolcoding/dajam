@@ -72,8 +72,8 @@ export class AppPage {
 
   async setLocalStorage(key: string, value: unknown) {
     await this.page.evaluate(
-      ([k, v]) => localStorage.setItem(k, JSON.stringify(v)),
-      [key, value]
+      ({ k, v }) => localStorage.setItem(k, JSON.stringify(v)),
+      { k: key, v: value }
     );
   }
 

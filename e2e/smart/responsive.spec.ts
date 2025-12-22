@@ -119,9 +119,11 @@ test.describe('Responsive - Layout Integrity', () => {
     const input = page.locator('input').first();
     await expect(input).toBeVisible();
 
-    // Should be able to type
+    // Should be able to type (app auto-formats with commas)
     await input.fill('50000000');
-    await expect(input).toHaveValue('50000000');
+    // The app formats the value with commas, so check for either format
+    const value = await input.inputValue();
+    expect(value.replace(/,/g, '')).toBe('50000000');
   });
 
   test('ladder game should fit on tablet', async ({ page }) => {
