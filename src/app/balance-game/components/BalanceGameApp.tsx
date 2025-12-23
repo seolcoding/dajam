@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { categoryMetadata } from '../data/categories';
 import { questionTemplates } from '../data/templates';
 import type { Category, Question } from '../types';
-import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home } from 'lucide-react';
+import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home, Users } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import ResultChart from './ResultChart';
 import ShareButton from './ShareButton';
@@ -155,7 +155,7 @@ const BalanceGameApp: React.FC = () => {
           </div>
 
           {/* Action buttons */}
-          <div className="flex gap-4 justify-center mb-12">
+          <div className="flex flex-wrap gap-4 justify-center mb-12">
             <button
               onClick={handleRandomQuestion}
               className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg transition shadow-lg"
@@ -164,8 +164,15 @@ const BalanceGameApp: React.FC = () => {
               랜덤 질문
             </button>
             <button
+              onClick={() => router.push('/balance-game/session/create')}
+              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full font-bold text-lg transition shadow-lg"
+            >
+              <Users size={24} />
+              멀티플레이어
+            </button>
+            <button
               onClick={() => navigateTo('create')}
-              className="flex items-center gap-2 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-full font-bold text-lg transition shadow-lg"
+              className="flex items-center gap-2 px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold text-lg transition shadow-lg"
             >
               <Plus size={24} />
               질문 만들기

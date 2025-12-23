@@ -8,7 +8,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Plus, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Cloud, HardDrive, Loader2, Home } from 'lucide-react';
+import { useSupabaseSession } from '../hooks/useSupabaseSession';
 
 interface MenuItem {
   id: string;
@@ -17,12 +18,17 @@ interface MenuItem {
   description?: string;
 }
 
-export function CreateSessionPage({ onNavigate }: { onNavigate: (page: string, params?: Record<string, string>) => void }) {
+export function CreateSessionPage() {
+  const router = useRouter();
   const [restaurantName, setRestaurantName] = useState('');
   const [hostName, setHostName] = useState('');
   const [mode, setMode] = useState<'fixed' | 'free'>('fixed');
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [deadline, setDeadline] = useState('');
+  const [storageMode, setStorageMode] = useState<'local' | 'cloud'>('cloud');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { createCloudSession } = useSupabaseSession({ sessionCode: '', enabled: false });
 
   const handleAddMenu = () => {
     setMenus([
@@ -44,9 +50,41 @@ export function CreateSessionPage({ onNavigate }: { onNavigate: (page: string, p
     setMenus(menus.map(m => (m.id === id ? { ...m, [field]: value } : m)));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
+    try {
+      if (storageMode === 'cloud') {
+        // 클라우드 모드: Supabase에 저장
+        const sessionCode = await createCloudSession({
+          restaurantName,
+          hostName,
+          mode,
+          menus: mode === 'fixed' ? menus : [],
+          deadline: deadline ? new Date(deadline).toISOString() : null,
+        });
+
+        if (sessionCode) {
+          router.push(`/group-order/host/${sessionCode}`);
+        } else {
+          // 클라우드 실패 시 로컬로 폴백
+          console.warn('Cloud session failed, falling back to local');
+          createLocalSession();
+        }
+      } else {
+        // 로컬 모드
+        createLocalSession();
+      }
+    } catch (err) {
+      console.error('Failed to create session:', err);
+      createLocalSession();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const createLocalSession = () => {
     const sessionId = nanoid(8);
     const session = {
       id: sessionId,
@@ -59,11 +97,8 @@ export function CreateSessionPage({ onNavigate }: { onNavigate: (page: string, p
       orders: [],
     };
 
-    // Save to localStorage
     localStorage.setItem(`group-order-${sessionId}`, JSON.stringify(session));
-
-    // Navigate to host dashboard
-    onNavigate('host', { sessionId });
+    router.push(`/group-order/host/${sessionId}`);
   };
 
   return (
@@ -163,12 +198,53 @@ export function CreateSessionPage({ onNavigate }: { onNavigate: (page: string, p
               onChange={(e) => setDeadline(e.target.value)}
             />
           </div>
+
+          <div className="space-y-3">
+            <Label>저장 방식</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setStorageMode('local')}
+                className={`flex flex-col items-center gap-2 p-4 border rounded-lg transition-colors ${
+                  storageMode === 'local'
+                    ? 'border-gray-500 bg-gray-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <HardDrive className={`w-6 h-6 ${storageMode === 'local' ? 'text-gray-600' : 'text-gray-400'}`} />
+                <span className="text-sm font-medium">로컬 모드</span>
+                <span className="text-xs text-muted-foreground text-center">같은 기기에서만</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setStorageMode('cloud')}
+                className={`flex flex-col items-center gap-2 p-4 border rounded-lg transition-colors ${
+                  storageMode === 'cloud'
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <Cloud className={`w-6 h-6 ${storageMode === 'cloud' ? 'text-blue-500' : 'text-gray-400'}`} />
+                <span className="text-sm font-medium">클라우드 모드</span>
+                <span className="text-xs text-muted-foreground text-center">크로스 디바이스</span>
+              </button>
+            </div>
+          </div>
         </CardContent>
 
         <CardFooter>
-          <Button type="submit" className="w-full">
-            주문방 만들기
-            <ArrowRight className="w-4 h-4 ml-2" />
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                생성 중...
+              </>
+            ) : (
+              <>
+                주문방 만들기
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </CardFooter>
       </form>

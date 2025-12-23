@@ -6,16 +6,27 @@ import { useProfileStore } from '../store/profileStore';
 import { createRoomCode } from '../lib/roomCode';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Copy, LogOut, Eye, EyeOff } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Copy, LogOut, Eye, EyeOff, Cloud, HardDrive } from 'lucide-react';
 import type { Room } from '../types';
 
-export const RoomManager: React.FC<{ onRoomSelect: (roomId: string) => void }> = ({ onRoomSelect }) => {
+interface RoomManagerProps {
+  onRoomSelect: (roomId: string, isCloudMode?: boolean) => void;
+  onCreateCloudRoom?: (roomName: string) => Promise<string | null>;
+}
+
+export const RoomManager: React.FC<RoomManagerProps> = ({
+  onRoomSelect,
+  onCreateCloudRoom
+}) => {
   const { rooms, createRoom, joinRoom, leaveRoom } = useRoomStore();
   const { profile, getProfileById } = useProfileStore();
   const [joinCode, setJoinCode] = useState('');
   const [newRoomName, setNewRoomName] = useState('');
+  const [isCreatingCloud, setIsCreatingCloud] = useState(false);
 
-  const handleCreateRoom = () => {
+  // 로컬 교실 생성
+  const handleCreateLocalRoom = () => {
     if (!newRoomName.trim() || !profile) return;
 
     const room: Room = {
@@ -30,9 +41,34 @@ export const RoomManager: React.FC<{ onRoomSelect: (roomId: string) => void }> =
     setNewRoomName('');
   };
 
+  // 클라우드 교실 생성
+  const handleCreateCloudRoom = async () => {
+    if (!newRoomName.trim() || !profile || !onCreateCloudRoom) return;
+
+    setIsCreatingCloud(true);
+    try {
+      const code = await onCreateCloudRoom(newRoomName);
+      if (code) {
+        setNewRoomName('');
+        // 클라우드 교실로 바로 이동
+        onRoomSelect(code, true);
+      }
+    } finally {
+      setIsCreatingCloud(false);
+    }
+  };
+
   const handleJoinRoom = () => {
     if (!joinCode.trim() || !profile) return;
-    joinRoom(joinCode.toUpperCase(), profile.id);
+    // 클라우드 교실인지 확인 (6자리 이상이면 클라우드)
+    const isCloud = joinCode.length >= 6;
+    if (isCloud) {
+      // 클라우드 교실 참여
+      onRoomSelect(joinCode.toUpperCase(), true);
+    } else {
+      // 로컬 교실 참여
+      joinRoom(joinCode.toUpperCase(), profile.id);
+    }
     setJoinCode('');
   };
 
@@ -41,49 +77,66 @@ export const RoomManager: React.FC<{ onRoomSelect: (roomId: string) => void }> =
       {/* Room 생성 */}
       <Card className="p-6 border-gray-200 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-4">새 교실 만들기</h2>
-        <div className="flex gap-3">
+        <div className="space-y-3">
           <input
             type="text"
             value={newRoomName}
             onChange={(e) => setNewRoomName(e.target.value)}
             placeholder="교실 이름 (예: React 부트캠프 2기)"
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
           />
-          <Button
-            onClick={handleCreateRoom}
-            disabled={!newRoomName.trim() || !profile}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            생성하기
-          </Button>
-        </div>
-        {!profile && (
-          <p className="text-sm text-red-600 mt-3">
-            먼저 프로필을 생성해주세요
+          <div className="flex gap-3">
+            <Button
+              onClick={handleCreateLocalRoom}
+              disabled={!newRoomName.trim() || !profile}
+              variant="outline"
+              className="flex-1"
+            >
+              <HardDrive className="w-4 h-4 mr-2" />
+              로컬 교실
+            </Button>
+            <Button
+              onClick={handleCreateCloudRoom}
+              disabled={!newRoomName.trim() || !profile || !onCreateCloudRoom || isCreatingCloud}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              <Cloud className="w-4 h-4 mr-2" />
+              {isCreatingCloud ? '생성 중...' : '클라우드 교실'}
+            </Button>
+          </div>
+          {!profile && (
+            <p className="text-sm text-red-600">
+              먼저 프로필을 생성해주세요
+            </p>
+          )}
+          <p className="text-xs text-gray-500">
+            💡 클라우드 교실: 실시간 동기화, QR 코드 공유 가능
           </p>
-        )}
+        </div>
       </Card>
 
       {/* Room 참여 */}
       <Card className="p-6 border-gray-200 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-4">교실 참여하기</h2>
-        <div className="flex gap-3">
+        <div className="space-y-3">
           <input
             type="text"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            placeholder="6자리 코드 입력 (예: ABC123)"
-            maxLength={6}
-            className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all
+            placeholder="코드 입력 (로컬 6자리 / 클라우드 6자리 이상)"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all
                        font-mono text-xl tracking-widest uppercase"
           />
           <Button
             onClick={handleJoinRoom}
-            disabled={joinCode.length !== 6 || !profile}
-            className="bg-blue-600 hover:bg-blue-700"
+            disabled={joinCode.length < 6 || !profile}
+            className="w-full bg-blue-600 hover:bg-blue-700"
           >
             참여하기
           </Button>
+          <p className="text-xs text-gray-500">
+            💡 클라우드 교실 코드는 6자리 이상입니다
+          </p>
         </div>
       </Card>
 
@@ -120,6 +173,8 @@ interface RoomCardProps {
 
 const RoomCard: React.FC<RoomCardProps> = ({ room, onLeave, onSelect, getProfileById }) => {
   const [showCode, setShowCode] = useState(false);
+  // 6자리 = 로컬, 6자리 이상 = 클라우드
+  const isCloudRoom = room.id.length > 6;
 
   const members = room.members.map(id => getProfileById(id)).filter(Boolean);
 
@@ -131,9 +186,25 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, onLeave, onSelect, getProfile
   return (
     <Card className="p-6 border-gray-200 shadow-sm">
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-bold text-gray-900">{room.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="text-lg font-bold text-gray-900">{room.name}</h3>
+            <Badge
+              variant={isCloudRoom ? 'default' : 'secondary'}
+              className={isCloudRoom ? 'bg-blue-500' : ''}
+            >
+              {isCloudRoom ? (
+                <>
+                  <Cloud className="w-3 h-3 mr-1" /> 클라우드
+                </>
+              ) : (
+                <>
+                  <HardDrive className="w-3 h-3 mr-1" /> 로컬
+                </>
+              )}
+            </Badge>
+          </div>
+          <p className="text-sm text-gray-600">
             참여자: {room.members.length}명
           </p>
         </div>

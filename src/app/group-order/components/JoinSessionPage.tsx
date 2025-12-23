@@ -1,64 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { nanoid } from 'nanoid';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Check, ShoppingCart } from 'lucide-react';
-
-interface MenuItem {
-  id: string;
-  name: string;
-  price: number;
-}
-
-interface Session {
-  id: string;
-  restaurantName: string;
-  hostName: string;
-  mode: 'fixed' | 'free';
-  menus: MenuItem[];
-  deadline: string | null;
-  orders: Array<{
-    id: string;
-    name: string;
-    menuName: string;
-    quantity: number;
-    price: number;
-    timestamp: string;
-  }>;
-}
+import { Check, ShoppingCart, Cloud, HardDrive, RefreshCw, Loader2, Home } from 'lucide-react';
+import { useSupabaseSession } from '../hooks/useSupabaseSession';
 
 export function JoinSessionPage({
   sessionId,
-  onNavigate
 }: {
   sessionId: string;
-  onNavigate: (page: string, params?: Record<string, string>) => void;
 }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const router = useRouter();
   const [name, setName] = useState('');
   const [selectedMenu, setSelectedMenu] = useState('');
   const [freeMenuName, setFreeMenuName] = useState('');
   const [freeMenuPrice, setFreeMenuPrice] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const data = localStorage.getItem(`group-order-${sessionId}`);
-    if (data) {
-      setSession(JSON.parse(data));
-    }
-  }, [sessionId]);
+  const { session, isLoading, error, isCloudMode, submitOrder } = useSupabaseSession({
+    sessionCode: sessionId,
+    enabled: true,
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!session) return;
+    setIsSubmitting(true);
 
     let menuName = '';
     let price = 0;
@@ -74,29 +50,38 @@ export function JoinSessionPage({
       price = parseInt(freeMenuPrice) || 0;
     }
 
-    const order = {
-      id: nanoid(8),
+    const success = await submitOrder({
       name,
       menuName,
       quantity,
       price,
-      timestamp: new Date().toISOString(),
-    };
+    });
 
-    const updatedSession = {
-      ...session,
-      orders: [...session.orders, order],
-    };
-
-    localStorage.setItem(`group-order-${sessionId}`, JSON.stringify(updatedSession));
-    setSubmitted(true);
+    setIsSubmitting(false);
+    if (success) {
+      setSubmitted(true);
+    }
   };
 
-  if (!session) {
+  if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">주문방을 찾을 수 없습니다.</p>
-        <Button className="mt-4" onClick={() => onNavigate('home')}>
+        <RefreshCw className="w-8 h-8 mx-auto mb-4 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">주문방 로딩 중...</p>
+      </div>
+    );
+  }
+
+  const handleGoHome = () => {
+    router.push('/group-order');
+  };
+
+  if (error || !session) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">{error || '주문방을 찾을 수 없습니다.'}</p>
+        <Button className="mt-4" onClick={handleGoHome}>
+          <Home className="w-4 h-4 mr-2" />
           홈으로 돌아가기
         </Button>
       </div>
@@ -119,7 +104,8 @@ export function JoinSessionPage({
           <Button variant="outline" className="w-full" onClick={() => setSubmitted(false)}>
             추가 주문하기
           </Button>
-          <Button variant="ghost" className="w-full" onClick={() => onNavigate('home')}>
+          <Button variant="ghost" className="w-full" onClick={handleGoHome}>
+            <Home className="w-4 h-4 mr-2" />
             홈으로 돌아가기
           </Button>
         </CardFooter>
@@ -130,9 +116,18 @@ export function JoinSessionPage({
   return (
     <Card className="max-w-md mx-auto">
       <CardHeader>
-        <div className="flex items-center gap-2 mb-2">
-          <ShoppingCart className="w-5 h-5" />
-          <Badge variant="secondary">{session.restaurantName}</Badge>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="w-5 h-5" />
+            <Badge variant="secondary">{session.restaurantName}</Badge>
+          </div>
+          <Badge variant={isCloudMode ? 'default' : 'secondary'} className={isCloudMode ? 'bg-blue-500' : ''}>
+            {isCloudMode ? (
+              <><Cloud className="w-3 h-3 mr-1" /> 클라우드</>
+            ) : (
+              <><HardDrive className="w-3 h-3 mr-1" /> 로컬</>
+            )}
+          </Badge>
         </div>
         <CardTitle>주문하기</CardTitle>
         <CardDescription>
@@ -207,8 +202,15 @@ export function JoinSessionPage({
         </CardContent>
 
         <CardFooter>
-          <Button type="submit" className="w-full">
-            주문하기
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                주문 전송 중...
+              </>
+            ) : (
+              '주문하기'
+            )}
           </Button>
         </CardFooter>
       </form>

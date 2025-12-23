@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { nanoid } from 'nanoid';
 import Confetti from 'react-confetti';
-import { Check, ArrowUp, ArrowDown, Zap } from 'lucide-react';
+import { Check, ArrowUp, ArrowDown, Zap, Cloud } from 'lucide-react';
 import type { Poll, Vote } from '../types/poll';
 import { loadPoll, saveVote } from '../utils/storage';
 import { hasVoted, markAsVoted } from '../utils/voteValidator';
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel';
+import { useSupabasePoll } from '../hooks/useSupabasePoll';
 
 interface VoteViewProps {
   pollId: string;
@@ -20,7 +21,16 @@ export function VoteView({ pollId }: VoteViewProps) {
   const [selection, setSelection] = useState<number | number[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [rankingOrder, setRankingOrder] = useState<number[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { broadcast } = useBroadcastChannel(`poll:${pollId}`, () => {});
+
+  // Supabase cloud mode hook
+  const {
+    poll: cloudPoll,
+    submitVote: submitCloudVote,
+    isLoading: cloudLoading,
+    sessionId,
+  } = useSupabasePoll({ pollId, enabled: true });
 
   useEffect(() => {
     if (!pollId) {
@@ -28,7 +38,19 @@ export function VoteView({ pollId }: VoteViewProps) {
       return;
     }
 
-    // 투표 데이터 로드
+    // 클라우드 poll이 있으면 사용, 없으면 로컬 poll 사용
+    if (cloudPoll) {
+      setPoll(cloudPoll);
+      if (cloudPoll.type === 'ranking') {
+        setRankingOrder(cloudPoll.options.map((_, i) => i));
+      }
+      return;
+    }
+
+    // 클라우드 로딩 중이면 대기
+    if (cloudLoading) return;
+
+    // 클라우드에 없으면 로컬에서 로드
     const pollData = loadPoll(pollId);
     if (!pollData) {
       alert('투표를 찾을 수 없습니다.');
@@ -43,11 +65,11 @@ export function VoteView({ pollId }: VoteViewProps) {
       setRankingOrder(pollData.options.map((_, i) => i));
     }
 
-    // 이미 투표했는지 확인
+    // 이미 투표했는지 확인 (로컬 모드)
     if (hasVoted(pollId)) {
       setSubmitted(true);
     }
-  }, [pollId, router]);
+  }, [pollId, router, cloudPoll, cloudLoading]);
 
   const handleSingleSelect = (index: number) => {
     setSelection(index);
@@ -72,8 +94,12 @@ export function VoteView({ pollId }: VoteViewProps) {
     setRankingOrder(newOrder);
   };
 
-  const handleSubmit = () => {
-    if (!poll || !pollId || hasVoted(pollId)) return;
+  const handleSubmit = async () => {
+    if (!poll || !pollId) return;
+
+    // 로컬 모드에서 중복 투표 체크
+    const isCloudMode = poll.isCloudMode || !!sessionId;
+    if (!isCloudMode && hasVoted(pollId)) return;
 
     let finalSelection: number | number[];
 
@@ -102,15 +128,28 @@ export function VoteView({ pollId }: VoteViewProps) {
       timestamp: new Date(),
     };
 
-    // 투표 저장
-    saveVote(vote);
+    setIsSubmitting(true);
 
-    // 중복 투표 방지 마킹
+    // 클라우드 모드일 때 Supabase에 투표
+    if (isCloudMode) {
+      const success = await submitCloudVote(vote);
+      if (!success) {
+        alert('투표 전송에 실패했습니다. 다시 시도해주세요.');
+        setIsSubmitting(false);
+        return;
+      }
+    } else {
+      // 로컬 모드: localStorage에 저장
+      saveVote(vote);
+
+      // BroadcastChannel로 호스트에게 알림
+      broadcast({ type: 'NEW_VOTE', vote });
+    }
+
+    // 중복 투표 방지 마킹 (둘 다에서 사용)
     markAsVoted(pollId);
 
-    // BroadcastChannel로 호스트에게 알림
-    broadcast({ type: 'NEW_VOTE', vote });
-
+    setIsSubmitting(false);
     setSubmitted(true);
   };
 
@@ -258,12 +297,30 @@ export function VoteView({ pollId }: VoteViewProps) {
           </div>
         )}
 
+        {/* 클라우드 모드 표시 */}
+        {(poll.isCloudMode || sessionId) && (
+          <div className="mb-4 flex items-center justify-center gap-2 text-blue-600 bg-blue-50 py-2 px-4 rounded-lg">
+            <Cloud size={16} />
+            <span className="text-sm font-medium">크로스 디바이스 투표</span>
+          </div>
+        )}
+
         <button
           onClick={handleSubmit}
-          className="w-full px-6 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xl transition-all hover:scale-[1.02] shadow-xl hover:shadow-2xl flex items-center justify-center gap-2"
+          disabled={isSubmitting}
+          className="w-full px-6 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xl transition-all hover:scale-[1.02] shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
-          <Zap size={24} fill="currentColor" />
-          투표하기
+          {isSubmitting ? (
+            <>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              전송 중...
+            </>
+          ) : (
+            <>
+              <Zap size={24} fill="currentColor" />
+              투표하기
+            </>
+          )}
         </button>
       </div>
     </div>

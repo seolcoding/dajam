@@ -1,25 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Copy, Check, Home, RefreshCw } from 'lucide-react';
-
-interface Order {
-  id: string;
-  name: string;
-  menuName: string;
-  quantity: number;
-  price: number;
-}
-
-interface Session {
-  id: string;
-  restaurantName: string;
-  hostName: string;
-  orders: Order[];
-}
+import { Badge } from '@/components/ui/badge';
+import { Copy, Check, Home, RefreshCw, Cloud, HardDrive, Loader2 } from 'lucide-react';
+import { useSupabaseSession } from '../hooks/useSupabaseSession';
 
 interface MenuSummary {
   menuName: string;
@@ -30,25 +18,42 @@ interface MenuSummary {
 
 export function SummaryPage({
   sessionId,
-  onNavigate
 }: {
   sessionId: string;
-  onNavigate: (page: string, params?: Record<string, string>) => void;
 }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const data = localStorage.getItem(`group-order-${sessionId}`);
-    if (data) {
-      setSession(JSON.parse(data));
-    }
-  }, [sessionId]);
+  const { session, isLoading, error, isCloudMode } = useSupabaseSession({
+    sessionCode: sessionId,
+    enabled: true,
+  });
 
-  if (!session) {
+  const handleGoHome = () => {
+    router.push('/group-order');
+  };
+
+  const handleGoBack = () => {
+    router.push(`/group-order/host/${sessionId}`);
+  };
+
+  if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">주문방을 찾을 수 없습니다.</p>
+        <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">주문 내역 로딩 중...</p>
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">{error || '주문방을 찾을 수 없습니다.'}</p>
+        <Button className="mt-4" onClick={handleGoHome}>
+          <Home className="w-4 h-4 mr-2" />
+          홈으로 돌아가기
+        </Button>
       </div>
     );
   }
@@ -144,7 +149,7 @@ ${menuSummary.map(m => `- ${m.menuName} x ${m.quantity} = ${(m.price * m.quantit
             <Button
               variant="ghost"
               className="flex-1"
-              onClick={() => onNavigate('host', { sessionId })}
+              onClick={handleGoBack}
             >
               <RefreshCw className="w-4 h-4 mr-2" />
               돌아가기
@@ -152,7 +157,7 @@ ${menuSummary.map(m => `- ${m.menuName} x ${m.quantity} = ${(m.price * m.quantit
             <Button
               variant="ghost"
               className="flex-1"
-              onClick={() => onNavigate('home')}
+              onClick={handleGoHome}
             >
               <Home className="w-4 h-4 mr-2" />
               홈으로

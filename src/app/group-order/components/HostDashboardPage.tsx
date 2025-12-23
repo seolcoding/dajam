@@ -1,50 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { QRCodeSVG } from './QRCode';
-import { Copy, Check, Users, ArrowRight } from 'lucide-react';
-
-interface Order {
-  id: string;
-  name: string;
-  menuName: string;
-  quantity: number;
-  price: number;
-  timestamp: string;
-}
-
-interface Session {
-  id: string;
-  restaurantName: string;
-  hostName: string;
-  mode: 'fixed' | 'free';
-  menus: Array<{ id: string; name: string; price: number }>;
-  deadline: string | null;
-  orders: Order[];
-}
+import {
+  Copy, Check, Users, ArrowRight, Cloud, HardDrive, RefreshCw, Home,
+  Share2, ShoppingBag, Clock
+} from 'lucide-react';
+import { useSupabaseSession } from '../hooks/useSupabaseSession';
+import { RealtimeIndicator } from '@/components/common/RealtimeIndicator';
+import { CopyableLink } from '@/components/common/CopyableLink';
 
 export function HostDashboardPage({
   sessionId,
-  onNavigate
 }: {
   sessionId: string;
-  onNavigate: (page: string, params?: Record<string, string>) => void;
 }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    const data = localStorage.getItem(`group-order-${sessionId}`);
-    if (data) {
-      setSession(JSON.parse(data));
-    }
-  }, [sessionId]);
+  const { session, isLoading, error, isCloudMode, reload, closeSession } = useSupabaseSession({
+    sessionCode: sessionId,
+    enabled: true,
+  });
 
   const shareUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}/group-order?page=join&sessionId=${sessionId}`
+    ? `${window.location.origin}/group-order/join/${sessionId}`
     : '';
 
   const handleCopy = async () => {
@@ -53,20 +37,78 @@ export function HostDashboardPage({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleFinish = () => {
-    onNavigate('summary', { sessionId });
+  const handleFinish = async () => {
+    if (isCloudMode) {
+      await closeSession();
+    }
+    router.push(`/group-order/summary/${sessionId}`);
   };
 
-  if (!session) {
+  const handleGoHome = () => {
+    router.push('/group-order');
+  };
+
+  if (isLoading) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">주문방을 찾을 수 없습니다.</p>
+        <RefreshCw className="w-8 h-8 mx-auto mb-4 animate-spin text-muted-foreground" />
+        <p className="text-muted-foreground">주문방 로딩 중...</p>
+      </div>
+    );
+  }
+
+  if (error || !session) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">{error || '주문방을 찾을 수 없습니다.'}</p>
+        <Button className="mt-4" onClick={handleGoHome}>
+          <Home className="w-4 h-4 mr-2" />
+          홈으로 돌아가기
+        </Button>
       </div>
     );
   }
 
   const totalOrders = session.orders?.length || 0;
   const totalAmount = session.orders?.reduce((sum, o) => sum + o.price * o.quantity, 0) || 0;
+
+  // 고유 참여자 수 계산
+  const uniqueParticipants = useMemo(() => {
+    const names = new Set(session.orders?.map(o => o.name) || []);
+    return names.size;
+  }, [session.orders]);
+
+  // 공유용 텍스트 생성
+  const shareText = useMemo(() => {
+    if (!session.orders?.length) return '';
+
+    const menuSummary: Record<string, { quantity: number; price: number; orderers: string[] }> = {};
+    session.orders.forEach(order => {
+      if (!menuSummary[order.menuName]) {
+        menuSummary[order.menuName] = { quantity: 0, price: order.price, orderers: [] };
+      }
+      menuSummary[order.menuName].quantity += order.quantity;
+      menuSummary[order.menuName].orderers.push(`${order.name}(${order.quantity})`);
+    });
+
+    return `[${session.restaurantName}] 주문 현황\n\n${Object.entries(menuSummary).map(([menu, data]) =>
+      `• ${menu} x${data.quantity} = ${(data.price * data.quantity).toLocaleString()}원\n  └ ${data.orderers.join(', ')}`
+    ).join('\n')}\n\n총 금액: ${totalAmount.toLocaleString()}원 (${uniqueParticipants}명)`;
+  }, [session, totalAmount, uniqueParticipants]);
+
+  const handleShareText = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: shareText });
+      } catch {
+        // 공유 취소
+      }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -78,9 +120,19 @@ export function HostDashboardPage({
               <CardTitle className="text-2xl">{session.restaurantName}</CardTitle>
               <CardDescription>방장: {session.hostName}</CardDescription>
             </div>
-            <Badge variant="outline">
-              {session.mode === 'fixed' ? '메뉴 선택형' : '자유 입력형'}
-            </Badge>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline">
+                {session.mode === 'fixed' ? '메뉴 선택형' : '자유 입력형'}
+              </Badge>
+              <Badge variant={isCloudMode ? 'default' : 'secondary'} className={isCloudMode ? 'bg-blue-500' : ''}>
+                {isCloudMode ? (
+                  <><Cloud className="w-3 h-3 mr-1" /> 클라우드</>
+                ) : (
+                  <><HardDrive className="w-3 h-3 mr-1" /> 로컬</>
+                )}
+              </Badge>
+              {isCloudMode && <RealtimeIndicator isConnected={true} />}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -94,31 +146,32 @@ export function HostDashboardPage({
             {/* Share Link */}
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium mb-2">초대 링크</p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={shareUrl}
-                    readOnly
-                    className="flex-1 px-3 py-2 text-sm border rounded-md bg-muted"
-                  />
-                  <Button variant="outline" size="icon" onClick={handleCopy}>
-                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                  </Button>
-                </div>
+                <p className="text-sm font-medium mb-2">초대 링크 (클릭해서 복사)</p>
+                <CopyableLink url={shareUrl} className="w-full" />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <Users className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
-                  <p className="text-2xl font-bold">{totalOrders}</p>
-                  <p className="text-xs text-muted-foreground">주문 수</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-blue-50 rounded-lg text-center border border-blue-100">
+                  <Users className="w-5 h-5 mx-auto mb-1 text-blue-600" />
+                  <p className="text-2xl font-bold text-blue-700">{uniqueParticipants}</p>
+                  <p className="text-xs text-blue-600">참여자</p>
                 </div>
-                <div className="p-3 bg-muted rounded-lg text-center">
-                  <p className="text-2xl font-bold">{totalAmount.toLocaleString()}원</p>
-                  <p className="text-xs text-muted-foreground">총 금액</p>
+                <div className="p-3 bg-green-50 rounded-lg text-center border border-green-100">
+                  <ShoppingBag className="w-5 h-5 mx-auto mb-1 text-green-600" />
+                  <p className="text-2xl font-bold text-green-700">{totalOrders}</p>
+                  <p className="text-xs text-green-600">주문 수</p>
+                </div>
+                <div className="p-3 bg-orange-50 rounded-lg text-center border border-orange-100">
+                  <p className="text-2xl font-bold text-orange-700">{totalAmount.toLocaleString()}</p>
+                  <p className="text-xs text-orange-600">원</p>
                 </div>
               </div>
+              {isCloudMode && (
+                <Button variant="outline" size="sm" onClick={reload} className="w-full mt-2">
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  새로고침
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -127,7 +180,15 @@ export function HostDashboardPage({
       {/* Orders List */}
       <Card>
         <CardHeader>
-          <CardTitle>주문 현황</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>주문 현황</CardTitle>
+            {totalOrders > 0 && (
+              <Button variant="outline" size="sm" onClick={handleShareText}>
+                <Share2 className="w-4 h-4 mr-2" />
+                주문 공유
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {totalOrders === 0 ? (
@@ -137,9 +198,20 @@ export function HostDashboardPage({
           ) : (
             <div className="space-y-3">
               {session.orders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{order.name}</p>
+                <div key={order.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium">{order.name}</p>
+                      {order.timestamp && (
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(order.timestamp).toLocaleTimeString('ko-KR', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {order.menuName} x {order.quantity}
                     </p>

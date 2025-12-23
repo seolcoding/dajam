@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useNetworkSession } from '../hooks/useNetworkSession';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, Heart, MessageCircle, User } from 'lucide-react';
+import { ArrowLeft, Users, Heart, MessageCircle, User, Cloud, HardDrive } from 'lucide-react';
+import { RealtimeIndicator } from '@/components/common/RealtimeIndicator';
 import { MatchingView } from './MatchingView';
 import { IcebreakerView } from './IcebreakerView';
 import { ProfileCard } from './ProfileCard';
@@ -12,33 +15,95 @@ import { useProfileStore } from '../store/profileStore';
 
 interface RoomViewProps {
   roomId: string;
+  isCloudMode?: boolean;
   onBack: () => void;
 }
 
-export const RoomView: React.FC<RoomViewProps> = ({ roomId, onBack }) => {
+export const RoomView: React.FC<RoomViewProps> = ({ roomId, isCloudMode = false, onBack }) => {
   const { getRoomById } = useRoomStore();
   const { profile, getProfileById } = useProfileStore();
-  const room = getRoomById(roomId);
   const [showProfileCard, setShowProfileCard] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
 
-  if (!room || !profile) return null;
+  // 클라우드 모드일 때만 실시간 세션 사용
+  const {
+    roomName: cloudRoomName,
+    profiles: cloudProfiles,
+    participantCount,
+    isLoading,
+    connectionStatus,
+    isConnected,
+    joinRoom,
+  } = useNetworkSession(roomId, isCloudMode);
 
-  const members = room.members.map(id => getProfileById(id)).filter(Boolean) as any[];
+  // 로컬 교실 데이터
+  const localRoom = !isCloudMode ? getRoomById(roomId) : null;
+  const localMembers = localRoom ? localRoom.members.map(id => getProfileById(id)).filter(Boolean) as any[] : [];
+
+  // 표시할 데이터 선택
+  const roomName = isCloudMode ? cloudRoomName : localRoom?.name;
+  const members = isCloudMode ? cloudProfiles : localMembers;
+
+  // 클라우드 모드 자동 참여
+  useEffect(() => {
+    if (isCloudMode && profile && !hasJoined && !isLoading) {
+      joinRoom(profile).then(() => {
+        setHasJoined(true);
+      });
+    }
+  }, [isCloudMode, profile, hasJoined, isLoading, joinRoom]);
+
+  if (!profile) return null;
+  if (isCloudMode && isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">교실 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+  if (!roomName) return null;
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* 헤더 */}
       <div className="bg-white shadow-sm border-b sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <Button onClick={onBack} variant="outline" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-1" />
                 뒤로가기
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">{room.name}</h1>
-                <p className="text-sm text-gray-500">참여자 {members.length}명</p>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-2xl font-bold">{roomName}</h1>
+                  <Badge
+                    variant={isCloudMode ? 'default' : 'secondary'}
+                    className={isCloudMode ? 'bg-blue-500' : ''}
+                  >
+                    {isCloudMode ? (
+                      <>
+                        <Cloud className="w-3 h-3 mr-1" /> 클라우드
+                      </>
+                    ) : (
+                      <>
+                        <HardDrive className="w-3 h-3 mr-1" /> 로컬
+                      </>
+                    )}
+                  </Badge>
+                  {isCloudMode && (
+                    <RealtimeIndicator
+                      isConnected={isConnected}
+                      showTimestamp={false}
+                    />
+                  )}
+                </div>
+                <p className="text-sm text-gray-500">
+                  참여자 {isCloudMode ? participantCount : members.length}명
+                </p>
               </div>
             </div>
             <Button onClick={() => setShowProfileCard(!showProfileCard)} variant="outline">

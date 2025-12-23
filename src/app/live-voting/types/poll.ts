@@ -14,6 +14,7 @@ export interface Poll {
   createdAt: Date; // 생성 시간
   expiresAt?: Date; // 선택적 만료 시간
   allowAnonymous: boolean; // 익명 투표 허용 (기본 true)
+  isCloudMode?: boolean; // Supabase 클라우드 모드 (크로스 디바이스 지원)
 }
 
 /**

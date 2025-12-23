@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
-import { Maximize2, Minimize2, Users, Home, QrCode, TrendingUp, Sparkles } from 'lucide-react';
+import { Maximize2, Minimize2, Users, Home, QrCode, TrendingUp, Sparkles, Cloud, Monitor } from 'lucide-react';
 import { useLiveResults } from '../hooks/useLiveResults';
 import { ResultChart } from './ResultChart';
+import { RealtimeIndicator } from '@/components/common/RealtimeIndicator';
+import { CopyableLink } from '@/components/common/CopyableLink';
 
 interface HostViewProps {
   pollId: string;
@@ -13,7 +15,7 @@ interface HostViewProps {
 
 export function HostView({ pollId }: HostViewProps) {
   const router = useRouter();
-  const { poll, votes, results } = useLiveResults(pollId);
+  const { poll, votes, results, isCloudMode } = useLiveResults(pollId);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [isPresentationMode, setIsPresentationMode] = useState(false);
 
@@ -51,7 +53,7 @@ export function HostView({ pollId }: HostViewProps) {
                 {poll.title}
               </h1>
             </div>
-            <div className={`flex items-center gap-3 ${isPresentationMode ? 'text-3xl text-white/90' : 'text-xl text-gray-600'}`}>
+            <div className={`flex items-center gap-3 flex-wrap ${isPresentationMode ? 'text-3xl text-white/90' : 'text-xl text-gray-600'}`}>
               <div className={`flex items-center gap-2 ${isPresentationMode ? 'bg-white/20 backdrop-blur-sm px-6 py-3 rounded-2xl' : 'bg-blue-50 px-4 py-2 rounded-xl border border-blue-200'}`}>
                 <Users size={isPresentationMode ? 32 : 24} className={isPresentationMode ? 'text-white' : 'text-blue-600'} />
                 <span className="font-semibold">
@@ -59,6 +61,22 @@ export function HostView({ pollId }: HostViewProps) {
                   <span className="ml-2">명 참여</span>
                 </span>
               </div>
+              {/* 클라우드/로컬 모드 표시 */}
+              <div className={`flex items-center gap-2 ${isPresentationMode ? 'bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl' : 'px-3 py-1 rounded-lg border ' + (isCloudMode ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200')}`}>
+                {isCloudMode ? (
+                  <>
+                    <Cloud size={isPresentationMode ? 24 : 16} className={isPresentationMode ? 'text-white' : 'text-blue-600'} />
+                    <span className={`text-sm font-medium ${isPresentationMode ? 'text-white' : 'text-blue-600'}`}>클라우드</span>
+                  </>
+                ) : (
+                  <>
+                    <Monitor size={isPresentationMode ? 24 : 16} className={isPresentationMode ? 'text-white' : 'text-gray-600'} />
+                    <span className={`text-sm font-medium ${isPresentationMode ? 'text-white' : 'text-gray-600'}`}>로컬</span>
+                  </>
+                )}
+              </div>
+              {/* 실시간 타임스탬프 */}
+              <RealtimeIndicator isConnected={true} />
             </div>
           </div>
           <div className="flex gap-3">
@@ -102,13 +120,12 @@ export function HostView({ pollId }: HostViewProps) {
               </div>
               <div className={`mt-6 text-center ${isPresentationMode ? 'space-y-3' : 'space-y-2'}`}>
                 <p className={`text-gray-700 font-medium ${isPresentationMode ? 'text-xl' : 'text-base'}`}>
-                  QR 코드를 스캔하거나<br />아래 링크로 접속하세요
+                  QR 코드를 스캔하거나<br />아래 링크를 클릭해 복사하세요
                 </p>
-                <div className={`${isPresentationMode ? 'px-6 py-4' : 'px-4 py-3'} bg-blue-50 rounded-xl border border-blue-200`}>
-                  <p className={`font-mono text-blue-700 font-semibold break-all ${isPresentationMode ? 'text-base' : 'text-sm'}`}>
-                    {window.location.origin}/live-voting/vote/{pollId}
-                  </p>
-                </div>
+                <CopyableLink
+                  url={`${window.location.origin}/live-voting/vote/${pollId}`}
+                  className={isPresentationMode ? 'text-base' : ''}
+                />
               </div>
             </div>
           )}

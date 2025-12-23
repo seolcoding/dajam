@@ -1,14 +1,11 @@
 'use client';
 
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Users, QrCode, Calculator, Share2 } from 'lucide-react';
 
-interface HomePageProps {
-  onNavigate: (path: string) => void;
-}
-
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-16">
@@ -21,10 +18,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </p>
           <Button
             size="lg"
-            onClick={() => onNavigate('/create')}
+            asChild
             className="text-lg px-8 py-6 bg-green-600 hover:bg-green-700 text-white"
           >
-            주문방 만들기
+            <Link href="/group-order/create">주문방 만들기</Link>
           </Button>
         </div>
 

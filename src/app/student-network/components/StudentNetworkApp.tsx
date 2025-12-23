@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useProfileStore } from '../store/profileStore';
+import { useNetworkSession } from '../hooks/useNetworkSession';
 import { ProfileForm } from './ProfileForm';
 import { RoomManager } from './RoomManager';
 import { RoomView } from './RoomView';
@@ -15,7 +16,11 @@ export function StudentNetworkApp() {
   const { profile } = useProfileStore();
   const [currentView, setCurrentView] = useState<View>('profile-form');
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const [isCloudMode, setIsCloudMode] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // 클라우드 교실 생성용 세션 (빈 코드로 초기화, 생성 시에만 사용)
+  const { createRoom } = useNetworkSession('', false);
 
   useEffect(() => {
     if (profile) {
@@ -23,14 +28,28 @@ export function StudentNetworkApp() {
     }
   }, [profile]);
 
-  const handleRoomSelect = (roomId: string) => {
+  const handleRoomSelect = (roomId: string, cloudMode = false) => {
     setSelectedRoomId(roomId);
+    setIsCloudMode(cloudMode);
     setCurrentView('room-view');
   };
 
   const handleBackToRooms = () => {
     setCurrentView('room-manager');
     setSelectedRoomId(null);
+    setIsCloudMode(false);
+  };
+
+  // 클라우드 교실 생성
+  const handleCreateCloudRoom = async (roomName: string): Promise<string | null> => {
+    if (!profile) return null;
+
+    return await createRoom({
+      roomName,
+      createdBy: profile.id,
+      description: `${profile.name}님의 교실`,
+      hostProfile: profile,
+    });
   };
 
   return (
@@ -81,10 +100,17 @@ export function StudentNetworkApp() {
           <ProfileForm onComplete={() => setCurrentView('room-manager')} />
         )}
         {currentView === 'room-manager' && (
-          <RoomManager onRoomSelect={handleRoomSelect} />
+          <RoomManager
+            onRoomSelect={handleRoomSelect}
+            onCreateCloudRoom={handleCreateCloudRoom}
+          />
         )}
         {currentView === 'room-view' && selectedRoomId && (
-          <RoomView roomId={selectedRoomId} onBack={handleBackToRooms} />
+          <RoomView
+            roomId={selectedRoomId}
+            isCloudMode={isCloudMode}
+            onBack={handleBackToRooms}
+          />
         )}
       </main>
 
