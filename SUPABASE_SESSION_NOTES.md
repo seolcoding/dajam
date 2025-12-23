@@ -42,17 +42,19 @@ packages/db/
 
 ## Supabase Project Credentials
 
-**Project URL**: `https://hwgsqzdpqmfoyxiymjsp.supabase.co`
+> ⚠️ **SECURITY**: API 키는 `.env.local` 파일에만 저장하세요. 절대 커밋하지 마세요!
+
 **Project Reference ID**: `hwgsqzdpqmfoyxiymjsp`
 
 ### Environment Variables (.env.local)
 
 ```env
+# Supabase Dashboard에서 복사: Settings > API
 NEXT_PUBLIC_SUPABASE_URL=https://hwgsqzdpqmfoyxiymjsp.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z3NxemRwcW1mb3l4aXltanNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzNjA3MDMsImV4cCI6MjA4MTkzNjcwM30.XCIYzVHiO-taiARb0x-9rNEWxDgTCJ8tybsueccAlbI
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
 
-# Server-side only (uncomment if needed)
-# SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Z3NxemRwcW1mb3l4aXltanNwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjM2MDcwMywiZXhwIjoyMDgxOTM2NzAzfQ.U1JEc4L81jeB2mus0HwfAYHv5pTtcRmKnjd7tA7TATU
+# Server-side only (optional)
+# SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 ```
 
 ## Next Steps
