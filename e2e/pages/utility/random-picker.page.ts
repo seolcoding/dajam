@@ -17,15 +17,16 @@ export class RandomPickerPage extends BasePage {
 
   // Locators
   get itemInput() {
-    return this.page.getByPlaceholder(/항목|item|추가/i);
+    return this.page.getByPlaceholder(/항목 입력|항목|item/i);
   }
 
   get addButton() {
-    return this.page.getByRole('button', { name: /추가|add/i });
+    // Icon-only button with Plus icon inside form
+    return this.page.locator('form button[type="submit"]');
   }
 
   get spinButton() {
-    return this.page.getByRole('button', { name: /돌리기|spin|start/i });
+    return this.page.getByRole('button', { name: /SPIN|돌리기|시작/i });
   }
 
   get wheelCanvas() {
@@ -33,19 +34,21 @@ export class RandomPickerPage extends BasePage {
   }
 
   get itemList() {
-    return this.page.locator('.item-list, [data-testid="item-list"]');
+    // Items are in Cards inside a scrollable container
+    return this.page.locator('.max-h-\\[500px\\], .space-y-2').first();
   }
 
   get resultModal() {
-    return this.page.locator('[role="dialog"], .modal, .result');
+    return this.page.locator('[role="dialog"], [data-state="open"]');
   }
 
   get historyList() {
-    return this.page.locator('.history, [data-testid="history"]');
+    return this.page.locator('[role="dialog"]:has-text("히스토리"), .history');
   }
 
-  get itemChips() {
-    return this.page.locator('.item-chip, [data-item], .badge');
+  get itemCards() {
+    // Items are displayed as Cards with the item label
+    return this.page.locator('.space-y-2 .p-3, .bg-gray-50.p-3');
   }
 
   // Actions
@@ -55,7 +58,9 @@ export class RandomPickerPage extends BasePage {
 
   async addItem(name: string) {
     await this.itemInput.fill(name);
-    await this.addButton.click();
+    // Press Enter to submit since button may be icon-only
+    await this.itemInput.press('Enter');
+    await this.waitForAnimation(200);
   }
 
   async addItems(names: string[]) {
@@ -66,40 +71,41 @@ export class RandomPickerPage extends BasePage {
 
   async spin() {
     await this.spinButton.click();
-    // Wait for wheel animation
-    await this.waitForAnimation(3000);
+    // Wait for wheel animation (longer animation)
+    await this.waitForAnimation(4000);
   }
 
   async removeItem(name: string) {
-    const item = this.page.locator(`[data-item="${name}"], .item:has-text("${name}")`);
-    await item.locator('button, .remove, .delete').click();
+    // Find the card containing the item name and click the trash button
+    const itemCard = this.page.locator(`.p-3:has-text("${name}")`);
+    await itemCard.locator('button:has(.lucide-trash-2), button:last-child').click();
+    await this.waitForAnimation(200);
   }
 
   async closeModal() {
     await this.page.keyboard.press('Escape');
+    await this.waitForAnimation(200);
   }
 
   // Assertions
   async expectWheelVisible() {
-    await expect(this.wheelCanvas).toBeVisible();
+    await expect(this.wheelCanvas).toBeVisible({ timeout: 5000 });
   }
 
   async expectItemCount(count: number) {
-    await expect(this.itemChips).toHaveCount(count);
+    await expect(this.itemCards).toHaveCount(count, { timeout: 5000 });
   }
 
   async expectResultVisible() {
-    await expect(this.resultModal).toBeVisible();
+    await expect(this.resultModal).toBeVisible({ timeout: 5000 });
   }
 
   async expectHistoryCount(count: number) {
-    const historyItems = this.historyList.locator('.history-item, li');
+    const historyItems = this.historyList.locator('li, .history-item');
     await expect(historyItems).toHaveCount(count);
   }
 
   async expectItemInWheel(name: string) {
-    await expect(
-      this.page.getByText(name)
-    ).toBeVisible();
+    await expect(this.page.getByText(name).first()).toBeVisible({ timeout: 5000 });
   }
 }

@@ -26,8 +26,8 @@ test.describe('Salary Calculator', () => {
     await salaryPage.calculate();
 
     await salaryPage.expectResultVisible();
-    // 50M annual should result in ~35-40M net
-    await salaryPage.expectNetSalary(35_000_000, 45_000_000);
+    // 50M annual should result in ~3.3-3.6M monthly net
+    await salaryPage.expectNetSalary(3_000_000, 4_000_000);
   });
 
   test('should calculate net salary for 30M annual', async () => {
@@ -35,8 +35,8 @@ test.describe('Salary Calculator', () => {
     await salaryPage.calculate();
 
     await salaryPage.expectResultVisible();
-    // 30M annual should result in ~25-28M net
-    await salaryPage.expectNetSalary(23_000_000, 28_000_000);
+    // 30M annual should result in ~2.1-2.4M monthly net
+    await salaryPage.expectNetSalary(2_000_000, 2_500_000);
   });
 
   test('should display chart after calculation', async () => {

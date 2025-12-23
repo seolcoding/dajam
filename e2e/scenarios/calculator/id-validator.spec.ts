@@ -24,11 +24,10 @@ test.describe('ID Validator', () => {
   test('should validate correct RRN format', async () => {
     await idPage.selectRRN();
 
-    // Generate a test number first
+    // Generate a test number first - this also triggers validation
     const testNumber = await idPage.generateTestNumber();
 
-    // Validate it
-    await idPage.validate();
+    // Validation happens automatically after generation
     await idPage.expectValid();
   });
 
@@ -36,6 +35,8 @@ test.describe('ID Validator', () => {
     await idPage.selectRRN();
     await idPage.enterNumber('000000-0000000');
     await idPage.validate();
+    // Wait for validation result
+    await idPage.waitForAnimation(500);
     await idPage.expectInvalid();
   });
 
@@ -43,9 +44,9 @@ test.describe('ID Validator', () => {
     await idPage.selectRRN();
 
     const testNumber = await idPage.generateTestNumber();
-    expect(testNumber).toMatch(/^\d{6}-?\d{7}$/);
+    expect(testNumber).toMatch(/^\d{6}-\d{7}$/);
 
-    await idPage.validate();
+    // Validation happens automatically after generation
     await idPage.expectValid();
   });
 
@@ -64,16 +65,16 @@ test.describe('ID Validator', () => {
     test('should validate BRN format', async () => {
       await idPage.selectBRN();
 
-      // Generate test BRN
+      // Generate test BRN - validation happens automatically
       const testNumber = await idPage.generateTestNumber();
-      await idPage.validate();
       await idPage.expectValid();
     });
 
     test('should detect invalid BRN', async () => {
       await idPage.selectBRN();
-      await idPage.enterNumber('000-00-00000');
-      await idPage.validate();
+      // Enter invalid BRN that fails checksum - validation happens automatically on 10 digits
+      await idPage.enterNumber('1234567890');
+      await idPage.waitForAnimation(500);
       await idPage.expectInvalid();
     });
   });
@@ -82,9 +83,8 @@ test.describe('ID Validator', () => {
     test('should validate CRN format', async () => {
       await idPage.selectCRN();
 
-      // Generate test CRN
+      // Generate test CRN - validation happens automatically
       const testNumber = await idPage.generateTestNumber();
-      await idPage.validate();
       await idPage.expectValid();
     });
   });

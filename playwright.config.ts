@@ -10,6 +10,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const IS_DEPLOYED_TEST = BASE_URL !== 'http://localhost:3000';
 
 export default defineConfig({
   testDir: './e2e',
@@ -66,13 +67,15 @@ export default defineConfig({
     },
   ],
 
-  // Next.js dev server
-  webServer: {
-    command: 'npm run dev',
-    url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Next.js dev server - disabled when testing against deployed version
+  webServer: IS_DEPLOYED_TEST
+    ? undefined
+    : {
+        command: 'npm run dev',
+        url: BASE_URL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+      },
 });
 
 // App routes for testing

@@ -17,27 +17,30 @@ export class SalaryCalculatorPage extends BasePage {
 
   // Locators
   get salaryInput() {
-    return this.page.getByLabel(/연봉|급여|salary/i).first();
+    // Match by id or label containing 연봉
+    return this.page.locator('#annualSalary, input[id="annualSalary"]').first();
   }
 
   get dependentsInput() {
-    return this.page.getByLabel(/부양가족|dependents/i);
+    return this.page.locator('#dependents, input[id="dependents"]');
   }
 
   get calculateButton() {
-    return this.page.getByRole('button', { name: /계산|calculate/i });
+    return this.page.getByRole('button', { name: /실수령액 계산하기|계산하기|계산|calculate/i });
   }
 
   get resultCard() {
-    return this.page.locator('[data-testid="result-card"], .result-card, .result');
+    // Match the result card with emerald border or the CardTitle with 월 실수령액
+    return this.page.locator('.border-emerald-100, [class*="shadow-emerald"]').first();
   }
 
   get netSalary() {
-    return this.page.getByText(/실수령액|net salary/i).locator('..');
+    // Match the large emerald text showing the net pay amount
+    return this.page.locator('.text-emerald-600.text-6xl, .text-6xl.text-emerald-600').first();
   }
 
   get chart() {
-    return this.page.locator('svg, canvas, .recharts-wrapper, [class*="chart"]');
+    return this.page.locator('.recharts-wrapper, svg.recharts-surface').first();
   }
 
   get slider() {
@@ -50,40 +53,56 @@ export class SalaryCalculatorPage extends BasePage {
   }
 
   async enterSalary(amount: number) {
+    await this.salaryInput.waitFor({ state: 'visible' });
+    await this.salaryInput.click();
     await this.salaryInput.clear();
+    // Type the number - NumberInput expects raw numbers
     await this.salaryInput.fill(amount.toString());
+    // Trigger blur to format the number
+    await this.salaryInput.blur();
+    await this.waitForAnimation(200);
   }
 
   async setDependents(count: number) {
     if (await this.dependentsInput.isVisible()) {
-      await this.dependentsInput.selectOption(count.toString());
+      await this.dependentsInput.click();
+      await this.dependentsInput.clear();
+      await this.dependentsInput.fill(count.toString());
     }
   }
 
   async calculate() {
     await this.calculateButton.click();
-    await this.waitForAnimation();
+    // Wait for calculation and animation
+    await this.waitForAnimation(500);
   }
 
   async adjustSlider(percentage: number) {
+    // Scroll to slider section first
     const slider = this.slider.first();
+    await slider.scrollIntoViewIfNeeded();
+    await this.waitForAnimation(300);
+
     const box = await slider.boundingBox();
     if (box) {
       const x = box.x + (box.width * percentage / 100);
       const y = box.y + box.height / 2;
       await this.page.mouse.click(x, y);
+      await this.waitForAnimation(200);
     }
   }
 
   // Assertions
   async expectResultVisible() {
-    await expect(this.resultCard.first()).toBeVisible();
+    // Wait for the result card to be visible
+    await expect(this.resultCard).toBeVisible({ timeout: 5000 });
   }
 
   async expectNetSalary(min: number, max: number) {
+    await expect(this.netSalary).toBeVisible({ timeout: 5000 });
     const text = await this.netSalary.textContent();
     const numbers = text?.match(/[\d,]+/g);
-    if (numbers) {
+    if (numbers && numbers.length > 0) {
       const value = parseInt(numbers[0].replace(/,/g, ''));
       expect(value).toBeGreaterThanOrEqual(min);
       expect(value).toBeLessThanOrEqual(max);
@@ -91,13 +110,14 @@ export class SalaryCalculatorPage extends BasePage {
   }
 
   async expectChartVisible() {
-    await expect(this.chart.first()).toBeVisible();
+    await expect(this.chart).toBeVisible({ timeout: 5000 });
   }
 
   async expectDeductionItems() {
+    // Check for deduction items in the breakdown section
     const items = ['국민연금', '건강보험', '고용보험', '소득세'];
     for (const item of items) {
-      await expect(this.page.getByText(new RegExp(item, 'i'))).toBeVisible();
+      await expect(this.page.getByText(item).first()).toBeVisible({ timeout: 5000 });
     }
   }
 }

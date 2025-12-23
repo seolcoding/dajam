@@ -17,19 +17,19 @@ export class LadderGamePage extends BasePage {
 
   // Locators
   get participantInputs() {
-    return this.page.locator('input[placeholder*="참가자"], input[name*="participant"]');
+    return this.page.getByPlaceholder(/참가자 이름|참가자/);
   }
 
   get resultInputs() {
-    return this.page.locator('input[placeholder*="결과"], input[name*="result"]');
+    return this.page.getByPlaceholder(/결과 선택지|결과/);
   }
 
   get addParticipantButton() {
-    return this.page.getByRole('button', { name: /참가자.*추가|add.*participant/i });
+    return this.page.getByRole('button', { name: /참가자 추가|추가/i });
   }
 
   get generateButton() {
-    return this.page.getByRole('button', { name: /생성|만들기|start|generate/i });
+    return this.page.getByRole('button', { name: /사다리 생성|사다리 재생성/i });
   }
 
   get resetButton() {
@@ -41,11 +41,12 @@ export class LadderGamePage extends BasePage {
   }
 
   get participantLabels() {
-    return this.page.locator('.participant-label, [data-participant]');
+    // Participant names are shown at top of canvas area
+    return this.page.locator('.participant-label, [data-participant], .text-emerald-700');
   }
 
   get resultModal() {
-    return this.page.locator('[role="dialog"], .modal, .result-modal');
+    return this.page.locator('[role="dialog"], [data-state="open"]');
   }
 
   // Actions

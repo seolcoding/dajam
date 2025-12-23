@@ -34,19 +34,21 @@ export class IdValidatorPage extends BasePage {
   }
 
   get validateButton() {
-    return this.page.getByRole('button', { name: /검증|확인|validate/i });
+    return this.page.getByRole('button', { name: /검증하기|검증|확인|validate/i });
   }
 
   get generateButton() {
-    return this.page.getByRole('button', { name: /생성|generate/i });
+    return this.page.getByRole('button', { name: /테스트 번호 생성|생성|generate/i });
   }
 
   get validResult() {
-    return this.page.getByText(/유효|valid|정상/i);
+    // Look for the green success icon (CheckCircle2)
+    return this.page.locator('.text-green-600, .lucide-check-circle-2, svg.text-green-600').first();
   }
 
   get invalidResult() {
-    return this.page.getByText(/무효|invalid|오류/i);
+    // Look for the red error icon (XCircle)
+    return this.page.locator('.text-red-600, .lucide-x-circle, svg.text-red-600').first();
   }
 
   // Actions
