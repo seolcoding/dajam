@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import type { AppType, Session, SessionParticipant, Json } from '@/types/database';
 import type {
@@ -61,6 +61,22 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     connectionStatus: 'disconnected',
   });
 
+  // Stable refs for callbacks to prevent infinite loops
+  const transformConfigRef = useRef(transformConfig);
+  const transformDataRef = useRef(transformData);
+  const onSessionLoadedRef = useRef(onSessionLoaded);
+  const onDataReceivedRef = useRef(onDataReceived);
+  const onConnectionChangeRef = useRef(onConnectionChange);
+
+  // Update refs on each render
+  useEffect(() => {
+    transformConfigRef.current = transformConfig;
+    transformDataRef.current = transformData;
+    onSessionLoadedRef.current = onSessionLoaded;
+    onDataReceivedRef.current = onDataReceived;
+    onConnectionChangeRef.current = onConnectionChange;
+  });
+
   // 세션 로드
   const loadSession = useCallback(async () => {
     if (!enabled || !sessionCode) {
@@ -89,8 +105,8 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
       }
 
       const session = sessionData as Session;
-      const config = transformConfig
-        ? transformConfig(session.config)
+      const config = transformConfigRef.current
+        ? transformConfigRef.current(session.config)
         : (session.config as TConfig);
 
       // 참여자 로드
@@ -111,8 +127,8 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .eq('session_id', session.id)
           .order('created_at', { ascending: true });
 
-        data = transformData
-          ? transformData(tableData || [])
+        data = transformDataRef.current
+          ? transformDataRef.current(tableData || [])
           : ((tableData || []) as TData[]);
       }
 
@@ -127,7 +143,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
         isCloudMode: true,
       }));
 
-      onSessionLoaded?.(session);
+      onSessionLoadedRef.current?.(session);
     } catch (err) {
       setState((prev) => ({
         ...prev,
@@ -135,7 +151,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
         error: err instanceof Error ? err.message : '알 수 없는 오류',
       }));
     }
-  }, [appType, sessionCode, enabled, supabase, transformConfig, transformData, onSessionLoaded, dataTable]);
+  }, [appType, sessionCode, enabled, supabase, dataTable]);
 
   // 데이터 다시 로드
   const loadData = useCallback(async () => {
@@ -159,14 +175,14 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
         .eq('session_id', state.sessionId)
         .order('created_at', { ascending: true });
 
-      const data = transformData
-        ? transformData(tableData || [])
+      const data = transformDataRef.current
+        ? transformDataRef.current(tableData || [])
         : ((tableData || []) as TData[]);
 
       setState((prev) => ({ ...prev, data }));
-      onDataReceived?.(data);
+      onDataReceivedRef.current?.(data);
     }
-  }, [state.sessionId, dataTable, supabase, transformData, onDataReceived]);
+  }, [state.sessionId, dataTable, supabase]);
 
   // Realtime 구독
   const { connectionStatus, isConnected } = useRealtimeSubscription({
@@ -188,7 +204,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     },
     onConnectionChange: (status) => {
       setState((prev) => ({ ...prev, connectionStatus: status }));
-      onConnectionChange?.(status);
+      onConnectionChangeRef.current?.(status);
     },
   });
 
@@ -291,6 +307,9 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
   useEffect(() => {
     if (enabled && sessionCode) {
       loadSession();
+    } else {
+      // When not enabled or no session code, set loading to false
+      setState((prev) => ({ ...prev, isLoading: false }));
     }
   }, [loadSession, enabled, sessionCode]);
 

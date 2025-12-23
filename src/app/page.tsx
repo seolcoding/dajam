@@ -24,6 +24,11 @@ import {
   Briefcase,
   Mail,
   ArrowRight,
+  Zap,
+  HelpCircle,
+  Cloud,
+  Heart,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -126,6 +131,52 @@ const apps = [
     color: 'from-fuchsia-500 to-pink-600',
     description: '빙고!',
     category: 'game',
+  },
+  {
+    name: 'This or That',
+    path: '/this-or-that',
+    icon: Zap,
+    color: 'from-violet-500 to-indigo-600',
+    description: '실시간 A/B 투표',
+    category: 'game',
+    isNew: true,
+  },
+  {
+    name: '실시간 퀴즈',
+    path: '/realtime-quiz',
+    icon: HelpCircle,
+    color: 'from-emerald-500 to-cyan-600',
+    description: 'Kahoot 스타일 퀴즈쇼',
+    category: 'game',
+    isNew: true,
+    trending: true,
+  },
+  {
+    name: '워드 클라우드',
+    path: '/word-cloud',
+    icon: Cloud,
+    color: 'from-sky-500 to-blue-600',
+    description: '실시간 단어 구름',
+    category: 'game',
+    isNew: true,
+  },
+  {
+    name: '성격 테스트',
+    path: '/personality-test',
+    icon: Heart,
+    color: 'from-rose-500 to-pink-600',
+    description: 'MBTI 스타일 16유형',
+    category: 'game',
+    isNew: true,
+  },
+  {
+    name: '사람 빙고',
+    path: '/human-bingo',
+    icon: UserCheck,
+    color: 'from-amber-500 to-orange-600',
+    description: '네트워킹 아이스브레이킹',
+    category: 'game',
+    isNew: true,
   },
 
   // Utilities
@@ -321,7 +372,7 @@ function SocialProof() {
       </span>
       <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
         <Star className="w-4 h-4 text-yellow-500" />
-        인기 앱 <strong className="text-slate-700">16개</strong>
+        인기 앱 <strong className="text-slate-700">21개</strong>
       </span>
       <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-full">
         <Flame className="w-4 h-4 text-orange-500" />
@@ -349,8 +400,8 @@ export default function HomePage() {
             </span>
           </h1>
           <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-6">
-            급여 계산부터 점심 메뉴 결정까지,
-            <br className="sm:hidden" /> 16가지 미니앱으로 더 스마트한 일상을 만드세요.
+            급여 계산부터 실시간 퀴즈까지,
+            <br className="sm:hidden" /> 21가지 미니앱으로 더 스마트한 일상을 만드세요.
           </p>
         </div>
 

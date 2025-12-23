@@ -2,7 +2,8 @@
 
 > **"소규모 인원이 같은 공간에서, 모바일/PC/오프라인 경험을 하나로 묶어 서로의 의견을 통합하는 앱"**
 
-16개의 실용적인 웹 앱을 모아놓은 Next.js 15 프로젝트입니다.
+22개의 실용적인 웹 앱을 모아놓은 Next.js 15 프로젝트입니다.
+**Supabase Realtime** 기반 실시간 인터랙션 플랫폼을 포함합니다.
 
 ## 💡 핵심 가치
 
@@ -10,6 +11,7 @@
 - **📱 디바이스 통합** - 모바일/PC/태블릿 동일 경험
 - **⚡ 즉시 참여** - QR코드/6자리 코드로 회원가입 없이 참여
 - **📊 의견 통합** - 투표, 선택, 순위를 시각적으로 집계
+- **🎯 통합 플랫폼** - audience-engage로 모든 인터랙션을 하나로
 
 ## 🚀 빠른 시작
 
@@ -23,12 +25,23 @@ npm run dev
 # 브라우저에서 http://localhost:3000 접속
 ```
 
-## 📱 포함된 앱 (16개)
+## 📱 포함된 앱 (22개)
 
-### 🔥 Core - 실시간 멀티유저 (3개)
+### 🎯 Platform - 통합 인터랙션 플랫폼 (1개)
+- **Audience Engage** - 슬라이드 기반 실시간 인터랙션 플랫폼 (Slido/Mentimeter 대안)
+  - Google Slides/PDF/PPT 임베드 및 슬라이드 동기화
+  - Scene 기반 아키텍처: 투표, Q&A, 퀴즈, 워드클라우드 등 통합
+  - 호스트/참여자 2-View 모드
+
+### 🔥 Core - 실시간 멀티유저 (8개)
 - **실시간 투표** - QR 코드로 즉시 참여, 3가지 투표 유형
 - **단체 주문** - 실시간 주문 집계, 정산 자동화
 - **빙고 게임** - 호스트/플레이어 모드, 실시간 동기화
+- **This or That** - 양자택일 대결, 실시간 통계
+- **실시간 퀴즈** - Kahoot 스타일, 점수 리더보드
+- **워드 클라우드** - 실시간 단어 수집 및 시각화
+- **성격 테스트** - MBTI 스타일 실시간 테스트
+- **휴먼 빙고** - 아이스브레이킹 네트워킹 게임
 
 ### ⚡ High - 의견 통합 + 공유 (3개)
 - **밸런스 게임** - 양자택일 투표, 통계 시각화
@@ -56,10 +69,12 @@ npm run dev
 - **UI Library:** shadcn/ui + Radix UI
 - **Styling:** Tailwind CSS
 - **State Management:** Zustand
+- **Realtime:** Supabase Realtime (postgres_changes, Presence API)
+- **Database:** Supabase (PostgreSQL) + Dexie (IndexedDB for offline)
 - **Charts:** Recharts
 - **Icons:** Lucide React
-- **Database:** Dexie (IndexedDB)
 - **Animation:** Framer Motion, CSS Keyframes
+- **PDF Processing:** pdf.js (클라이언트 사이드 PDF→이미지 변환)
 
 ## 📦 주요 의존성
 
@@ -67,8 +82,10 @@ npm run dev
 {
   "next": "15.1.0",
   "react": "19.0.0",
+  "@supabase/supabase-js": "2.x",
   "zustand": "5.0.3",
   "recharts": "2.15.0",
+  "pdfjs-dist": "4.x",
   "es-hangul": "2.3.8",
   "dexie": "4.2.1",
   "framer-motion": "12.23.26",
@@ -80,12 +97,17 @@ npm run dev
 
 ## 🌍 환경 변수
 
-### 필수 (점심 룰렛)
 ```env
+# Supabase (실시간 앱 필수)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Kakao Maps (점심 룰렛)
 NEXT_PUBLIC_KAKAO_APP_KEY=your_kakao_javascript_api_key
 ```
 
-Kakao API 키 발급: https://developers.kakao.com/
+- Supabase 프로젝트: https://supabase.com/dashboard
+- Kakao API 키 발급: https://developers.kakao.com/
 
 ## 🧪 테스트
 
@@ -122,16 +144,37 @@ seolcoding-apps/
 │   │   ├── page.tsx                    # 홈 (앱 갤러리)
 │   │   ├── layout.tsx                  # 루트 레이아웃
 │   │   ├── globals.css                 # 전역 CSS + 애니메이션
-│   │   ├── salary-calculator/          # 개별 앱 디렉토리
-│   │   ├── ... (16개 앱)
+│   │   ├── audience-engage/            # 🎯 통합 플랫폼
+│   │   ├── realtime-quiz/              # 실시간 퀴즈
+│   │   ├── this-or-that/               # This or That
+│   │   ├── word-cloud/                 # 워드 클라우드
+│   │   ├── personality-test/           # 성격 테스트
+│   │   ├── human-bingo/                # 휴먼 빙고
+│   │   ├── live-voting/                # 실시간 투표
+│   │   └── ... (22개 앱)
+│   ├── features/
+│   │   └── interactions/               # 공유 인터랙션 컴포넌트
+│   │       ├── quiz/                   # 퀴즈 Host/Participant
+│   │       ├── vote/                   # 투표 컴포넌트
+│   │       ├── word-cloud/             # 워드클라우드 컴포넌트
+│   │       └── common/                 # ReactionBar, QAPanel 등
+│   ├── lib/
+│   │   ├── realtime/                   # Supabase Realtime 훅
+│   │   │   ├── hooks/                  # useRealtimeSession 등
+│   │   │   └── types.ts                # Realtime 타입
+│   │   ├── supabase/                   # Supabase 클라이언트
+│   │   └── utils.ts                    # 유틸리티
 │   ├── components/
 │   │   └── ui/                         # shadcn/ui 컴포넌트
-│   └── lib/
-│       └── utils.ts                    # 유틸리티
-├── public/                             # 정적 파일
+│   └── types/
+│       └── database.ts                 # Supabase 타입
+├── supabase/
+│   ├── migrations/                     # DB 마이그레이션
+│   └── seed.sql                        # 샘플 데이터
+├── prd/                                # 앱별 기획서
+├── public/
 ├── package.json
 ├── next.config.ts
-├── tsconfig.json
 └── tailwind.config.ts
 ```
 
@@ -145,9 +188,12 @@ seolcoding-apps/
 
 ## 📄 관련 문서
 
+- **prd/** - 앱별 기획서 (PRD)
+  - `22-audience-engage.md` - 통합 플랫폼 PRD
+  - `17-this-or-that.md` ~ `21-human-bingo.md` - 신규 실시간 앱
 - **APPS_DOCUMENTATION.md** - 전체 앱 목록 및 URL
-- **VERIFICATION_REPORT.md** - 마이그레이션 검증 리포트
-- **MIGRATION_PLAN.md** - 마이그레이션 계획서
+- **TODO.md** - 구현 진행 상황 추적
+- **claudedocs/** - 기술 분석 문서 (Claper, Auden 분석)
 
 ## 🤝 기여
 

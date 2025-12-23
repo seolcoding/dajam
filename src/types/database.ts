@@ -22,7 +22,13 @@ export type AppType =
   | 'dutch-pay'
   | 'random-picker'
   | 'lunch-roulette'
-  | 'id-validator';
+  | 'id-validator'
+  | 'this-or-that'
+  | 'realtime-quiz'
+  | 'word-cloud'
+  | 'personality-test'
+  | 'human-bingo'
+  | 'audience-engage';
 
 export type SessionRole = 'host' | 'moderator' | 'participant' | 'spectator';
 

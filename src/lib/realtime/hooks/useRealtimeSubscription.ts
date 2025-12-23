@@ -37,10 +37,22 @@ export function useRealtimeSubscription({
   const retryCountRef = useRef(0);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
 
+  // Stable references for callbacks to prevent infinite loops
+  const onDataRef = useRef(onData);
+  const onConnectionChangeRef = useRef(onConnectionChange);
+  const subscriptionsRef = useRef(subscriptions);
+
+  // Update refs on each render
+  useEffect(() => {
+    onDataRef.current = onData;
+    onConnectionChangeRef.current = onConnectionChange;
+    subscriptionsRef.current = subscriptions;
+  });
+
   const updateStatus = useCallback((status: ConnectionStatus) => {
     setConnectionStatus(status);
-    onConnectionChange?.(status);
-  }, [onConnectionChange]);
+    onConnectionChangeRef.current?.(status);
+  }, []);
 
   const setupChannel = useCallback(() => {
     if (!sessionId || !enabled) return null;
@@ -54,8 +66,8 @@ export function useRealtimeSubscription({
       },
     });
 
-    // 모든 구독 등록
-    subscriptions.forEach((sub) => {
+    // 모든 구독 등록 (use ref for stable reference)
+    subscriptionsRef.current.forEach((sub) => {
       channel = channel.on(
         'postgres_changes',
         {
@@ -66,7 +78,7 @@ export function useRealtimeSubscription({
         },
         (payload: unknown) => {
           console.log(`[Realtime] ${sub.tableName} ${sub.event}:`, payload);
-          onData?.(sub.tableName, payload);
+          onDataRef.current?.(sub.tableName, payload);
         }
       );
     });
@@ -102,7 +114,7 @@ export function useRealtimeSubscription({
     });
 
     return channel;
-  }, [sessionId, channelName, subscriptions, enabled, maxRetries, supabase, onData, updateStatus]);
+  }, [sessionId, channelName, enabled, maxRetries, supabase, updateStatus]);
 
   useEffect(() => {
     if (!enabled || !sessionId) {
