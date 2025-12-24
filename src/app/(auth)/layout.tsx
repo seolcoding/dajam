@@ -13,8 +13,8 @@ export default function AuthLayout({
         <header className="border-b border-slate-200 bg-white/80 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4">
             <Link href="/" className="inline-block">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                SeolCoding
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-dajam-primary to-dajam-secondary bg-clip-text text-transparent">
+                다잼
               </h1>
             </Link>
           </div>
@@ -27,7 +27,7 @@ export default function AuthLayout({
 
         {/* Footer */}
         <footer className="py-6 text-center text-sm text-slate-500">
-          &copy; 2024 SeolCoding. All rights reserved.
+          &copy; 2025 다잼(Dajam). All rights reserved.
         </footer>
       </div>
     </AuthProvider>

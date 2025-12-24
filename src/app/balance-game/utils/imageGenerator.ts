@@ -122,7 +122,7 @@ export const generateResultImage = async (
     // Bottom branding
     ctx.fillStyle = '#ffffff';
     ctx.font = '20px sans-serif';
-    ctx.fillText('seolcoding.com/balance-game', 600, 600);
+    ctx.fillText('dajam.seolcoding.com/balance-game', 600, 600);
 
     // Convert canvas to blob
     canvas.toBlob((blob) => {

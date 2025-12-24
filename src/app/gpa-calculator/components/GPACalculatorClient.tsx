@@ -246,7 +246,7 @@ export function GPACalculatorClient() {
       {/* Footer */}
       <footer className="mt-16 py-8 border-t border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-sm font-semibold text-gray-900">학점 계산기 by SeolCoding</p>
+          <p className="text-sm font-semibold text-gray-900">학점 계산기 by 다잼</p>
           <p className="mt-2 text-xs text-gray-600">데이터는 브라우저에만 저장됩니다. 정기적으로 백업하세요.</p>
         </div>
       </footer>

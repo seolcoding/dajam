@@ -84,7 +84,7 @@ export function TeamDivider() {
             Fisher-Yates 알고리즘을 사용하여 공정한 랜덤 분배를 보장합니다
           </p>
           <p>
-            Made by SeolCoding
+            Made by 다잼
           </p>
         </footer>
       </div>

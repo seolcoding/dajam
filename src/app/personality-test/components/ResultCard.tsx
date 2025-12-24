@@ -130,7 +130,7 @@ export default function ResultCard({ personalityType, scores }: ResultCardProps)
 
           {/* Website URL */}
           <div className="text-sm font-medium opacity-90">
-            seolcoding.com/personality-test
+            dajam.seolcoding.com/personality-test
           </div>
         </div>
       </div>

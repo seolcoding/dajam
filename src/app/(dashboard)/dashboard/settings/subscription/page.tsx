@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 import { SubscriptionPageClient } from './SubscriptionPageClient';
 
 export const metadata: Metadata = {
-  title: '구독 관리 - SeolCoding',
+  title: '구독 관리 | 다잼',
   description: '구독 플랜 관리 및 업그레이드',
 };
 

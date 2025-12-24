@@ -69,7 +69,7 @@ export function IdValidatorClient() {
               실제 진위확인은 국세청, 대법원 등 공식 기관 API를 사용하세요.
             </p>
             <p className="text-xs mt-6 text-gray-400">
-              © 2025 SeolCoding. All rights reserved.
+              © 2025 다잼(Dajam). All rights reserved.
             </p>
           </div>
         </footer>

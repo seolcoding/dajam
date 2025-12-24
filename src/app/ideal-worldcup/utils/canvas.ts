@@ -81,7 +81,7 @@ export async function generateResultImage(
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'
   ctx.font = '18px sans-serif'
   ctx.textAlign = 'right'
-  ctx.fillText('seolcoding.com/mini-apps', canvas.width - 30, canvas.height - 20)
+  ctx.fillText('dajam.seolcoding.com', canvas.width - 30, canvas.height - 20)
 
   // 7. Blob 생성
   return new Promise((resolve, reject) => {

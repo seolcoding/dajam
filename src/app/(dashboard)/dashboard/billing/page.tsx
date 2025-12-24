@@ -8,7 +8,7 @@ import { Metadata } from 'next';
 import { BillingPageClient } from './BillingPageClient';
 
 export const metadata: Metadata = {
-  title: '결제 내역 - SeolCoding',
+  title: '결제 내역 | 다잼',
   description: '결제 내역 및 영수증 관리',
 };
 

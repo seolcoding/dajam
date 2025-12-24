@@ -441,11 +441,11 @@ export default function AppsPage() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-slate-500 text-sm">
-              &copy; 2024 SeolCoding. All rights reserved.
+              &copy; 2025 다잼(Dajam). All rights reserved.
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-500">
               <a
-                href="https://seolcoding.com"
+                href="https://dajam.seolcoding.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-slate-700"
@@ -453,7 +453,7 @@ export default function AppsPage() {
                 seolcoding.com
               </a>
               <a
-                href="https://github.com/seolcoding"
+                href="https://github.com/seolcoding/dajam"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-slate-700"

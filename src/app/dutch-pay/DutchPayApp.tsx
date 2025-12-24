@@ -80,7 +80,7 @@ export function DutchPayApp() {
             <p className="text-sm text-gray-600">
               더치페이 정산 계산기 by{' '}
               <a
-                href="https://seolcoding.com"
+                href="https://dajam.seolcoding.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-blue-600 hover:text-purple-600 transition-colors"

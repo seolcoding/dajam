@@ -159,7 +159,7 @@ export default function LunchRouletteApp() {
 
         {/* 푸터 */}
         <footer className="mt-12 text-center text-sm text-gray-500">
-          <p>Made with ❤️ by SeolCoding</p>
+          <p>Made with ❤️ by 다잼</p>
           <p className="mt-1">
             위치 기반 맛집 추천 서비스 | Powered by Kakao Maps
           </p>

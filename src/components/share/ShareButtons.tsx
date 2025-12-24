@@ -59,8 +59,8 @@ export function ShareButtons({
       objectType: 'feed',
       content: {
         title: title,
-        description: description || 'SeolCoding Apps에서 확인하세요!',
-        imageUrl: imageUrl || 'https://apps.seolcoding.com/og-image.png',
+        description: description || '다잼에서 확인하세요!',
+        imageUrl: imageUrl || 'https://dajam.seolcoding.com/og-image.png',
         link: {
           mobileWebUrl: getShareUrl(),
           webUrl: getShareUrl(),
