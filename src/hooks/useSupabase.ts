@@ -5,7 +5,8 @@ import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 
 export { isSupabaseConfigured };
 
-export function useSupabase() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function useSupabase(): any {
   const supabase = useMemo(() => createClient(), []);
   return supabase;
 }

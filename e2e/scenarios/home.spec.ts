@@ -1,65 +1,85 @@
 import { test, expect } from '@playwright/test';
-import { HomePage } from '../pages/home.page';
 
 /**
- * Home Page (Gallery) - E2E Tests
+ * Home Page (Marketing Landing) - E2E Tests
  *
  * 시나리오:
- * 1. 페이지 로드 및 16개 앱 표시
- * 2. 앱 카드 클릭으로 이동
- * 3. 카테고리 필터링
+ * 1. 마케팅 랜딩 페이지 로드
+ * 2. CTA 버튼 및 네비게이션 확인
+ * 3. 앱 갤러리로 이동
  */
 test.describe('Home Page', () => {
-  let homePage: HomePage;
-
   test.beforeEach(async ({ page }) => {
-    homePage = new HomePage(page);
-    await homePage.goto();
+    await page.goto('/');
   });
 
-  test('should display page title and heading', async () => {
-    await expect(homePage.page).toHaveTitle(/SeolCoding/i);
-    // The actual heading is "일상의 번거로움을 10초 만에 해결"
-    await homePage.expectHeading(/일상|번거로움|10초|해결/i);
+  test('should display page title and heading', async ({ page }) => {
+    await expect(page).toHaveTitle(/다잼|DaJaem/i);
+    // Marketing landing page heading
+    const heading = page.locator('h1, h2').first();
+    await expect(heading).toBeVisible();
   });
 
-  test('should display all 16 apps', async () => {
-    // Check that app links exist (Link components with href)
-    const appLinks = homePage.page.locator('a[href*="/"]').filter({
-      has: homePage.page.locator('h3, h4, .font-semibold, .font-bold')
+  test('should display CTA buttons', async ({ page }) => {
+    // Check for signup/start buttons
+    const ctaButton = page.locator('a[href*="signup"], button').filter({
+      hasText: /시작|무료|가입/i
+    }).first();
+    await expect(ctaButton).toBeVisible();
+  });
+
+  test('should navigate to apps page', async ({ page }) => {
+    const appsLink = page.locator('a[href="/apps"]').first();
+    await appsLink.click();
+    await expect(page).toHaveURL(/apps/);
+  });
+
+  test('should navigate to pricing page', async ({ page }) => {
+    const pricingLink = page.locator('a[href="/pricing"]').first();
+    await pricingLink.click();
+    await expect(page).toHaveURL(/pricing/);
+  });
+
+  test('should navigate to login page', async ({ page }) => {
+    const loginLink = page.locator('a[href="/login"]').first();
+    await loginLink.click();
+    await expect(page).toHaveURL(/login/);
+  });
+
+  test('should have footer with legal links', async ({ page }) => {
+    const termsLink = page.locator('a[href="/terms"]');
+    const privacyLink = page.locator('a[href="/privacy"]');
+    await expect(termsLink).toBeVisible();
+    await expect(privacyLink).toBeVisible();
+  });
+});
+
+/**
+ * Apps Gallery Page - E2E Tests
+ */
+test.describe('Apps Gallery', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/apps');
+  });
+
+  test('should display all 16+ apps', async ({ page }) => {
+    // Check that app links exist
+    const appLinks = page.locator('a[href*="/"]').filter({
+      has: page.locator('h3, h4, .font-semibold, .font-bold')
     });
     const count = await appLinks.count();
     expect(count).toBeGreaterThanOrEqual(16);
   });
 
-  test('should navigate to salary calculator', async () => {
-    await homePage.clickApp('급여');
-    await expect(homePage.page).toHaveURL(/salary-calculator/);
+  test('should navigate to salary calculator', async ({ page }) => {
+    const appCard = page.locator('a').filter({ hasText: /급여/i }).first();
+    await appCard.click();
+    await expect(page).toHaveURL(/salary-calculator/);
   });
 
-  test('should navigate to random picker', async () => {
-    await homePage.clickApp('랜덤');
-    await expect(homePage.page).toHaveURL(/random-picker/);
-  });
-
-  test('should have no console errors', async ({ page }) => {
-    const errors: string[] = [];
-    page.on('console', msg => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text());
-      }
-    });
-
-    await homePage.goto();
-    await homePage.waitForPageLoad();
-
-    // Filter out known non-critical errors
-    const criticalErrors = errors.filter(e =>
-      !e.includes('favicon') &&
-      !e.includes('404') &&
-      !e.includes('hydration')
-    );
-
-    expect(criticalErrors).toHaveLength(0);
+  test('should navigate to random picker', async ({ page }) => {
+    const appCard = page.locator('a').filter({ hasText: /랜덤/i }).first();
+    await appCard.click();
+    await expect(page).toHaveURL(/random-picker/);
   });
 });

@@ -133,7 +133,7 @@ export function QuizScene({
     return (
       <Card className="h-full flex items-center justify-center">
         <CardContent>
-          <p className="text-muted-foreground">퀴즈 로딩 중...</p>
+          <p className="text-muted-foreground">퀴즈 불러오는 중이에요...</p>
         </CardContent>
       </Card>
     );
@@ -142,15 +142,15 @@ export function QuizScene({
   // No quiz data
   if (!quizState || quizState.questions.length === 0) {
     return (
-      <Card className="h-full flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+      <Card className="h-full flex items-center justify-center bg-gradient-to-br from-dajaem-green/10 to-dajaem-yellow/10">
         <CardContent className="text-center">
           <p className="text-4xl mb-4">🎯</p>
           <p className="text-xl font-semibold mb-2">퀴즈</p>
           <p className="text-muted-foreground mb-4">
-            {isHost ? '퀴즈를 설정하세요' : '퀴즈가 시작되면 참여할 수 있습니다'}
+            {isHost ? '퀴즈를 만들어 보세요' : '퀴즈가 시작되면 참여할 수 있어요'}
           </p>
           {isHost && (
-            <Button variant="outline">퀴즈 만들기</Button>
+            <Button className="bg-dajaem-green hover:bg-dajaem-green/90 text-white">퀴즈 만들기</Button>
           )}
         </CardContent>
       </Card>

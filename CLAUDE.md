@@ -171,3 +171,26 @@ All 16 apps are at root-level routes:
 - `APPS_DOCUMENTATION.md` - Full app catalog
 - `E2E_TEST_PLAN.md` - Testing strategy
 - `prd/*.md` - Product requirements for each app
+- `docs/BRANDING_RESEARCH_DAJAEM.md` - DaJaem 브랜딩 가이드라인
+
+## Paused Work (2024-12-23)
+
+### Audience Engage 멀티유저 E2E 테스트 디버깅 (일시 중단)
+
+**문제**: 참여자가 세션에 참여할 때 `joinSession` 함수가 null 반환
+
+**진행 상황**:
+1. RLS 정책 수정 완료 (`supabase/migrations/011_allow_anonymous_participants.sql`)
+   - 익명 사용자가 public 세션에 참여할 수 있도록 허용
+2. 직접 API 호출은 성공 (RLS 정책 정상 작동 확인)
+3. `useRealtimeSession` 훅에 디버그 로그 추가됨
+4. DaJaem 브랜딩 구현 완료 (`tailwind.config.ts`, `globals.css` 등)
+
+**의심 원인**:
+- `joinSession` 콜백의 `state.sessionId` 클로저 이슈
+- 세션 프리로드 시점과 `joinSession` 호출 시점의 상태 불일치
+
+**재개 시 할 일**:
+1. 콘솔 로그로 `state.sessionId` 값 추적
+2. `handleJoinSession`에서 `session.id`를 직접 사용하도록 수정 검토
+3. E2E 테스트 통과 확인

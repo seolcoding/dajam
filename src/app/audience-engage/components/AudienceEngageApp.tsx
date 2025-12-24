@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -22,9 +22,13 @@ export default function AudienceEngageApp() {
   const [sessionCode, setSessionCode] = useState('');
   const [participantName, setParticipantName] = useState('');
   const [myParticipantId, setMyParticipantId] = useState<string | null>(null);
+  const [joinCodeInput, setJoinCodeInput] = useState(''); // 참여 코드 입력 (세션 프리로드용)
 
   // Session title for creation
   const [sessionTitle, setSessionTitle] = useState('');
+
+  // 6자리 코드가 입력되면 세션을 미리 로드
+  const shouldPreloadSession = joinCodeInput.length === 6 && viewMode === 'home';
 
   // Realtime session
   const {
@@ -37,8 +41,8 @@ export default function AudienceEngageApp() {
     joinSession,
   } = useRealtimeSession<AudienceEngageConfig, never>({
     appType: 'audience-engage',
-    sessionCode: viewMode === 'home' ? '' : sessionCode,
-    enabled: viewMode !== 'home' && !!sessionCode,
+    sessionCode: viewMode !== 'home' ? sessionCode : (shouldPreloadSession ? joinCodeInput : ''),
+    enabled: viewMode !== 'home' || shouldPreloadSession,
     transformConfig: (config: Json) => config as unknown as AudienceEngageConfig,
   });
 
@@ -47,7 +51,7 @@ export default function AudienceEngageApp() {
   // 세션 생성
   const handleCreateSession = async () => {
     if (!sessionTitle.trim()) {
-      alert('세션 제목을 입력하세요.');
+      alert('세션 제목을 입력해 주세요.');
       return;
     }
 
@@ -76,18 +80,31 @@ export default function AudienceEngageApp() {
 
   // 세션 참여
   const handleJoinSession = async () => {
-    if (!sessionCode.trim() || !participantName.trim()) return;
+    console.log('[handleJoinSession] Start - session:', session?.id, 'sessionCode:', sessionCode, 'joinCodeInput:', joinCodeInput);
+    if (!joinCodeInput.trim() || !participantName.trim()) return;
 
+    // 세션이 아직 로드되지 않았으면 직접 로드 시도
+    if (!session) {
+      console.log('[handleJoinSession] No session loaded, switching to participant mode');
+      // 세션 코드를 설정하고 participant 모드로 전환
+      setSessionCode(joinCodeInput);
+      setViewMode('participant');
+      return;
+    }
+
+    console.log('[handleJoinSession] Session found, calling joinSession...');
     const participant = await joinSession({
       displayName: participantName.trim(),
       metadata: {},
     });
 
+    console.log('[handleJoinSession] joinSession result:', participant);
     if (participant) {
+      setSessionCode(joinCodeInput);
       setMyParticipantId(participant.id);
       setViewMode('participant');
     } else {
-      alert('세션 참여에 실패했습니다. 코드를 확인하세요.');
+      alert('세션에 참여할 수 없어요. 코드를 확인해 주세요.');
     }
   };
 
@@ -95,8 +112,25 @@ export default function AudienceEngageApp() {
   const handleGoHome = () => {
     setViewMode('home');
     setSessionCode('');
+    setJoinCodeInput('');
     setMyParticipantId(null);
   };
+
+  // 자동 참여: participant 모드인데 세션이 로드되고 아직 참여하지 않았을 때
+  useEffect(() => {
+    const autoJoin = async () => {
+      if (viewMode === 'participant' && session && !myParticipantId && participantName) {
+        const participant = await joinSession({
+          displayName: participantName.trim(),
+          metadata: {},
+        });
+        if (participant) {
+          setMyParticipantId(participant.id);
+        }
+      }
+    };
+    autoJoin();
+  }, [viewMode, session, myParticipantId, participantName, joinSession]);
 
   // Host View
   if (viewMode === 'host' && session?.id) {
@@ -113,7 +147,29 @@ export default function AudienceEngageApp() {
   }
 
   // Participant View
-  if (viewMode === 'participant' && myParticipantId && session?.id) {
+  if (viewMode === 'participant') {
+    // 세션 로딩 중 또는 참여 중
+    if (!session || !myParticipantId) {
+      return (
+        <div className="min-h-screen bg-dajaem-grey flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-dajaem-green mx-auto mb-4"></div>
+            <p className="text-muted-foreground">
+              {!session ? '세션 연결 중이에요...' : '참여 중이에요...'}
+            </p>
+            {error && (
+              <div className="mt-4">
+                <p className="text-dajaem-red text-sm">{error}</p>
+                <Button variant="outline" className="mt-2" onClick={handleGoHome}>
+                  돌아가기
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <ParticipantView
         sessionId={session.id}
@@ -129,18 +185,18 @@ export default function AudienceEngageApp() {
 
   // Home View
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-dajaem-grey to-white py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-blue-100 rounded-full">
-              <Presentation className="w-12 h-12 text-blue-600" />
+            <div className="p-4 bg-dajaem-green/10 rounded-full">
+              <Presentation className="w-12 h-12 text-dajaem-green" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-3">Audience Engage</h1>
+          <h1 className="text-4xl font-bold mb-3">다잼 Audience Engage</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            슬라이드와 함께 실시간 청중 참여 경험을 만드세요
+            슬라이드와 함께 실시간으로 청중과 소통해요
           </p>
         </div>
 
@@ -171,7 +227,7 @@ export default function AudienceEngageApp() {
               <CardHeader>
                 <CardTitle>새 세션 만들기</CardTitle>
                 <CardDescription>
-                  프레젠테이션 세션을 시작하고 청중과 상호작용하세요
+                  프레젠테이션 세션을 시작하고 청중과 소통하세요
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -189,9 +245,9 @@ export default function AudienceEngageApp() {
                   onClick={handleCreateSession}
                   disabled={!sessionTitle.trim() || isLoading}
                   size="lg"
-                  className="w-full"
+                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
                 >
-                  {isLoading ? '생성 중...' : '세션 시작하기'}
+                  {isLoading ? '생성 중이에요...' : '세션 시작하기'}
                 </Button>
               </CardContent>
             </Card>
@@ -203,7 +259,7 @@ export default function AudienceEngageApp() {
               <CardHeader>
                 <CardTitle>세션 참여</CardTitle>
                 <CardDescription>
-                  6자리 코드로 발표에 참여하세요
+                  6자리 코드로 발표에 참여해요
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -212,18 +268,29 @@ export default function AudienceEngageApp() {
                   <Input
                     id="code"
                     placeholder="ABC123"
-                    value={sessionCode}
-                    onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                    value={joinCodeInput}
+                    onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
                     maxLength={6}
                     className="text-center text-2xl tracking-wider font-mono"
                   />
+                  {shouldPreloadSession && isLoading && (
+                    <p className="text-xs text-muted-foreground text-center">세션 확인 중이에요...</p>
+                  )}
+                  {shouldPreloadSession && !isLoading && session && (
+                    <p className="text-xs text-dajaem-green text-center flex items-center justify-center gap-1">
+                      <span className="text-base">✓</span> {session.title}
+                    </p>
+                  )}
+                  {shouldPreloadSession && !isLoading && !session && error && (
+                    <p className="text-xs text-dajaem-red text-center">세션을 찾을 수 없어요. 코드를 확인해 주세요</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="name">이름</Label>
                   <Input
                     id="name"
-                    placeholder="표시될 이름을 입력하세요"
+                    placeholder="표시될 이름을 입력해 주세요"
                     value={participantName}
                     onChange={(e) => setParticipantName(e.target.value)}
                     maxLength={20}
@@ -232,11 +299,11 @@ export default function AudienceEngageApp() {
 
                 <Button
                   onClick={handleJoinSession}
-                  disabled={!sessionCode.trim() || !participantName.trim() || isLoading}
+                  disabled={joinCodeInput.length !== 6 || !participantName.trim() || isLoading}
                   size="lg"
-                  className="w-full"
+                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
                 >
-                  {isLoading ? '참여 중...' : '참여하기'}
+                  {isLoading ? '참여 중이에요...' : '참여하기'}
                 </Button>
               </CardContent>
             </Card>
@@ -277,9 +344,9 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="p-4 bg-white rounded-lg border text-center">
+    <div className="p-4 bg-white rounded-lg border text-center hover:border-dajaem-green/30 transition-colors">
       <div className="flex justify-center mb-2">
-        <Icon className="w-6 h-6 text-blue-600" />
+        <Icon className="w-6 h-6 text-dajaem-green" />
       </div>
       <div className="font-medium text-sm">{label}</div>
       <div className="text-xs text-muted-foreground">{description}</div>

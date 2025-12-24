@@ -56,12 +56,8 @@ export function useSlideSync({
           broadcast: { self: true },
         },
       })
-      .on('broadcast', { event: 'scene-change' }, (payload) => {
-        const data = payload.payload as {
-          scene: ActiveScene;
-          isPresenting: boolean;
-          timestamp: string;
-        };
+      .on('broadcast', { event: 'scene-change' }, (payload: { payload: { scene: ActiveScene; isPresenting: boolean; timestamp: string } }) => {
+        const data = payload.payload;
 
         // 호스트가 아닐 때만 상태 업데이트
         if (!isHost) {
@@ -72,7 +68,7 @@ export function useSlideSync({
           });
         }
       })
-      .subscribe((status) => {
+      .subscribe((status: string) => {
         console.log(`[SlideSync] ${sessionId} status:`, status);
       });
 

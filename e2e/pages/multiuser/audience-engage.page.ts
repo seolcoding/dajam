@@ -71,10 +71,36 @@ export class AudienceEngagePage extends BasePage {
     await this.page.getByRole('tab', { name: /참여/i }).click();
     await this.waitForAnimation();
 
+    // Enter code
     await this.sessionCodeInput.fill(code);
+
+    // Wait for session to load (indicated by green checkmark or enabled button)
+    await this.page.waitForSelector('text=/✓|세션 확인 중/', { timeout: 5000 }).catch(() => {});
+    await this.waitForAnimation(1500); // Give time for session to load
+
+    // Enter name
     await this.participantNameInput.fill(name);
+
+    // Wait for button to be enabled
+    try {
+      await this.joinSessionButton.waitFor({ state: 'visible', timeout: 5000 });
+      // Wait until button is not disabled
+      await this.page.waitForFunction(
+        (btnText) => {
+          const buttons = Array.from(document.querySelectorAll('button'));
+          const btn = buttons.find(b => b.textContent?.includes(btnText));
+          return btn && !btn.hasAttribute('disabled');
+        },
+        '참여하기',
+        { timeout: 5000 }
+      );
+    } catch {
+      // Continue anyway
+    }
+
+    // Click join button
     await this.joinSessionButton.click();
-    await this.waitForAnimation(1000);
+    await this.waitForAnimation(2000);
   }
 
   // Q&A actions

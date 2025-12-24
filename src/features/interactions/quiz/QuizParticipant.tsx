@@ -46,15 +46,38 @@ export function QuizParticipant({
   // 타이머 진행률
   const progress = (timeLeft / question.timeLimit) * 100;
 
-  // 타이머 색상
+  // 타이머 색상 (DaJaem)
   const getTimerColor = () => {
-    if (progress > 60) return 'bg-green-500';
-    if (progress > 30) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (progress > 60) return 'bg-dajaem-green';
+    if (progress > 30) return 'bg-dajaem-yellow';
+    return 'bg-dajaem-red';
+  };
+
+  // 위트 있는 피드백 메시지 (랜덤)
+  const getCorrectMessage = () => {
+    const messages = [
+      '와우! 혹시 천재?',
+      '폼 미쳤다!',
+      '너무 빨라요!',
+      '느낌 좋다!',
+      '럭키비키잖아!',
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  const getWrongMessage = () => {
+    const messages = [
+      '아깝다! 까비!',
+      '동공지진...',
+      '괜찮아요, 다음 문제 노려봐요',
+      '아쉽네요 ㅠㅠ',
+      '다음엔 맞출 거예요!',
+    ];
+    return messages[Math.floor(Math.random() * messages.length)];
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 via-pink-500 to-red-500 flex flex-col p-4">
+    <div className="min-h-screen bg-gradient-to-br from-dajaem-green via-dajaem-teal to-dajaem-purple flex flex-col p-4">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-6 text-white">
         <div className="text-lg font-bold">
@@ -72,7 +95,7 @@ export function QuizParticipant({
           {question.text}
         </h2>
         <p className="text-white/80 text-sm">
-          색상과 모양으로 답을 선택하세요
+          색상과 모양으로 답을 선택해 주세요
         </p>
       </div>
 
@@ -158,7 +181,7 @@ export function QuizParticipant({
             <div
               className={`
               max-w-md mx-4 p-8 rounded-3xl shadow-2xl text-center
-              ${isCorrect ? 'bg-green-500' : 'bg-red-500'}
+              ${isCorrect ? 'bg-dajaem-green' : 'bg-dajaem-red'}
             `}
             >
               {isCorrect ? (
@@ -170,9 +193,9 @@ export function QuizParticipant({
                   >
                     <CheckCircle className="w-24 h-24 text-white mx-auto mb-4" />
                   </motion.div>
-                  <h3 className="text-4xl font-black text-white mb-2">정답!</h3>
+                  <h3 className="text-4xl font-black text-white mb-2">{getCorrectMessage()}</h3>
                   <div className="flex items-center justify-center gap-2 mb-4">
-                    <Zap className="w-6 h-6 text-yellow-300" />
+                    <Zap className="w-6 h-6 text-dajaem-yellow" />
                     <span className="text-3xl font-bold text-white">
                       +{pointsEarned?.toLocaleString()}점
                     </span>
@@ -187,8 +210,8 @@ export function QuizParticipant({
                   >
                     <XCircle className="w-24 h-24 text-white mx-auto mb-4" />
                   </motion.div>
-                  <h3 className="text-4xl font-black text-white mb-2">아쉬워요!</h3>
-                  <p className="text-xl text-white/90">다음 문제에서 만회하세요</p>
+                  <h3 className="text-4xl font-black text-white mb-2">{getWrongMessage()}</h3>
+                  <p className="text-xl text-white/90">다음 문제에서 만회해 봐요</p>
                 </>
               )}
             </div>

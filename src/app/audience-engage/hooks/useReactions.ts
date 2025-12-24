@@ -59,7 +59,7 @@ export function useReactions({
     const setupSubscription = () => {
       channelRef.current = supabase
         .channel(`reactions:${sessionId}`)
-        .on('broadcast', { event: 'reaction' }, (payload) => {
+        .on('broadcast', { event: 'reaction' }, (payload: { payload: ReactionPayload }) => {
           const data = payload.payload as ReactionPayload;
           if (data.type === 'reaction') {
             const reactionEvent: ReactionEvent = {

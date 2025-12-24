@@ -39,3 +39,7 @@ pnpm-debug.log*
 # Turbo
 .turbo/
 .vercel
+
+# Tool caches
+.playwright-mcp/
+.serena/

@@ -87,9 +87,9 @@ export default function ParticipantView({
   });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-dajaem-grey flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-white border-b border-dajaem-green/10 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={onGoHome}>
@@ -98,12 +98,12 @@ export default function ParticipantView({
             <div>
               <h1 className="font-semibold text-sm">{config?.title || '세션'}</h1>
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="font-mono text-xs">{sessionCode}</Badge>
+                <Badge variant="outline" className="font-mono text-xs border-dajaem-green/30">{sessionCode}</Badge>
                 <ConnectionStatusDot status={connectionStatus} />
               </div>
             </div>
           </div>
-          <Badge variant="secondary" className="text-xs">{participantName}</Badge>
+          <Badge className="text-xs bg-dajaem-green/10 text-dajaem-green hover:bg-dajaem-green/20">{participantName}</Badge>
         </div>
       </header>
 
@@ -138,7 +138,7 @@ export default function ParticipantView({
                   <button
                     key={type}
                     onClick={() => sendReaction(type)}
-                    className="p-3 text-2xl hover:bg-slate-100 rounded-lg transition-colors active:scale-95"
+                    className="p-3 text-2xl hover:bg-dajaem-yellow/20 rounded-lg transition-all active:scale-95 hover:scale-110"
                   >
                     {emoji}
                   </button>
@@ -216,9 +216,9 @@ function getSceneLabel(type: SceneType): string {
 // Sub-components
 function ConnectionStatusDot({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    connected: 'bg-green-500',
-    connecting: 'bg-yellow-500',
-    disconnected: 'bg-red-500',
+    connected: 'bg-dajaem-green',
+    connecting: 'bg-dajaem-yellow',
+    disconnected: 'bg-dajaem-red',
   };
   return <div className={`w-2 h-2 rounded-full ${colors[status] || colors.disconnected}`} />;
 }

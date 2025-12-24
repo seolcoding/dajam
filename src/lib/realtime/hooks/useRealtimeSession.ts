@@ -132,6 +132,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           : ((tableData || []) as TData[]);
       }
 
+      console.log('[loadSession] Setting sessionId:', session.id);
       setState((prev) => ({
         ...prev,
         session,
@@ -255,10 +256,15 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
   // 세션 참여
   const joinSession = useCallback(
     async (options: JoinSessionOptions): Promise<SessionParticipant | null> => {
-      if (!state.sessionId) return null;
+      console.log('[joinSession] Called with sessionId:', state.sessionId);
+      if (!state.sessionId) {
+        console.log('[joinSession] Returning null - no sessionId in state');
+        return null;
+      }
 
       try {
         const { data: userData } = await supabase.auth.getUser();
+        console.log('[joinSession] User:', userData.user?.id || 'anonymous');
 
         const { data, error } = await supabase
           .from('session_participants')
@@ -273,12 +279,14 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .single();
 
         if (error || !data) {
+          console.error('[joinSession] Insert error:', error);
           throw error || new Error('참여 실패');
         }
 
+        console.log('[joinSession] Success! Participant ID:', data.id);
         return data as SessionParticipant;
       } catch (err) {
-        console.error('Failed to join session:', err);
+        console.error('[joinSession] Failed:', err);
         return null;
       }
     },

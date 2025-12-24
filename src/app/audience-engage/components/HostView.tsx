@@ -223,9 +223,9 @@ export default function HostView({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-dajaem-grey">
       {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-10">
+      <header className="bg-white border-b border-dajaem-green/10 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onGoHome}>
@@ -234,7 +234,7 @@ export default function HostView({
             <div>
               <h1 className="font-semibold">{config?.title || '새 세션'}</h1>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="outline" className="font-mono">{sessionCode}</Badge>
+                <Badge variant="outline" className="font-mono border-dajaem-green/30">{sessionCode}</Badge>
                 <ConnectionStatusBadge status={connectionStatus} />
               </div>
             </div>
@@ -246,12 +246,17 @@ export default function HostView({
               onLoadTemplate={handleLoadTemplate}
             />
             <div className="flex items-center gap-2 text-sm">
-              <Users className="w-4 h-4 text-muted-foreground" />
+              <Users className="w-4 h-4 text-dajaem-green" />
               <span className="font-medium">{participants.length}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={handleCopyLink}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="border-dajaem-green/30 hover:bg-dajaem-green/10"
+            >
               {copied ? (
-                <><Check className="w-4 h-4 mr-1" /> 복사됨</>
+                <><Check className="w-4 h-4 mr-1 text-dajaem-green" /> 복사됨</>
               ) : (
                 <><Share2 className="w-4 h-4 mr-1" /> 공유</>
               )}
@@ -274,13 +279,16 @@ export default function HostView({
             ) : !slideSourceType && uploadedSlides.length === 0 ? (
               /* Empty state - prompt to upload slides */
               <Card className="overflow-hidden">
-                <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-50 flex flex-col items-center justify-center">
-                  <Presentation className="w-16 h-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">슬라이드를 추가하세요</h3>
+                <div className="aspect-video bg-gradient-to-br from-dajaem-grey to-white flex flex-col items-center justify-center">
+                  <Presentation className="w-16 h-16 text-dajaem-green mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">슬라이드를 추가해 주세요</h3>
                   <p className="text-sm text-muted-foreground mb-6 max-w-md text-center">
-                    Google Slides URL을 입력하거나 PDF/이미지를 업로드하여 프레젠테이션을 시작하세요
+                    Google Slides URL을 입력하거나 PDF/이미지를 업로드하면 바로 시작할 수 있어요
                   </p>
-                  <Button onClick={() => setShowUploader(true)}>
+                  <Button
+                    onClick={() => setShowUploader(true)}
+                    className="bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                  >
                     <Upload className="w-4 h-4 mr-2" />
                     슬라이드 업로드
                   </Button>
@@ -471,13 +479,13 @@ export default function HostView({
               <CardContent>
                 {participants.length === 0 ? (
                   <div className="text-center text-sm text-muted-foreground py-4">
-                    참여자를 기다리는 중...
+                    참여자를 기다리는 중이에요...
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {participants.map((p) => (
                       <div key={p.id} className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        <div className="w-2 h-2 bg-dajaem-green rounded-full" />
                         {p.display_name}
                       </div>
                     ))}
@@ -508,9 +516,9 @@ export default function HostView({
 // Sub-components
 function ConnectionStatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
-    connected: { label: '연결됨', className: 'bg-green-100 text-green-700' },
-    connecting: { label: '연결 중', className: 'bg-yellow-100 text-yellow-700' },
-    disconnected: { label: '연결 끊김', className: 'bg-red-100 text-red-700' },
+    connected: { label: '연결됨', className: 'bg-dajaem-green/10 text-dajaem-green border-dajaem-green/30' },
+    connecting: { label: '연결 중', className: 'bg-dajaem-yellow/10 text-dajaem-yellow/90 border-dajaem-yellow/30' },
+    disconnected: { label: '연결 끊김', className: 'bg-dajaem-red/10 text-dajaem-red border-dajaem-red/30' },
   };
   const config = statusConfig[status] || statusConfig.disconnected;
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
@@ -544,8 +552,8 @@ function TimelineItem({
         flex-shrink-0 w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center gap-1
         transition-all
         ${isActive
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 hover:border-gray-300 bg-white'
+          ? 'border-dajaem-green bg-dajaem-green/10'
+          : 'border-gray-200 hover:border-dajaem-green/30 bg-white'
         }
       `}
     >

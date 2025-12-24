@@ -90,8 +90,8 @@ export function useSceneSync({ sessionId, isHost, enabled = true }: UseSceneSync
     const setupSubscription = async () => {
       channel = supabase.channel(`audience-engage:${sessionId}`);
 
-      channel
-        .on('broadcast', { event: 'sync' }, (payload) => {
+      channel!
+        .on('broadcast', { event: 'sync' }, (payload: { payload: BroadcastPayload }) => {
           const data = payload.payload as BroadcastPayload;
 
           if (data.type === 'scene_change') {

@@ -1,50 +1,51 @@
 import type { Metadata } from 'next';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { KakaoScript } from '@/components/common/KakaoScript';
+import { AuthProvider } from '@/components/auth/AuthProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'SeolCoding Apps - 일상의 번거로움을 10초 만에 해결',
-    template: '%s | SeolCoding Apps',
+    default: '다잼(DaJaem) - 다같이 재미있게! 실시간 인터랙션 플랫폼',
+    template: '%s | 다잼',
   },
   description:
-    '급여 계산기, 학점 계산기, 실시간 투표, 밸런스 게임 등 16가지 무료 미니앱으로 일상을 더 편리하게!',
+    '투표, 퀴즈, 워드클라우드, 빙고까지 - 21가지 인터랙션 앱으로 청중과 실시간 소통하세요!',
   keywords: [
-    '미니앱',
-    '계산기',
-    '게임',
-    '유틸리티',
-    'SeolCoding',
-    '급여계산기',
-    '학점계산기',
+    '다잼',
+    'DaJaem',
+    '실시간 투표',
+    '인터랙션',
+    '퀴즈',
+    '워드클라우드',
+    '빙고',
     '밸런스게임',
     '사다리게임',
-    '실시간투표',
+    '청중 참여',
   ],
-  authors: [{ name: 'SeolCoding' }],
+  authors: [{ name: '다잼(DaJaem)' }],
   openGraph: {
     type: 'website',
     locale: 'ko_KR',
-    url: 'https://apps.seolcoding.com',
-    siteName: 'SeolCoding Apps',
-    title: 'SeolCoding Apps - 일상의 번거로움을 10초 만에 해결',
+    url: 'https://dajaem.app',
+    siteName: '다잼(DaJaem)',
+    title: '다잼 - 다같이 재미있게! 실시간 인터랙션 플랫폼',
     description:
-      '급여 계산기, 학점 계산기, 실시간 투표, 밸런스 게임 등 16가지 무료 미니앱',
+      '투표, 퀴즈, 워드클라우드, 빙고까지 - 21가지 인터랙션 앱으로 청중과 소통',
     images: [
       {
-        url: 'https://apps.seolcoding.com/og-image.png',
+        url: 'https://dajaem.app/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SeolCoding Apps',
+        alt: '다잼(DaJaem) - 실시간 인터랙션 플랫폼',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SeolCoding Apps - 일상의 번거로움을 10초 만에 해결',
-    description: '16가지 무료 미니앱으로 일상을 더 편리하게!',
-    images: ['https://apps.seolcoding.com/og-image.png'],
+    title: '다잼 - 다같이 재미있게! 실시간 인터랙션',
+    description: '21가지 인터랙션 앱으로 청중과 실시간 소통하세요!',
+    images: ['https://dajaem.app/og-image.png'],
   },
   robots: {
     index: true,
@@ -69,7 +70,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <GoogleAnalytics />
         <KakaoScript />
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

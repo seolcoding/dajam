@@ -64,8 +64,8 @@ test.describe('Audience Engage', () => {
     });
   });
 
-  test.describe('Session Creation (requires Supabase)', () => {
-    test.skip('should create session and show host view', async ({ page }) => {
+  test.describe('Session Creation (Supabase)', () => {
+    test('should create session and show host view', async ({ page }) => {
       const engagePage = new AudienceEngagePage(page);
       await engagePage.goto();
 
@@ -82,8 +82,8 @@ test.describe('Audience Engage', () => {
     });
   });
 
-  test.describe('Multi-User Scenarios (requires Supabase)', () => {
-    test.skip('host and participant should see same session', async ({ browser }) => {
+  test.describe('Multi-User Scenarios (Supabase)', () => {
+    test('host and participant should see same session', async ({ browser }) => {
       const hostContext = await browser.newContext();
       const participantContext = await browser.newContext();
 
@@ -117,7 +117,7 @@ test.describe('Audience Engage', () => {
       }
     });
 
-    test.skip('Q&A messages should sync between host and participant', async ({ browser }) => {
+    test('Q&A messages should sync between host and participant', async ({ browser }) => {
       const hostContext = await browser.newContext();
       const participantContext = await browser.newContext();
 
@@ -156,7 +156,7 @@ test.describe('Audience Engage', () => {
       }
     });
 
-    test.skip('Chat messages should sync in real-time', async ({ browser }) => {
+    test('Chat messages should sync in real-time', async ({ browser }) => {
       const hostContext = await browser.newContext();
       const participantContext = await browser.newContext();
 
