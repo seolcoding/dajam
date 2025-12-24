@@ -245,4 +245,7 @@ setAll(cookiesToSet) {
 | 2024-12-24 | Step 3: 쿠키 패턴 | ✅ | middleware.ts 수정 |
 | 2024-12-24 | 빌드 테스트 | ✅ | 성공 |
 | 2024-12-24 | E2E 테스트 | ✅ | 8개 테스트 통과 (1.7분) |
-| | 프로덕션 테스트 | ⏳ | 배포 후 확인 필요 |
+| 2024-12-24 | 프로덕션 테스트 #1 | ❌ | Session timeout 에러 |
+| 2024-12-24 | Step 4: getSession 제거 | ✅ | onAuthStateChange INITIAL_SESSION 사용 |
+| 2024-12-24 | Step 5: 로그아웃 버튼 수정 | ✅ | onClick → onSelect 변경 |
+| 2024-12-24 | 프로덕션 테스트 #2 | ✅ | 로그인/로그아웃 정상 작동 |
