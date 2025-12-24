@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Clock, FileText, HelpCircle } from 'lucide-react';
+import { Plus, Clock, FileText, HelpCircle, Presentation } from 'lucide-react';
 
 export function QuickActions() {
   const actions = [
@@ -15,17 +15,18 @@ export function QuickActions() {
       variant: 'default' as const,
     },
     {
-      icon: Clock,
-      label: '최근 세션 이어가기',
-      description: '마지막 세션 계속하기',
-      href: '/dashboard/my-sessions',
+      icon: Presentation,
+      label: '프레젠테이션',
+      description: '청중과 실시간 소통',
+      href: '/audience-engage',
       variant: 'secondary' as const,
+      highlight: true,
     },
     {
-      icon: FileText,
-      label: '템플릿 사용하기',
-      description: '저장된 템플릿으로 시작',
-      href: '/dashboard/templates',
+      icon: Clock,
+      label: '최근 세션',
+      description: '이전 세션 계속하기',
+      href: '/dashboard/my-sessions',
       variant: 'secondary' as const,
     },
     {
@@ -41,16 +42,19 @@ export function QuickActions() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {actions.map((action) => {
         const Icon = action.icon;
+        const isHighlight = 'highlight' in action && action.highlight;
         return (
           <Link key={action.label} href={action.href}>
-            <Card className="p-6 hover:shadow-md transition-shadow cursor-pointer h-full">
+            <Card className={`p-6 hover:shadow-md transition-shadow cursor-pointer h-full ${isHighlight ? 'border-dajaem-green/50 bg-dajaem-green/5' : ''}`}>
               <div className="flex flex-col items-center text-center gap-3">
                 <div
                   className={`
                     w-12 h-12 rounded-full flex items-center justify-center
                     ${
                       action.variant === 'default'
-                        ? 'bg-blue-500 text-white'
+                        ? 'bg-dajaem-green text-white'
+                        : isHighlight
+                        ? 'bg-dajaem-green/20 text-dajaem-green'
                         : 'bg-muted text-muted-foreground'
                     }
                   `}

@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +12,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Eye, Link2, Trash2, Users } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { MoreVertical, Eye, Link2, Trash2, Users, Play } from 'lucide-react';
 import type { Session } from '@/types/database';
 
 // Extended session with computed fields
@@ -82,15 +94,28 @@ export function RecentSessions({
   sessions = mockSessions,
   isLoading = false,
 }: RecentSessionsProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<{ id: string; title: string } | null>(null);
+
   const handleCopyLink = (code: string) => {
     const url = `${window.location.origin}?code=${code}`;
     navigator.clipboard.writeText(url);
-    // TODO: Show toast notification
+    toast.success('링크가 복사되었습니다');
   };
 
-  const handleDelete = (id: string) => {
-    // TODO: Implement delete
-    console.log('Delete session:', id);
+  const handleDeleteClick = (session: { id: string; title: string }) => {
+    setSessionToDelete(session);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionToDelete) return;
+
+    // TODO: Call API to delete session
+    console.log('Delete session:', sessionToDelete.id);
+    toast.success(`"${sessionToDelete.title}" 세션이 삭제되었습니다`);
+    setDeleteDialogOpen(false);
+    setSessionToDelete(null);
   };
 
   if (isLoading) {
@@ -179,18 +204,35 @@ export function RecentSessions({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  {/* 시작하기 - audience-engage, live-voting 등 실시간 앱만 */}
+                  {['audience-engage', 'live-voting', 'bingo-game'].includes(session.app_type) && (
+                    <DropdownMenuItem asChild>
+                      <Link href={getStartUrl(session.app_type, session.code)}>
+                        <Play className="w-4 h-4 mr-2" />
+                        {session.is_active ? '이어하기' : '시작하기'}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/my-sessions/${session.id}`}>
                       <Eye className="w-4 h-4 mr-2" />
                       보기
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCopyLink(session.code)}>
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleCopyLink(session.code);
+                    }}
+                  >
                     <Link2 className="w-4 h-4 mr-2" />
                     링크 복사
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => handleDelete(session.id)}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleDeleteClick({ id: session.id, title: session.title });
+                    }}
                     className="text-red-600"
                   >
                     <Trash2 className="w-4 h-4 mr-2" />
@@ -202,8 +244,49 @@ export function RecentSessions({
           ))}
         </div>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>세션을 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {sessionToDelete && (
+                <>
+                  &quot;{sessionToDelete.title}&quot; 세션이 영구적으로 삭제됩니다.
+                  <br />
+                  이 작업은 되돌릴 수 없습니다.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
+}
+
+// 앱별 호스트 시작 URL 생성
+function getStartUrl(appType: string, code: string): string {
+  switch (appType) {
+    case 'audience-engage':
+      return `/audience-engage?code=${code}&mode=host`;
+    case 'live-voting':
+      return `/live-voting?code=${code}&mode=host`;
+    case 'bingo-game':
+      return `/bingo-game?code=${code}&mode=host`;
+    default:
+      return `/${appType}?code=${code}`;
+  }
 }
 
 function formatRelativeTime(dateString: string): string {

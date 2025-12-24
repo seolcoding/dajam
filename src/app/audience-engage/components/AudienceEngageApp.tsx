@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,13 @@ import type { Json } from '@/types/database';
 type ViewMode = 'home' | 'host' | 'participant';
 
 export default function AudienceEngageApp() {
+  const searchParams = useSearchParams();
+
+  // URL 파라미터에서 세션 정보 가져오기
+  // ?code=ABC123&mode=host → 기존 세션을 호스트로 시작
+  // ?code=ABC123 → 참여자로 접속
+  const urlCode = searchParams.get('code');
+  const urlMode = searchParams.get('mode') as ViewMode | null;
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [sessionCode, setSessionCode] = useState('');
@@ -109,7 +117,23 @@ export default function AudienceEngageApp() {
     setSessionCode('');
     setJoinCodeInput('');
     setMyParticipantId(null);
+    // URL 파라미터 제거
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, '', '/audience-engage');
+    }
   };
+
+  // URL 파라미터로 세션 시작 처리
+  useEffect(() => {
+    if (urlCode && urlMode === 'host') {
+      // 호스트 모드로 바로 시작
+      setSessionCode(urlCode.toUpperCase());
+      setViewMode('host');
+    } else if (urlCode && !urlMode) {
+      // 참여자 모드로 접속 (코드만 있으면)
+      setJoinCodeInput(urlCode.toUpperCase());
+    }
+  }, [urlCode, urlMode]);
 
   // 자동 참여: participant 모드인데 세션이 로드되고 아직 참여하지 않았을 때
   useEffect(() => {
