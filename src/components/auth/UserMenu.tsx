@@ -86,10 +86,7 @@ export function UserMenu() {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-            handleSignOut();
-          }}
+          onClick={handleSignOut}
           className="cursor-pointer text-red-600 focus:text-red-600"
         >
           <LogOut className="w-4 h-4 mr-2" />
