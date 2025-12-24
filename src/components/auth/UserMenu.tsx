@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import {
   DropdownMenu,
@@ -17,20 +16,14 @@ import { User, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 
 export function UserMenu() {
   const { user, profile, signOut } = useAuth();
-  const router = useRouter();
 
   // Show nothing if no user at all
   if (!user) return null;
 
   const handleSignOut = async () => {
     console.log('[UserMenu] Signing out...');
-    try {
-      await signOut();
-      console.log('[UserMenu] Sign out successful, redirecting...');
-      router.push('/');
-    } catch (error) {
-      console.error('[UserMenu] Sign out error:', error);
-    }
+    await signOut();
+    // signOut 내부에서 window.location.href로 리다이렉트 처리됨
   };
 
   const displayName = profile?.nickname || user.email?.split('@')[0] || '사용자';

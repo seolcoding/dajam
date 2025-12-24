@@ -21,7 +21,7 @@ export default function DashboardRootLayout({
 
   const handleLogout = async () => {
     await signOut();
-    router.push('/');
+    // signOut 내부에서 window.location.href로 리다이렉트 처리됨
   };
 
   // Show loading state while checking auth

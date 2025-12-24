@@ -149,12 +149,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!client) return;
 
     try {
+      console.log('[AuthProvider] signOut called');
       await client.auth.signOut();
-      setUser(null);
-      setSession(null);
-      setProfile(null);
+      // 상태는 onAuthStateChange SIGNED_OUT 이벤트에서 처리됨
+      // 페이지 전체 리로드로 확실하게 세션 클리어
+      window.location.href = '/';
     } catch (error) {
       console.error('Error signing out:', error);
+      // 에러 발생해도 홈으로 이동
+      window.location.href = '/';
     }
   }, []);
 
