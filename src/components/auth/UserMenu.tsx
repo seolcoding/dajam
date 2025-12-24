@@ -23,8 +23,14 @@ export function UserMenu() {
   if (!user) return null;
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+    console.log('[UserMenu] Signing out...');
+    try {
+      await signOut();
+      console.log('[UserMenu] Sign out successful, redirecting...');
+      router.push('/');
+    } catch (error) {
+      console.error('[UserMenu] Sign out error:', error);
+    }
   };
 
   const displayName = profile?.nickname || user.email?.split('@')[0] || '사용자';
@@ -86,7 +92,13 @@ export function UserMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600">
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+            handleSignOut();
+          }}
+          className="cursor-pointer text-red-600 focus:text-red-600"
+        >
           <LogOut className="w-4 h-4 mr-2" />
           로그아웃
         </DropdownMenuItem>
