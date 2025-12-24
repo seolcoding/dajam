@@ -9,7 +9,7 @@ import { Menu, X } from 'lucide-react';
 
 export function MarketingHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-dajaem-green/10">
@@ -47,7 +47,9 @@ export function MarketingHeader() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            {user ? (
+            {loading ? (
+              <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
+            ) : user ? (
               <UserMenu />
             ) : (
               <>
@@ -106,7 +108,9 @@ export function MarketingHeader() {
                 앱 둘러보기
               </Link>
               <div className="flex flex-col gap-2 pt-2">
-                {user ? (
+                {loading ? (
+                  <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse mx-auto" />
+                ) : user ? (
                   <UserMenu />
                 ) : (
                   <>

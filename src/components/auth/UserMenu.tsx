@@ -16,25 +16,29 @@ import { Badge } from '@/components/ui/badge';
 import { User, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 
 export function UserMenu() {
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const router = useRouter();
 
-  if (!profile) return null;
+  // Show nothing if no user at all
+  if (!user) return null;
 
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
   };
 
+  const displayName = profile?.nickname || user.email?.split('@')[0] || '사용자';
+  const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
         <div className="flex items-center gap-2 hover:opacity-80 transition-opacity">
           <Avatar className="w-9 h-9 bg-slate-200 flex items-center justify-center">
-            {profile.avatar_url ? (
+            {avatarUrl ? (
               <img
-                src={profile.avatar_url}
-                alt={profile.nickname}
+                src={avatarUrl}
+                alt={displayName}
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
@@ -43,9 +47,9 @@ export function UserMenu() {
           </Avatar>
           <div className="hidden sm:block text-left">
             <div className="text-sm font-medium text-slate-900">
-              {profile.nickname}
+              {displayName}
             </div>
-            {profile.is_admin && (
+            {profile?.is_admin && (
               <Badge variant="secondary" className="text-xs">
                 Admin
               </Badge>
@@ -56,9 +60,9 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>
           <div className="flex flex-col gap-1">
-            <div className="text-sm font-medium">{profile.nickname}</div>
-            {profile.email && (
-              <div className="text-xs text-slate-500">{profile.email}</div>
+            <div className="text-sm font-medium">{displayName}</div>
+            {(profile?.email || user.email) && (
+              <div className="text-xs text-slate-500">{profile?.email || user.email}</div>
             )}
             <Badge
               variant="outline"
@@ -76,13 +80,13 @@ export function UserMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/settings" className="cursor-pointer">
+          <Link href="/dashboard/settings" className="cursor-pointer">
             <Settings className="w-4 h-4 mr-2" />
             설정
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600">
           <LogOut className="w-4 h-4 mr-2" />
           로그아웃
         </DropdownMenuItem>
