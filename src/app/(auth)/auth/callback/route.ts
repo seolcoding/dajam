@@ -3,9 +3,25 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+/**
+ * OAuth 콜백 핸들러
+ *
+ * 수정 이력:
+ * - 2024-12-24: x-forwarded-host 헤더 처리 추가 (Step 1)
+ *   - 프로덕션 환경에서 로드밸런서/프록시 뒤의 실제 도메인으로 리다이렉트
+ *   - next 파라미터 지원 추가
+ */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  // next 파라미터가 있으면 사용, 없으면 /dashboard로 기본값
+  let next = requestUrl.searchParams.get('next') ?? '/dashboard';
+
+  // next가 상대 경로가 아니면 기본값 사용 (보안)
+  if (!next.startsWith('/')) {
+    next = '/dashboard';
+  }
+
   const origin = requestUrl.origin;
 
   if (code) {
@@ -38,8 +54,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${origin}/login?error=${error.message}`);
     }
 
-    // Successfully exchanged code for session
-    return NextResponse.redirect(`${origin}/dashboard`);
+    // Step 1: x-forwarded-host 헤더 처리
+    // 프로덕션 환경에서 로드밸런서/Vercel 프록시 뒤의 실제 도메인 사용
+    const forwardedHost = request.headers.get('x-forwarded-host');
+    const isLocalEnv = process.env.NODE_ENV === 'development';
+
+    if (isLocalEnv) {
+      // 개발 환경: 로드밸런서 없으므로 origin 그대로 사용
+      return NextResponse.redirect(`${origin}${next}`);
+    } else if (forwardedHost) {
+      // 프로덕션: x-forwarded-host가 있으면 실제 도메인으로 리다이렉트
+      return NextResponse.redirect(`https://${forwardedHost}${next}`);
+    } else {
+      // 프로덕션: x-forwarded-host가 없으면 origin 사용
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
   // No code provided

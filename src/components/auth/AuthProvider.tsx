@@ -1,9 +1,19 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import type { Profile } from '@/types/database';
+
+/**
+ * AuthProvider - 클라이언트 인증 상태 관리
+ *
+ * 수정 이력:
+ * - 2024-12-24: Step 2 - 세션 감지 개선
+ *   - SIGNED_IN/SIGNED_OUT 이벤트 시 router.refresh() 호출
+ *   - 서버 컴포넌트들이 새 세션 상태를 반영하도록 함
+ */
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   // Use ref to store supabase client to avoid dependency issues
   const supabaseRef = useRef(createClient());
@@ -129,7 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event: AuthChangeEvent, newSession: Session | null) => {
+      async (event: AuthChangeEvent, newSession: Session | null) => {
         if (!isMounted) return;
 
         setSession(newSession);
@@ -139,6 +150,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await loadOrCreateProfile(newSession.user);
         } else {
           setProfile(null);
+        }
+
+        // Step 2: 세션 변경 시 서버 컴포넌트 갱신
+        // SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED 이벤트에서 라우터 리프레시
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          router.refresh();
         }
       }
     );
