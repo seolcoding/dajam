@@ -37,7 +37,7 @@ const faqs = [
   {
     question: '기업용 플랜이나 대량 구매 할인이 있나요?',
     answer:
-      '10명 이상의 사용자가 필요한 경우 별도 문의 주시면 맞춤 견적을 제공해드립니다. contact@seolcoding.com으로 문의해주세요.',
+      '10명 이상의 사용자가 필요한 경우 별도 문의 주시면 맞춤 견적을 제공해드립니다. ssalssi1@gmail.com으로 문의해주세요.',
   },
 ];
 
@@ -80,10 +80,10 @@ export default function PricingPage() {
                 다른 질문이 있으신가요?
               </p>
               <a
-                href="mailto:contact@seolcoding.com"
+                href="mailto:ssalssi1@gmail.com"
                 className="text-blue-600 hover:text-blue-700 font-semibold"
               >
-                contact@seolcoding.com
+                ssalssi1@gmail.com
               </a>
             </div>
           </div>

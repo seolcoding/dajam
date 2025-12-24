@@ -217,7 +217,7 @@ export default function PrivacyPage() {
             <div className="bg-muted/30 p-4 rounded-lg text-muted-foreground">
               <p><strong>개인정보 보호책임자</strong></p>
               <p>이름: 설코딩 대표</p>
-              <p>이메일: privacy@seolcoding.com</p>
+              <p>이메일: ssalssi1@gmail.com</p>
               <p>전화: 연락처 비공개</p>
             </div>
           </section>
@@ -246,8 +246,8 @@ export default function PrivacyPage() {
           <section className="mt-12 pt-8 border-t">
             <p className="text-muted-foreground">
               개인정보 처리에 관한 문의사항이 있으시면{' '}
-              <a href="mailto:privacy@seolcoding.com" className="text-primary hover:underline">
-                privacy@seolcoding.com
+              <a href="mailto:ssalssi1@gmail.com" className="text-primary hover:underline">
+                ssalssi1@gmail.com
               </a>
               으로 연락주시기 바랍니다.
             </p>

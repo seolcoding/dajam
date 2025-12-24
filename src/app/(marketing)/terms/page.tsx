@@ -142,8 +142,8 @@ export default function TermsPage() {
           <section className="mt-12 pt-8 border-t">
             <p className="text-muted-foreground">
               본 약관에 대한 문의사항이 있으시면{' '}
-              <a href="mailto:support@seolcoding.com" className="text-primary hover:underline">
-                support@seolcoding.com
+              <a href="mailto:ssalssi1@gmail.com" className="text-primary hover:underline">
+                ssalssi1@gmail.com
               </a>
               으로 연락주시기 바랍니다.
             </p>
