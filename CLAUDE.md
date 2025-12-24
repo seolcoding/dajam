@@ -177,6 +177,48 @@ All 16 apps are at root-level routes:
 - `prd/*.md` - Product requirements for each app
 - `docs/BRANDING_RESEARCH_DAJAM.md` - Dajam 브랜딩 가이드라인
 
+## Authentication (Supabase SSR)
+
+### 주요 파일
+- `src/lib/supabase/client.ts` - 브라우저 클라이언트 (`createBrowserClient`)
+- `src/lib/supabase/server.ts` - 서버 클라이언트 (`createServerClient`)
+- `src/components/auth/AuthProvider.tsx` - 클라이언트 인증 상태 관리
+- `src/app/(auth)/auth/signout/route.ts` - 로그아웃 서버 API
+
+### 로그아웃 구현 (2024-12-24 수정)
+
+**중요**: Next.js SSR 환경에서 Supabase 로그아웃은 **서버 API**를 통해 처리해야 함.
+
+```tsx
+// ❌ 클라이언트에서 직접 호출 - 쿠키가 제대로 정리되지 않음
+await supabase.auth.signOut();
+
+// ✅ 서버 API를 통해 로그아웃
+// AuthProvider.tsx
+const signOut = useCallback(async () => {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/auth/signout';
+  document.body.appendChild(form);
+  form.submit();
+}, []);
+```
+
+**서버 라우트** (`/auth/signout/route.ts`):
+```ts
+export async function POST(req: Request) {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
+  return NextResponse.redirect(new URL('/', req.url), { status: 302 });
+}
+```
+
+### 인증 흐름
+1. OAuth 로그인 → `/auth/callback` → 세션 쿠키 설정
+2. `AuthProvider`가 `onAuthStateChange`로 세션 상태 감지
+3. 로그아웃 → POST `/auth/signout` → 서버에서 쿠키 삭제 → 홈 리다이렉트
+
 ## Paused Work (2024-12-23)
 
 ### Audience Engage 멀티유저 E2E 테스트 디버깅 (일시 중단)
