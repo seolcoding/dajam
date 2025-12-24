@@ -3,7 +3,7 @@
  * 슬라이드 기반 실시간 청중 참여 플랫폼
  */
 
-// Scene 타입 - 6개 기존 앱 + slides
+// Scene 타입 - 8개 기존 앱 + slides
 export type SceneType =
   | 'slides'
   | 'quiz'
@@ -11,7 +11,9 @@ export type SceneType =
   | 'this-or-that'
   | 'word-cloud'
   | 'personality'
-  | 'bingo';
+  | 'bingo'
+  | 'ladder'
+  | 'balance-game';
 
 // 슬라이드 소스 타입
 export type SlideSourceType = 'google-slides' | 'pdf' | 'images';
@@ -20,7 +22,7 @@ export type SlideSourceType = 'google-slides' | 'pdf' | 'images';
 export type PresentationStatus = 'processing' | 'ready' | 'error';
 
 // 슬라이드 아이템 타입
-export type SlideItemType = 'slide' | 'poll' | 'quiz' | 'this-or-that' | 'word-cloud' | 'personality' | 'bingo' | 'embed';
+export type SlideItemType = 'slide' | 'poll' | 'quiz' | 'this-or-that' | 'word-cloud' | 'personality' | 'bingo' | 'ladder' | 'balance-game' | 'embed';
 
 /**
  * 프레젠테이션 파일 정보

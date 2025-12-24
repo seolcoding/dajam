@@ -9,6 +9,10 @@ import { QuizScene } from './scenes/QuizScene';
 import { ThisOrThatScene } from './scenes/ThisOrThatScene';
 import { WordCloudScene } from './scenes/WordCloudScene';
 import { VoteScene } from './scenes/VoteScene';
+import { PersonalityScene } from './scenes/PersonalityScene';
+import { BingoScene } from './scenes/BingoScene';
+import { LadderScene } from './scenes/LadderScene';
+import { BalanceGameScene } from './scenes/BalanceGameScene';
 
 /**
  * SceneManager - Scene 타입에 따라 적절한 컴포넌트를 렌더링
@@ -103,23 +107,41 @@ export function SceneManager({
 
       case 'personality':
         return (
-          <PlaceholderScene
-            type="personality"
-            icon="🧠"
-            title="성격 테스트"
+          <PersonalityScene
+            sessionId={sessionId}
             isHost={isHost}
-            color="pink"
+            participantId={participantId}
+            participantName={participantName}
           />
         );
 
       case 'bingo':
         return (
-          <PlaceholderScene
-            type="bingo"
-            icon="🎱"
-            title="휴먼 빙고"
+          <BingoScene
+            sessionId={sessionId}
             isHost={isHost}
-            color="yellow"
+            participantId={participantId}
+            participantName={participantName}
+          />
+        );
+
+      case 'ladder':
+        return (
+          <LadderScene
+            sessionId={sessionId}
+            isHost={isHost}
+            participantId={participantId}
+            participantName={participantName}
+          />
+        );
+
+      case 'balance-game':
+        return (
+          <BalanceGameScene
+            sessionId={sessionId}
+            isHost={isHost}
+            participantId={participantId}
+            participantName={participantName}
           />
         );
 
