@@ -26,7 +26,7 @@ export function CTASection() {
 
           {/* CTA Button */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/signup">
+            <Link href="/login">
               <Button
                 size="lg"
                 variant="secondary"

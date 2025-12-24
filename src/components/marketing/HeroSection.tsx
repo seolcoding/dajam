@@ -36,7 +36,7 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in">
-            <Link href="/signup">
+            <Link href="/login">
               <Button size="lg" variant="default" className="px-8 h-12">
                 지금 바로 시작! 🚀
                 <ArrowRight className="w-5 h-5 ml-2" />

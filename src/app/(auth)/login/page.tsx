@@ -51,13 +51,7 @@ export default function LoginPage() {
         </div>
 
         <div className="text-center text-sm text-slate-600">
-          계정이 없으신가요?{' '}
-          <Link
-            href="/signup"
-            className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-          >
-            회원가입
-          </Link>
+          처음이신가요? 소셜 로그인으로 자동 가입됩니다
         </div>
 
         <div className="text-center text-xs text-slate-500 pt-4">

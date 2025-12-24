@@ -9,7 +9,7 @@ const protectedRoutes = ['/dashboard', '/admin'];
 const adminRoutes = ['/admin'];
 
 // Auth routes (redirect to dashboard if already logged in)
-const authRoutes = ['/login', '/signup'];
+const authRoutes = ['/login'];
 
 export async function middleware(request: NextRequest) {
   // First, update the Supabase session

@@ -18,7 +18,7 @@ const plans = [
       '커뮤니티 지원',
     ],
     cta: '무료로 시작하기',
-    ctaLink: '/signup',
+    ctaLink: '/login',
     popular: false,
   },
   {
@@ -36,7 +36,7 @@ const plans = [
       '우선 지원',
     ],
     cta: 'Pro로 업그레이드',
-    ctaLink: '/signup?plan=pro',
+    ctaLink: '/login?plan=pro',
     popular: true,
   },
 ];

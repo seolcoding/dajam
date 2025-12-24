@@ -56,7 +56,7 @@ export function MarketingHeader() {
                     로그인
                   </Button>
                 </Link>
-                <Link href="/signup">
+                <Link href="/login">
                   <Button size="sm" variant="default">
                     무료로 시작하기
                   </Button>
@@ -115,7 +115,7 @@ export function MarketingHeader() {
                         로그인
                       </Button>
                     </Link>
-                    <Link href="/signup">
+                    <Link href="/login">
                       <Button variant="default" className="w-full">
                         무료로 시작하기
                       </Button>
