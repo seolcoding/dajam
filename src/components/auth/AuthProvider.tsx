@@ -145,20 +145,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // Empty dependency array - supabase is stored in ref
 
   const signOut = useCallback(async () => {
-    const client = supabaseRef.current;
-    if (!client) return;
+    console.log('[AuthProvider] signOut - calling server API');
 
-    try {
-      console.log('[AuthProvider] signOut called');
-      await client.auth.signOut();
-      // 상태는 onAuthStateChange SIGNED_OUT 이벤트에서 처리됨
-      // 페이지 전체 리로드로 확실하게 세션 클리어
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error signing out:', error);
-      // 에러 발생해도 홈으로 이동
-      window.location.href = '/';
-    }
+    // 서버 API를 통해 로그아웃 (쿠키 정리 + 리다이렉트)
+    // form POST를 사용해서 서버 라우트 호출
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/auth/signout';
+    document.body.appendChild(form);
+    form.submit();
   }, []);
 
   return (

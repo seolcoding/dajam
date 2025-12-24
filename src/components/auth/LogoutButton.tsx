@@ -19,15 +19,10 @@ interface LogoutButtonProps {
 export function LogoutButton({ variant = 'button', className }: LogoutButtonProps) {
   const { signOut } = useAuth();
 
-  const handleLogout = async () => {
-    console.log('[LogoutButton] Signing out...');
-    await signOut();
-  };
-
   if (variant === 'dropdown-item') {
     return (
       <DropdownMenuItem
-        onSelect={() => handleLogout()}
+        onSelect={() => signOut()}
         className={cn('cursor-pointer text-red-600 focus:text-red-600', className)}
       >
         <LogOut className="w-4 h-4 mr-2" />
@@ -40,7 +35,7 @@ export function LogoutButton({ variant = 'button', className }: LogoutButtonProp
     <Button
       variant="ghost"
       size="sm"
-      onClick={handleLogout}
+      onClick={() => signOut()}
       className={cn('w-full justify-start text-muted-foreground', className)}
     >
       <LogOut className="w-4 h-4 mr-2" />
