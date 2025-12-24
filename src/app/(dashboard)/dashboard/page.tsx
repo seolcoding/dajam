@@ -4,10 +4,10 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentSessions } from '@/components/dashboard/RecentSessions';
 import { UsageStats } from '@/components/dashboard/UsageStats';
 import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard';
-import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function DashboardPage() {
-  const { profile } = useProfile();
+  const { profile } = useAuth();
 
   return (
     <div className="space-y-6">

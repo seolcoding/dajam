@@ -3,8 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useProfile } from '@/hooks/useProfile';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function AdminRootLayout({
   children,
@@ -12,42 +11,27 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const supabase = useSupabase();
-  const { profile, isLoading } = useProfile();
+  const { user, profile, loading, signOut } = useAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!supabase) return;
+    if (!loading && !user) {
+      router.push('/login?redirect=/admin');
+      return;
+    }
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user && !isLoading) {
-        // Redirect to login page
-        router.push('/login?redirect=/admin');
-        return;
-      }
-
-      // Check if user is admin
-      if (profile && !profile.is_admin && !isLoading) {
-        // Redirect to regular dashboard if not admin
-        router.push('/dashboard');
-      }
-    };
-
-    checkAuth();
-  }, [supabase, profile, isLoading, router]);
+    // Check if user is admin
+    if (!loading && profile && !profile.is_admin) {
+      router.push('/dashboard');
+    }
+  }, [loading, user, profile, router]);
 
   const handleLogout = async () => {
-    if (!supabase) return;
-
-    await supabase.auth.signOut();
+    await signOut();
     router.push('/');
   };
 
   // Show loading state while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -56,6 +40,11 @@ export default function AdminRootLayout({
         </div>
       </div>
     );
+  }
+
+  // Not logged in - will redirect
+  if (!user) {
+    return null;
   }
 
   // Show access denied if not admin

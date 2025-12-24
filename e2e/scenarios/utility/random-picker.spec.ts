@@ -73,10 +73,15 @@ test.describe('Random Picker', () => {
     await pickerPage.expectItemCount(2);
   });
 
-  test('should handle single item', async () => {
+  test('should require at least 2 items to spin', async () => {
     await pickerPage.addItem('Only One');
-    await pickerPage.spin();
 
-    await pickerPage.expectResultVisible();
+    // Spin button should NOT be visible with only 1 item
+    const spinButton = pickerPage.spinButton;
+    await expect(spinButton).not.toBeVisible();
+
+    // Add second item - button should appear
+    await pickerPage.addItem('Second');
+    await expect(spinButton).toBeVisible();
   });
 });

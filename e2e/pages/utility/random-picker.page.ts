@@ -39,11 +39,22 @@ export class RandomPickerPage extends BasePage {
   }
 
   get resultModal() {
-    return this.page.locator('[role="dialog"], [data-state="open"]');
+    // Dialog with "당첨!" title
+    return this.page.locator('div[role="dialog"]:has-text("당첨")');
   }
 
-  get historyList() {
-    return this.page.locator('[role="dialog"]:has-text("히스토리"), .history');
+  get historyButton() {
+    // History icon button in header
+    return this.page.locator('button:has(.lucide-history)');
+  }
+
+  get historyDialog() {
+    return this.page.locator('div[role="dialog"]:has-text("히스토리")');
+  }
+
+  get historyItems() {
+    // History items are Cards inside the dialog
+    return this.historyDialog.locator('.bg-gray-50.p-3');
   }
 
   get itemCards() {
@@ -71,8 +82,8 @@ export class RandomPickerPage extends BasePage {
 
   async spin() {
     await this.spinButton.click();
-    // Wait for wheel animation (longer animation)
-    await this.waitForAnimation(4000);
+    // Wait for wheel animation (longer animation) + result modal
+    await this.waitForAnimation(5000);
   }
 
   async removeItem(name: string) {
@@ -101,8 +112,16 @@ export class RandomPickerPage extends BasePage {
   }
 
   async expectHistoryCount(count: number) {
-    const historyItems = this.historyList.locator('li, .history-item');
-    await expect(historyItems).toHaveCount(count);
+    // Open history dialog
+    await this.historyButton.click();
+    await this.waitForAnimation(300);
+
+    // Check history items count
+    await expect(this.historyItems).toHaveCount(count, { timeout: 5000 });
+
+    // Close dialog
+    await this.page.keyboard.press('Escape');
+    await this.waitForAnimation(200);
   }
 
   async expectItemInWheel(name: string) {

@@ -1,7 +1,6 @@
 'use client';
 
-import { createBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 // Supabase 환경 변수 확인
@@ -13,13 +12,33 @@ export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 // Type alias for the Supabase client
 export type TypedSupabaseClient = SupabaseClient<Database>;
 
+// Singleton client instance for browser
+let browserClient: SupabaseClient<Database> | null = null;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function createClient(): any {
   if (!isSupabaseConfigured) {
-    // 환경 변수가 없으면 null 반환 (로컬 모드로 동작)
     return null;
   }
-  return createBrowserClient<Database>(supabaseUrl!, supabaseAnonKey!);
+
+  // Return existing singleton if available
+  if (browserClient) {
+    return browserClient;
+  }
+
+  // Create client with default localStorage persistence
+  browserClient = createSupabaseClient<Database>(supabaseUrl!, supabaseAnonKey!, {
+    auth: {
+      persistSession: true,
+      storageKey: 'supabase-auth',
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  });
+
+  return browserClient;
 }
 
 // Non-null version for use after null check

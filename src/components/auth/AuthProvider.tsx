@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User, Session, AuthChangeEvent } from '@supabase/supabase-js';
 import type { Profile } from '@/types/database';
@@ -21,7 +21,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createClient();
+  // Use ref to store supabase client to avoid dependency issues
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   useEffect(() => {
     if (!supabase) {
@@ -29,113 +31,127 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Get initial session
+    let isMounted = true;
+
+    const loadOrCreateProfile = async (authUser: User) => {
+      try {
+        const { data: existingProfile, error: fetchError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authUser.id)
+          .single();
+
+        if (!isMounted) return;
+
+        if (existingProfile) {
+          setProfile(existingProfile);
+          return;
+        }
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error fetching profile:', fetchError);
+          return;
+        }
+
+        const provider = authUser.app_metadata.provider as 'google' | 'kakao' | null;
+        const nickname =
+          authUser.user_metadata.full_name ||
+          authUser.user_metadata.name ||
+          authUser.email?.split('@')[0] ||
+          `사용자${authUser.id.slice(0, 6)}`;
+
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: authUser.id,
+            nickname,
+            email: authUser.email ?? null,
+            avatar_url: authUser.user_metadata.avatar_url ?? null,
+            provider,
+            is_admin: false,
+          })
+          .select()
+          .single();
+
+        if (!isMounted) return;
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          return;
+        }
+
+        setProfile(newProfile);
+      } catch (error) {
+        console.error('Error in loadOrCreateProfile:', error);
+      }
+    };
+
     const initializeAuth = async () => {
       try {
-        const {
-          data: { session: initialSession },
-        } = await supabase.auth.getSession();
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
-        setSession(initialSession);
-        setUser(initialSession?.user ?? null);
+        if (!isMounted) return;
 
-        if (initialSession?.user) {
-          await loadOrCreateProfile(initialSession.user);
+        if (sessionError || !currentSession) {
+          setUser(null);
+          setSession(null);
+          setLoading(false);
+          return;
+        }
+
+        setSession(currentSession);
+        setUser(currentSession.user);
+
+        if (currentSession.user) {
+          await loadOrCreateProfile(currentSession.user);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
+        setUser(null);
+        setSession(null);
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     initializeAuth();
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, newSession: Session | null) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event: AuthChangeEvent, newSession: Session | null) => {
+        if (!isMounted) return;
 
-      if (newSession?.user) {
-        await loadOrCreateProfile(newSession.user);
-      } else {
-        setProfile(null);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user) {
+          await loadOrCreateProfile(newSession.user);
+        } else {
+          setProfile(null);
+        }
       }
-    });
+    );
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []); // Empty dependency array - supabase is stored in ref
 
-  const loadOrCreateProfile = async (user: User) => {
-    if (!supabase) return;
-
-    try {
-      // Try to get existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (existingProfile) {
-        setProfile(existingProfile);
-        return;
-      }
-
-      // If no profile exists and error is not just "no rows", log it
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('Error fetching profile:', fetchError);
-        return;
-      }
-
-      // Create new profile
-      const provider = user.app_metadata.provider as 'google' | 'kakao' | null;
-      const nickname =
-        user.user_metadata.full_name ||
-        user.user_metadata.name ||
-        user.email?.split('@')[0] ||
-        `사용자${user.id.slice(0, 6)}`;
-
-      const { data: newProfile, error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          id: user.id,
-          nickname,
-          email: user.email ?? null,
-          avatar_url: user.user_metadata.avatar_url ?? null,
-          provider,
-          is_admin: false,
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Error creating profile:', insertError);
-        return;
-      }
-
-      setProfile(newProfile);
-    } catch (error) {
-      console.error('Error in loadOrCreateProfile:', error);
-    }
-  };
-
-  const signOut = async () => {
-    if (!supabase) return;
+  const signOut = useCallback(async () => {
+    const client = supabaseRef.current;
+    if (!client) return;
 
     try {
-      await supabase.auth.signOut();
+      await client.auth.signOut();
       setUser(null);
       setSession(null);
       setProfile(null);
     } catch (error) {
       console.error('Error signing out:', error);
     }
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, session, profile, loading, signOut }}>

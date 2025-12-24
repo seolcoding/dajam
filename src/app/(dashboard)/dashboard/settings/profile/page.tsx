@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,13 @@ export default function ProfileSettingsPage() {
   const router = useRouter();
   const { profile, isLoading, updateProfile } = useProfile();
 
-  const [nickname, setNickname] = useState(profile?.nickname || '');
+  const [nickname, setNickname] = useState('');
+
+  useEffect(() => {
+    if (profile?.nickname) {
+      setNickname(profile.nickname);
+    }
+  }, [profile?.nickname]);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {

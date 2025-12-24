@@ -3,8 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
-import { useProfile } from '@/hooks/useProfile';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function DashboardRootLayout({
   children,
@@ -12,35 +11,21 @@ export default function DashboardRootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const supabase = useSupabase();
-  const { profile, isLoading } = useProfile();
+  const { user, profile, loading, signOut } = useAuth();
 
   useEffect(() => {
-    const checkAuth = async () => {
-      if (!supabase) return;
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user && !isLoading) {
-        // Redirect to login page (would need to create this)
-        router.push('/login?redirect=/dashboard');
-      }
-    };
-
-    checkAuth();
-  }, [supabase, isLoading, router]);
+    if (!loading && !user) {
+      router.push('/login?redirect=/dashboard');
+    }
+  }, [loading, user, router]);
 
   const handleLogout = async () => {
-    if (!supabase) return;
-
-    await supabase.auth.signOut();
+    await signOut();
     router.push('/');
   };
 
   // Show loading state while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -49,6 +34,11 @@ export default function DashboardRootLayout({
         </div>
       </div>
     );
+  }
+
+  // Not logged in - will redirect
+  if (!user) {
+    return null;
   }
 
   return (
