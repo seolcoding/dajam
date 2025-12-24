@@ -29,6 +29,8 @@
 // Hooks
 export { useRealtimeSession } from './hooks/useRealtimeSession';
 export { useRealtimeSubscription } from './hooks/useRealtimeSubscription';
+export { useParticipantPersistence } from './hooks/useParticipantPersistence';
+export type { ParticipantInfo, SessionParticipation } from './hooks/useParticipantPersistence';
 
 // Components
 export { SessionHostLayout } from './components/SessionHostLayout';

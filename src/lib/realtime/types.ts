@@ -85,8 +85,13 @@ export interface SessionHostLayoutProps {
 // 참여 플로우 Props
 export interface SessionJoinFlowProps {
   appType: AppType;
-  onJoin: (code: string, displayName: string) => Promise<boolean>;
+  // persistentParticipantId: 세션 퍼시스턴스를 위한 로컬 ID (브라우저 닫아도 재참여 가능)
+  onJoin: (code: string, displayName: string, persistentParticipantId?: string) => Promise<boolean>;
+  // 이전 참여 기록이 있을 때 재참여 처리
+  onRejoin?: (sessionCode: string, participantRecordId: string) => Promise<boolean>;
   onCreateNew?: () => void;
+  // URL에서 전달된 초기 세션 코드
+  initialCode?: string;
 
   // 커스터마이징
   title?: string;

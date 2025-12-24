@@ -301,6 +301,75 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     [supabase] // sessionId 제거 - ref 사용으로 의존성 불필요
   );
 
+  // 세션 재참여 또는 신규 참여
+  // persistentParticipantId: localStorage에서 가져온 디바이스별 고유 ID
+  const joinOrRejoinSession = useCallback(
+    async (options: JoinSessionOptions & { persistentParticipantId?: string }): Promise<SessionParticipant | null> => {
+      const currentSessionId = sessionIdRef.current;
+
+      if (!currentSessionId) {
+        return null;
+      }
+
+      try {
+        // 기존 참여자 확인 (persistentParticipantId가 metadata에 저장되어 있는지)
+        if (options.persistentParticipantId) {
+          const { data: existingParticipant } = await supabase
+            .from('session_participants')
+            .select('*')
+            .eq('session_id', currentSessionId)
+            .eq('metadata->>persistentId', options.persistentParticipantId)
+            .single();
+
+          if (existingParticipant) {
+            console.log('[joinOrRejoinSession] Found existing participant, rejoining...');
+            // 기존 참여자가 있으면 그대로 반환 (display_name 업데이트 가능)
+            if (existingParticipant.display_name !== options.displayName) {
+              const { data: updated } = await supabase
+                .from('session_participants')
+                .update({ display_name: options.displayName })
+                .eq('id', existingParticipant.id)
+                .select()
+                .single();
+              return updated as SessionParticipant;
+            }
+            return existingParticipant as SessionParticipant;
+          }
+        }
+
+        // 기존 참여자가 없으면 신규 생성
+        const { data: userData } = await supabase.auth.getUser();
+
+        const metadata: Record<string, unknown> = {
+          ...((options.metadata as Record<string, unknown>) || {}),
+          persistentId: options.persistentParticipantId || null,
+        };
+
+        const { data, error } = await supabase
+          .from('session_participants')
+          .insert({
+            session_id: currentSessionId,
+            user_id: userData.user?.id || null,
+            display_name: options.displayName,
+            role: 'participant',
+            metadata,
+          })
+          .select()
+          .single();
+
+        if (error || !data) {
+          throw error || new Error('참여 실패');
+        }
+
+        return data as SessionParticipant;
+      } catch (err) {
+        console.error('[joinOrRejoinSession] Failed:', err);
+        return null;
+      }
+    },
+    [supabase]
+  );
+
   // 세션 종료
   const closeSession = useCallback(async (): Promise<boolean> => {
     if (!state.sessionId) return false;
@@ -338,6 +407,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     // Actions
     createSession,
     joinSession,
+    joinOrRejoinSession,
     closeSession,
     reload: loadSession,
     loadData,

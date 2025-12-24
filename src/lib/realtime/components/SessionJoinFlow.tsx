@@ -1,33 +1,70 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Users, Plus, ArrowRight } from 'lucide-react';
+import { Loader2, Users, Plus, ArrowRight, RefreshCw } from 'lucide-react';
 import type { SessionJoinFlowProps } from '../types';
 import { formatSessionCode, validateSessionCode } from '../utils';
+import { useParticipantPersistence } from '../hooks/useParticipantPersistence';
 
 /**
  * 세션 참여 플로우 공통 컴포넌트
  * 코드 입력 + 닉네임 입력 + 참여
+ *
+ * 세션 퍼시스턴스 지원:
+ * - 마지막으로 사용한 닉네임 자동 채우기
+ * - 이전에 참여한 세션 자동 재참여 옵션
  */
 export function SessionJoinFlow({
   appType,
   onJoin,
   onCreateNew,
+  onRejoin,
   title = '세션 참여',
   description = '코드를 입력하여 참여하세요',
   placeholder = '6자리 코드 입력',
   joinButtonText = '참여하기',
   createButtonText = '새로 만들기',
+  initialCode,
 }: SessionJoinFlowProps) {
-  const [step, setStep] = useState<'code' | 'name'>('code');
-  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'code' | 'name' | 'rejoin'>('code');
+  const [code, setCode] = useState(initialCode || '');
   const [displayName, setDisplayName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 세션 퍼시스턴스 훅
+  const {
+    participantId,
+    isLoaded: isPersistenceLoaded,
+    getSessionParticipation,
+    getLastUsedName,
+  } = useParticipantPersistence();
+
+  // 마지막 사용한 닉네임 자동 채우기
+  useEffect(() => {
+    if (isPersistenceLoaded && !displayName) {
+      const lastUsedName = getLastUsedName();
+      if (lastUsedName) {
+        setDisplayName(lastUsedName);
+      }
+    }
+  }, [isPersistenceLoaded, displayName, getLastUsedName]);
+
+  // 초기 코드가 있으면 세션 참여 여부 확인
+  useEffect(() => {
+    if (isPersistenceLoaded && initialCode) {
+      const existingParticipation = getSessionParticipation(initialCode);
+      if (existingParticipation && existingParticipation.appType === appType) {
+        // 이미 참여한 세션 - 재참여 옵션 표시
+        setStep('rejoin');
+        setDisplayName(existingParticipation.displayName);
+      }
+    }
+  }, [isPersistenceLoaded, initialCode, appType, getSessionParticipation]);
 
   const handleCodeChange = (value: string) => {
     const formatted = formatSessionCode(value).slice(0, 8);
@@ -40,9 +77,41 @@ export function SessionJoinFlow({
       setError('올바른 코드를 입력해주세요');
       return;
     }
-    setStep('name');
+
+    // 기존 참여 정보 확인
+    const existingParticipation = getSessionParticipation(code);
+    if (existingParticipation && existingParticipation.appType === appType && onRejoin) {
+      setStep('rejoin');
+      setDisplayName(existingParticipation.displayName);
+    } else {
+      setStep('name');
+    }
   };
 
+  // 재참여 처리
+  const handleRejoin = async () => {
+    const existingParticipation = getSessionParticipation(code);
+    if (!existingParticipation || !onRejoin) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const success = await onRejoin(code, existingParticipation.participantRecordId);
+      if (!success) {
+        // 재참여 실패 시 새로 참여 시도
+        setError('재참여에 실패했습니다. 새로 참여해주세요.');
+        setStep('name');
+      }
+    } catch {
+      setError('오류가 발생했습니다.');
+      setStep('name');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 새로 참여 (퍼시스턴스 ID 포함)
   const handleJoin = async () => {
     if (!displayName.trim()) {
       setError('닉네임을 입력해주세요');
@@ -53,7 +122,7 @@ export function SessionJoinFlow({
     setError(null);
 
     try {
-      const success = await onJoin(code, displayName.trim());
+      const success = await onJoin(code, displayName.trim(), participantId || undefined);
       if (!success) {
         setError('참여에 실패했습니다. 코드를 확인해주세요.');
         setStep('code');
@@ -77,7 +146,7 @@ export function SessionJoinFlow({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {step === 'code' ? (
+          {step === 'code' && (
             <>
               {/* 코드 입력 */}
               <div className="space-y-2">
@@ -131,7 +200,54 @@ export function SessionJoinFlow({
                 </>
               )}
             </>
-          ) : (
+          )}
+
+          {step === 'rejoin' && (
+            <>
+              {/* 재참여 옵션 */}
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                <RefreshCw className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="font-medium text-green-800">이전에 참여한 세션입니다</p>
+                <p className="text-sm text-green-600 mt-1">
+                  <span className="font-mono font-bold">{code}</span> · {displayName}
+                </p>
+              </div>
+
+              {error && (
+                <p className="text-sm text-red-500 text-center">{error}</p>
+              )}
+
+              <Button
+                onClick={handleRejoin}
+                disabled={isLoading}
+                className="w-full bg-green-600 hover:bg-green-700"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    재참여 중...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    이어서 참여하기
+                  </>
+                )}
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setStep('name')}
+                className="w-full"
+                size="lg"
+              >
+                새로 참여하기
+              </Button>
+            </>
+          )}
+
+          {step === 'name' && (
             <>
               {/* 닉네임 입력 */}
               <div className="p-3 bg-blue-50 rounded-lg text-center">
@@ -152,6 +268,9 @@ export function SessionJoinFlow({
                   maxLength={20}
                   autoComplete="off"
                 />
+                {isPersistenceLoaded && getLastUsedName() && displayName === getLastUsedName() && (
+                  <p className="text-xs text-muted-foreground">이전에 사용한 닉네임입니다</p>
+                )}
               </div>
 
               {error && (
