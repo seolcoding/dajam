@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { LogoutButton } from '@/components/auth/LogoutButton';
 import {
   Home,
   Folder,
@@ -14,7 +15,6 @@ import {
   Receipt,
   Menu,
   X,
-  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,6 @@ interface DashboardSidebarProps {
     email?: string | null;
     avatar_url?: string | null;
   } | null;
-  onLogout?: () => void;
   className?: string;
 }
 
@@ -38,7 +37,6 @@ const navItems = [
 
 export function DashboardSidebar({
   userProfile,
-  onLogout,
   className = '',
 }: DashboardSidebarProps) {
   const pathname = usePathname();
@@ -104,17 +102,7 @@ export function DashboardSidebar({
             )}
           </div>
         </div>
-        {onLogout && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-muted-foreground"
-            onClick={onLogout}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            로그아웃
-          </Button>
-        )}
+        <LogoutButton variant="button" />
       </div>
     </div>
   );

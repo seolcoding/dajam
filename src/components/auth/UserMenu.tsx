@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useAuth } from './AuthProvider';
+import { LogoutButton } from './LogoutButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,19 +13,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { User, LayoutDashboard, Settings, LogOut } from 'lucide-react';
+import { User, LayoutDashboard, Settings } from 'lucide-react';
 
 export function UserMenu() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
 
   // Show nothing if no user at all
   if (!user) return null;
-
-  const handleSignOut = async () => {
-    console.log('[UserMenu] Signing out...');
-    await signOut();
-    // signOut 내부에서 window.location.href로 리다이렉트 처리됨
-  };
 
   const displayName = profile?.nickname || user.email?.split('@')[0] || '사용자';
   const avatarUrl = profile?.avatar_url || user.user_metadata?.avatar_url;
@@ -85,13 +80,7 @@ export function UserMenu() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleSignOut}
-          className="cursor-pointer text-red-600 focus:text-red-600"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          로그아웃
-        </DropdownMenuItem>
+        <LogoutButton variant="dropdown-item" />
       </DropdownMenuContent>
     </DropdownMenu>
   );

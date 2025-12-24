@@ -9,24 +9,21 @@ interface AdminLayoutProps {
   children: ReactNode;
   userProfile?: Profile | null;
   headerTitle?: string;
-  onLogout?: () => void;
 }
 
 export function AdminLayout({
   children,
   userProfile,
   headerTitle,
-  onLogout,
 }: AdminLayoutProps) {
   return (
     <div className="min-h-screen bg-slate-50">
-      <AdminSidebar userProfile={userProfile} onLogout={onLogout} />
+      <AdminSidebar userProfile={userProfile} />
 
       <div className="lg:pl-64">
         <DashboardHeader
           title={headerTitle}
           userProfile={userProfile}
-          onLogout={onLogout}
         />
 
         <main className="p-6">

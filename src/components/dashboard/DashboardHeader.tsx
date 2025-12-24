@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, ChevronRight, User, Settings, LogOut } from 'lucide-react';
+import { LogoutButton } from '@/components/auth/LogoutButton';
+import { Bell, ChevronRight, User, Settings } from 'lucide-react';
 
 interface DashboardHeaderProps {
   title?: string;
@@ -21,13 +22,11 @@ interface DashboardHeaderProps {
     email?: string | null;
     avatar_url?: string | null;
   } | null;
-  onLogout?: () => void;
 }
 
 export function DashboardHeader({
   title,
   userProfile,
-  onLogout,
 }: DashboardHeaderProps) {
   const pathname = usePathname();
 
@@ -132,18 +131,7 @@ export function DashboardHeader({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {onLogout && (
-                <DropdownMenuItem
-                  onSelect={(e) => {
-                    e.preventDefault();
-                    onLogout();
-                  }}
-                  className="cursor-pointer text-red-600"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  로그아웃
-                </DropdownMenuItem>
-              )}
+              <LogoutButton variant="dropdown-item" />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

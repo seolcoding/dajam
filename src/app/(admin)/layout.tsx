@@ -11,7 +11,7 @@ export default function AdminRootLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { user, profile, loading, signOut } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -24,11 +24,6 @@ export default function AdminRootLayout({
       router.push('/dashboard');
     }
   }, [loading, user, profile, router]);
-
-  const handleLogout = async () => {
-    await signOut();
-    // signOut 내부에서 window.location.href로 리다이렉트 처리됨
-  };
 
   // Show loading state while checking auth
   if (loading) {
@@ -69,7 +64,7 @@ export default function AdminRootLayout({
   }
 
   return (
-    <AdminLayout userProfile={profile} onLogout={handleLogout}>
+    <AdminLayout userProfile={profile}>
       {children}
     </AdminLayout>
   );
