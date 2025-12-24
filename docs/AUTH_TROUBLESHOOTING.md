@@ -249,3 +249,8 @@ setAll(cookiesToSet) {
 | 2024-12-24 | Step 4: getSession 제거 | ✅ | onAuthStateChange INITIAL_SESSION 사용 |
 | 2024-12-24 | Step 5: 로그아웃 버튼 수정 | ✅ | onClick → onSelect 변경 |
 | 2024-12-24 | 프로덕션 테스트 #2 | ✅ | 로그인/로그아웃 정상 작동 |
+| 2024-12-24 | Step 6: DashboardHeader 로그아웃 수정 | ✅ | onClick → onSelect 변경 |
+| 2024-12-24 | Step 7: 로그인 페이지 로딩 제거 | ✅ | loading 대기 제거 → 즉시 폼 표시 |
+| 2024-12-24 | Step 8: MarketingHeader 로딩 제거 | ✅ | 로그인 버튼 즉시 표시 |
+| 2024-12-24 | E2E 테스트 재실행 | ✅ | 19개 인증 테스트 + 9개 홈 테스트 통과 |
+| 2024-12-24 | 빌드 테스트 | ✅ | 성공 |
