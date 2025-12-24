@@ -106,8 +106,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event: AuthChangeEvent, newSession: Session | null) => {
         if (!isMounted) return;
 
-        console.log('[AuthProvider] onAuthStateChange:', event, newSession?.user?.email);
-
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -145,8 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // Empty dependency array - supabase is stored in ref
 
   const signOut = useCallback(async () => {
-    console.log('[AuthProvider] signOut - calling server API');
-
     // 서버 API를 통해 로그아웃 (쿠키 정리 + 리다이렉트)
     // form POST를 사용해서 서버 라우트 호출
     const form = document.createElement('form');

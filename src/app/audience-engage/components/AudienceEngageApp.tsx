@@ -80,25 +80,20 @@ export default function AudienceEngageApp() {
 
   // 세션 참여
   const handleJoinSession = async () => {
-    console.log('[handleJoinSession] Start - session:', session?.id, 'sessionCode:', sessionCode, 'joinCodeInput:', joinCodeInput);
     if (!joinCodeInput.trim() || !participantName.trim()) return;
 
     // 세션이 아직 로드되지 않았으면 직접 로드 시도
     if (!session) {
-      console.log('[handleJoinSession] No session loaded, switching to participant mode');
       // 세션 코드를 설정하고 participant 모드로 전환
       setSessionCode(joinCodeInput);
       setViewMode('participant');
       return;
     }
 
-    console.log('[handleJoinSession] Session found, calling joinSession...');
     const participant = await joinSession({
       displayName: participantName.trim(),
       metadata: {},
     });
-
-    console.log('[handleJoinSession] joinSession result:', participant);
     if (participant) {
       setSessionCode(joinCodeInput);
       setMyParticipantId(participant.id);

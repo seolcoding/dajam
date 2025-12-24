@@ -68,6 +68,9 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
   const onDataReceivedRef = useRef(onDataReceived);
   const onConnectionChangeRef = useRef(onConnectionChange);
 
+  // Ref for sessionId to avoid stale closure in joinSession
+  const sessionIdRef = useRef<string | null>(null);
+
   // Update refs on each render
   useEffect(() => {
     transformConfigRef.current = transformConfig;
@@ -76,6 +79,11 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     onDataReceivedRef.current = onDataReceived;
     onConnectionChangeRef.current = onConnectionChange;
   });
+
+  // Keep sessionId ref in sync with state
+  useEffect(() => {
+    sessionIdRef.current = state.sessionId;
+  }, [state.sessionId]);
 
   // 세션 로드
   const loadSession = useCallback(async () => {
@@ -132,7 +140,9 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           : ((tableData || []) as TData[]);
       }
 
-      console.log('[loadSession] Setting sessionId:', session.id);
+      // Update ref immediately (before setState which is async)
+      sessionIdRef.current = session.id;
+
       setState((prev) => ({
         ...prev,
         session,
@@ -253,23 +263,23 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
     [supabase]
   );
 
-  // 세션 참여
+  // 세션 참여 - sessionIdRef 사용으로 stale closure 방지
   const joinSession = useCallback(
     async (options: JoinSessionOptions): Promise<SessionParticipant | null> => {
-      console.log('[joinSession] Called with sessionId:', state.sessionId);
-      if (!state.sessionId) {
-        console.log('[joinSession] Returning null - no sessionId in state');
+      // Use ref to get the latest sessionId (avoids stale closure)
+      const currentSessionId = sessionIdRef.current;
+
+      if (!currentSessionId) {
         return null;
       }
 
       try {
         const { data: userData } = await supabase.auth.getUser();
-        console.log('[joinSession] User:', userData.user?.id || 'anonymous');
 
         const { data, error } = await supabase
           .from('session_participants')
           .insert({
-            session_id: state.sessionId,
+            session_id: currentSessionId,
             user_id: userData.user?.id || null,
             display_name: options.displayName,
             role: 'participant',
@@ -279,18 +289,16 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .single();
 
         if (error || !data) {
-          console.error('[joinSession] Insert error:', error);
           throw error || new Error('참여 실패');
         }
 
-        console.log('[joinSession] Success! Participant ID:', data.id);
         return data as SessionParticipant;
       } catch (err) {
         console.error('[joinSession] Failed:', err);
         return null;
       }
     },
-    [state.sessionId, supabase]
+    [supabase] // sessionId 제거 - ref 사용으로 의존성 불필요
   );
 
   // 세션 종료
