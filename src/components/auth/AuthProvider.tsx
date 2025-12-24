@@ -88,7 +88,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        // Wrap getSession with timeout to prevent hanging
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session timeout')), 5000)
+        );
+
+        const { data: { session: currentSession }, error: sessionError } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
 
         if (!isMounted) return;
 
@@ -106,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await loadOrCreateProfile(currentSession.user);
         }
       } catch (error) {
+        // Timeout or other error - treat as no session
         console.error('Error initializing auth:', error);
         setUser(null);
         setSession(null);
