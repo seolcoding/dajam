@@ -65,10 +65,10 @@ export default function HostView({
   const {
     currentScene: syncedScene,
     isPresenting,
+    changeScene,
     goToSlide,
     nextSlide,
     previousSlide,
-    switchToScene,
     togglePresenting,
   } = useSlideSync({
     sessionId,
@@ -76,12 +76,9 @@ export default function HostView({
     enabled: true,
   });
 
-  // Active scene state (use synced or local)
-  const [activeScene, setActiveScene] = useState<ActiveScene>({
-    type: 'slides',
-    itemIndex: 0,
-    slideIndex: 0,
-  });
+  // Active scene은 useSlideSync에서 동기화된 상태 사용
+  // syncedScene을 activeScene으로 사용
+  const activeScene = syncedScene;
 
   // Settings state (local, will sync later)
   const [settings, setSettings] = useState({
@@ -155,43 +152,39 @@ export default function HostView({
 
   // Navigation
   const slideItems = config?.slideItems || [];
-  const totalSlides = slideItems.length || 1;
+  const totalSlides = uploadedSlides.length || slideItems.length || 1;
 
   const handlePrevSlide = useCallback(() => {
-    setActiveScene(prev => {
-      if (prev.type === 'slides' && (prev.slideIndex || 0) > 0) {
-        return { ...prev, slideIndex: (prev.slideIndex || 0) - 1 };
-      }
-      if (prev.itemIndex > 0) {
-        const newItem = slideItems[prev.itemIndex - 1];
-        return {
-          type: (newItem?.itemType as SceneType) || 'slides',
-          itemIndex: prev.itemIndex - 1,
-          slideIndex: newItem?.slideIndex,
-        };
-      }
-      return prev;
-    });
-  }, [slideItems]);
+    if (activeScene.type === 'slides' && (activeScene.slideIndex || 0) > 0) {
+      // 슬라이드 내에서 이전으로 이동
+      previousSlide();
+    } else if (activeScene.itemIndex > 0) {
+      // 이전 Scene 아이템으로 이동
+      const newItem = slideItems[activeScene.itemIndex - 1];
+      changeScene({
+        type: (newItem?.itemType as SceneType) || 'slides',
+        itemIndex: activeScene.itemIndex - 1,
+        slideIndex: newItem?.slideIndex,
+        linkedSessionCode: newItem?.linkedSessionCode,
+      });
+    }
+  }, [activeScene, slideItems, previousSlide, changeScene]);
 
   const handleNextSlide = useCallback(() => {
-    setActiveScene(prev => {
-      // For slides, increment slide index
-      if (prev.type === 'slides') {
-        return { ...prev, slideIndex: (prev.slideIndex || 0) + 1 };
-      }
-      // For other items, go to next item
-      if (prev.itemIndex < slideItems.length - 1) {
-        const newItem = slideItems[prev.itemIndex + 1];
-        return {
-          type: (newItem?.itemType as SceneType) || 'slides',
-          itemIndex: prev.itemIndex + 1,
-          slideIndex: newItem?.slideIndex,
-        };
-      }
-      return prev;
-    });
-  }, [slideItems]);
+    if (activeScene.type === 'slides') {
+      // 슬라이드 내에서 다음으로 이동
+      nextSlide();
+    } else if (activeScene.itemIndex < slideItems.length - 1) {
+      // 다음 Scene 아이템으로 이동
+      const newItem = slideItems[activeScene.itemIndex + 1];
+      changeScene({
+        type: (newItem?.itemType as SceneType) || 'slides',
+        itemIndex: activeScene.itemIndex + 1,
+        slideIndex: newItem?.slideIndex,
+        linkedSessionCode: newItem?.linkedSessionCode,
+      });
+    }
+  }, [activeScene, slideItems, nextSlide, changeScene]);
 
   // Add scene
   const handleAddScene = (type: SceneType) => {
@@ -375,7 +368,7 @@ export default function HostView({
                     type="slides"
                     index={0}
                     isActive={activeScene.type === 'slides'}
-                    onClick={() => setActiveScene({ type: 'slides', itemIndex: 0, slideIndex: 0 })}
+                    onClick={() => changeScene({ type: 'slides', itemIndex: 0, slideIndex: 0 })}
                   />
                   {/* Additional items from config */}
                   {slideItems.map((item, index) => (
@@ -384,7 +377,7 @@ export default function HostView({
                       type={item.itemType as SceneType}
                       index={index + 1}
                       isActive={activeScene.itemIndex === index && activeScene.type !== 'slides'}
-                      onClick={() => setActiveScene({
+                      onClick={() => changeScene({
                         type: item.itemType as SceneType,
                         itemIndex: index,
                         linkedSessionCode: item.linkedSessionCode,
@@ -543,6 +536,8 @@ function TimelineItem({
     'word-cloud': '☁️',
     personality: '🧠',
     bingo: '🎱',
+    ladder: '🪜',
+    'balance-game': '⚖️',
   };
 
   return (

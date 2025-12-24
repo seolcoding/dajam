@@ -1,18 +1,18 @@
 'use client';
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import SceneManager from './SceneManager';
 import { QAPanel } from '@/features/interactions/common/QAPanel';
 import { ChatPanel } from '@/features/interactions/common/ChatPanel';
 import { useQA } from '../hooks/useQA';
 import { useChat } from '../hooks/useChat';
 import { useReactions } from '../hooks/useReactions';
-import type { AudienceEngageConfig, ActiveScene, SceneType, EmojiType } from '../types';
+import { useSlideSync } from '../hooks/useSlideSync';
+import type { AudienceEngageConfig, SceneType, EmojiType } from '../types';
 import type { ConnectionState } from '@/features/interactions';
 
 interface ParticipantViewProps {
@@ -42,11 +42,11 @@ export default function ParticipantView({
   connectionStatus,
   onGoHome,
 }: ParticipantViewProps) {
-  // Active scene - synced from host
-  const [activeScene, setActiveScene] = useState<ActiveScene>({
-    type: 'slides',
-    itemIndex: 0,
-    slideIndex: 0,
+  // 호스트와 실시간 슬라이드/Scene 동기화
+  const { currentScene: activeScene, isPresenting } = useSlideSync({
+    sessionId,
+    isHost: false,
+    enabled: true,
   });
 
   const slideItems = config?.slideItems || [];
@@ -111,7 +111,7 @@ export default function ParticipantView({
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-4">
         {/* Scene View */}
         <Card className="mb-4 overflow-hidden">
-          <div className="aspect-video bg-slate-100">
+          <div className="aspect-video bg-slate-100 relative">
             <SceneManager
               activeScene={activeScene}
               slideItems={slideItems}
@@ -121,8 +121,18 @@ export default function ParticipantView({
               sessionCode={sessionCode}
               sessionId={sessionId}
             />
+            {/* 프레젠테이션 대기 중 표시 */}
+            {!isPresenting && (
+              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                  <p className="text-sm">호스트를 기다리는 중...</p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="p-2 border-t text-center text-sm text-muted-foreground">
+          <div className="p-2 border-t text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+            {isPresenting && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
             {activeScene.type === 'slides'
               ? `슬라이드 ${(activeScene.slideIndex || 0) + 1}`
               : getSceneLabel(activeScene.type)}
@@ -209,6 +219,8 @@ function getSceneLabel(type: SceneType): string {
     'word-cloud': '워드클라우드',
     personality: '성격테스트',
     bingo: '휴먼빙고',
+    ladder: '사다리타기',
+    'balance-game': '밸런스게임',
   };
   return labels[type] || type;
 }
