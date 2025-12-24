@@ -27,7 +27,7 @@ export function LogoutButton({ variant = 'button', className }: LogoutButtonProp
   if (variant === 'dropdown-item') {
     return (
       <DropdownMenuItem
-        onClick={handleLogout}
+        onSelect={() => handleLogout()}
         className={cn('cursor-pointer text-red-600 focus:text-red-600', className)}
       >
         <LogOut className="w-4 h-4 mr-2" />
