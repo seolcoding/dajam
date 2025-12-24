@@ -57,7 +57,7 @@ const config: Config = {
           foreground: 'hsl(var(--card-foreground))',
         },
 
-        // ===== DaJaem Brand Colors =====
+        // ===== Dajam Brand Colors =====
         dajaem: {
           // Green Scale (Primary)
           green: {
@@ -141,7 +141,7 @@ const config: Config = {
         'slide-up-delayed': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both',
         'scale-in': 'scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         'float': 'float 3s ease-in-out infinite',
-        // DaJaem Feedback Animations
+        // Dajam Feedback Animations
         'correct-answer': 'correct-answer 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
         'wrong-answer': 'wrong-answer 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         'rank-up': 'rank-up 0.6s cubic-bezier(0.16, 1, 0.3, 1)',

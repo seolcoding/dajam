@@ -7,13 +7,13 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        // Default - DaJaem Green
+        // Default - Dajam Green
         default:
           "border-transparent bg-dajaem-green text-white shadow-sm hover:bg-dajaem-green-600",
-        // Secondary - DaJaem Yellow
+        // Secondary - Dajam Yellow
         secondary:
           "border-transparent bg-dajaem-yellow text-gray-900 shadow-sm hover:bg-dajaem-yellow-400",
-        // Destructive - DaJaem Red
+        // Destructive - Dajam Red
         destructive:
           "border-transparent bg-dajaem-red text-white shadow-sm hover:bg-red-600",
         // Outline - 테두리만

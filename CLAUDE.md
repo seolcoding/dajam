@@ -2,8 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Vision & Core Value
+## Project: Dajam (다잼)
 
+🌐 **https://jam.seolcoding.com**
+
+> **"침묵을 깨는 가장 안전하고 위트 있는 방법, 다잼"**
+>
 > **"소규모 인원이 같은 공간에서, 모바일/PC/오프라인 경험을 하나로 묶어 서로의 의견을 통합하는 앱"**
 
 ### 핵심 원칙
@@ -171,7 +175,7 @@ All 16 apps are at root-level routes:
 - `APPS_DOCUMENTATION.md` - Full app catalog
 - `E2E_TEST_PLAN.md` - Testing strategy
 - `prd/*.md` - Product requirements for each app
-- `docs/BRANDING_RESEARCH_DAJAEM.md` - DaJaem 브랜딩 가이드라인
+- `docs/BRANDING_RESEARCH_DAJAM.md` - Dajam 브랜딩 가이드라인
 
 ## Paused Work (2024-12-23)
 
@@ -184,7 +188,7 @@ All 16 apps are at root-level routes:
    - 익명 사용자가 public 세션에 참여할 수 있도록 허용
 2. 직접 API 호출은 성공 (RLS 정책 정상 작동 확인)
 3. `useRealtimeSession` 훅에 디버그 로그 추가됨
-4. DaJaem 브랜딩 구현 완료 (`tailwind.config.ts`, `globals.css` 등)
+4. Dajam 브랜딩 구현 완료 (`tailwind.config.ts`, `globals.css` 등)
 
 **의심 원인**:
 - `joinSession` 콜백의 `state.sessionId` 클로저 이슈

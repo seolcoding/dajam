@@ -46,7 +46,7 @@ export function QuizParticipant({
   // 타이머 진행률
   const progress = (timeLeft / question.timeLimit) * 100;
 
-  // 타이머 색상 (DaJaem)
+  // 타이머 색상 (Dajam)
   const getTimerColor = () => {
     if (progress > 60) return 'bg-dajaem-green';
     if (progress > 30) return 'bg-dajaem-yellow';

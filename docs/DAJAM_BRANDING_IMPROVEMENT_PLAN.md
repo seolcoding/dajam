@@ -1,7 +1,7 @@
-# 다잼(DaJaem) 브랜딩, 아이덴티티, 상품화 개선 계획서
+# 다잼(Dajam) 브랜딩, 아이덴티티, 상품화 개선 계획서
 
 > **Version 2.1** | 작성일: 2025-12-23
-> **목표**: SeolCoding Apps를 "다잼(DaJaem)" 브랜드로 재탄생시켜 한국 시장 최적화된 인터랙티브 플랫폼으로 포지셔닝
+> **목표**: SeolCoding Apps를 "다잼(Dajam)" 브랜드로 재탄생시켜 한국 시장 최적화된 인터랙티브 플랫폼으로 포지셔닝
 
 ---
 
@@ -24,19 +24,19 @@
 
 ### 1.1 핵심 변환
 
-| 구분 | As-Is (SeolCoding Apps) | To-Be (다잼 DaJaem) |
+| 구분 | As-Is (SeolCoding Apps) | To-Be (다잼 Dajam) |
 |------|-------------------------|---------------------|
-| **브랜드명** | SeolCoding Apps | 다잼 (DaJaem) |
+| **브랜드명** | SeolCoding Apps | 다잼 (Dajam) |
 | **포지셔닝** | "22개 실용 웹 앱 모음" | "침묵을 깨는 한국형 소통 OS" |
 | **타겟** | 개인 사용자 중심 | B2G/B2B/Education 3-Track |
 | **핵심 가치** | 기능 제공 | 심리적 안전 + 행정 효율화 |
-| **시각 언어** | 혼재된 색상 체계 | DaJaem Green/Yellow 기반 통합 |
+| **시각 언어** | 혼재된 색상 체계 | Dajam Green/Yellow 기반 통합 |
 
 ### 1.2 브랜드 에센스
 
 ```
 "다(多)양한 사람들이 잼(재미)있게 소통하는 공간"
-= 다잼 (DaJaem)
+= 다잼 (Dajam)
 ```
 
 **Brand Promise**: "침묵을 깨는 가장 안전하고 위트 있는 방법"
@@ -56,7 +56,7 @@
 - ✅ 22개 앱의 완성된 기능 셋
 - ✅ Supabase Realtime 기반 실시간 인프라
 - ✅ Next.js 15 + Tailwind CSS 최신 스택
-- ✅ DaJaem 컬러 팔레트 일부 적용 (`tailwind.config.ts`)
+- ✅ Dajam 컬러 팔레트 일부 적용 (`tailwind.config.ts`)
 - ✅ 다크 모드 네이티브 지원 (`globals.css`)
 
 **개선 필요 (Gaps)**:
@@ -69,13 +69,13 @@
 ### 2.2 기존 CSS 변수 현황 (globals.css)
 
 ```css
-/* 현재 적용된 DaJaem 색상 */
---color-dajaem-green: #03C75A;
---color-dajaem-teal: #005F55;
---color-dajaem-yellow: #FFD600;
---color-dajaem-red: #DE354C;
---color-dajaem-purple: #7000FF;
---color-dajaem-grey: #F5F7F8;
+/* 현재 적용된 Dajam 색상 */
+--color-dajam-green: #03C75A;
+--color-dajam-teal: #005F55;
+--color-dajam-yellow: #FFD600;
+--color-dajam-red: #DE354C;
+--color-dajam-purple: #7000FF;
+--color-dajam-grey: #F5F7F8;
 ```
 
 ### 2.3 앱 티어 분석
@@ -95,10 +95,10 @@
 ### 3.1 브랜드 아키텍처
 
 ```
-다잼 (DaJaem)
-├── DaJaem Platform (통합 플랫폼)
+다잼 (Dajam)
+├── Dajam Platform (통합 플랫폼)
 │   └── Audience Engage
-├── DaJaem Live (실시간 멀티유저)
+├── Dajam Live (실시간 멀티유저)
 │   ├── Live Voting
 │   ├── Realtime Quiz
 │   ├── Group Order
@@ -107,15 +107,15 @@
 │   ├── Word Cloud
 │   ├── Personality Test
 │   └── Human Bingo
-├── DaJaem Play (게이미피케이션)
+├── Dajam Play (게이미피케이션)
 │   ├── Balance Game
 │   ├── Ideal Worldcup
 │   ├── Ladder Game
 │   └── Chosung Quiz
-├── DaJaem Connect (커넥션)
+├── Dajam Connect (커넥션)
 │   ├── Student Network
 │   └── Team Divider
-└── DaJaem Tools (유틸리티)
+└── Dajam Tools (유틸리티)
     ├── Salary Calculator
     ├── Rent Calculator
     ├── GPA Calculator
@@ -168,7 +168,7 @@
 
 | 역할 | 색상명 | Hex | HSL | 사용 가이드 |
 |------|--------|-----|-----|-------------|
-| Primary | DaJaem Green | `#03C75A` | 149, 97%, 40% | 주요 CTA, 로고, 성공 |
+| Primary | Dajam Green | `#03C75A` | 149, 97%, 40% | 주요 CTA, 로고, 성공 |
 | Primary Dark | Deep Teal | `#005F55` | 168, 100%, 19% | 다크모드 배경, 헤더 |
 | Primary Light | Mint | `#E8FAF0` | 149, 70%, 95% | 배경 하이라이트 |
 
@@ -240,36 +240,36 @@
 
 ```tsx
 // Primary Button
-className="bg-dajaem-green hover:bg-dajaem-green/90 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-dajaem-green/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+className="bg-dajam-green hover:bg-dajam-green/90 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-dajam-green/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
 
 // Secondary Button
-className="bg-dajaem-yellow hover:bg-dajaem-yellow/90 text-gray-900 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-dajaem-yellow/25"
+className="bg-dajam-yellow hover:bg-dajam-yellow/90 text-gray-900 px-6 py-3 rounded-xl font-semibold shadow-lg shadow-dajam-yellow/25"
 
 // Ghost Button
-className="border-2 border-dajaem-green text-dajaem-green hover:bg-dajaem-green/10 px-6 py-3 rounded-xl font-semibold"
+className="border-2 border-dajam-green text-dajam-green hover:bg-dajam-green/10 px-6 py-3 rounded-xl font-semibold"
 ```
 
 #### 카드
 
 ```tsx
 // Standard Card (Light Mode)
-className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-dajaem-green/20 transition-all"
+className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-lg hover:border-dajam-green/20 transition-all"
 
 // Featured Card
-className="bg-gradient-to-br from-dajaem-green to-dajaem-teal text-white rounded-2xl p-6 shadow-xl"
+className="bg-gradient-to-br from-dajam-green to-dajam-teal text-white rounded-2xl p-6 shadow-xl"
 
 // Dark Mode Card
-className="dark:bg-dajaem-teal dark:border-dajaem-green/30 dark:shadow-dajaem-green/10"
+className="dark:bg-dajam-teal dark:border-dajam-green/30 dark:shadow-dajam-green/10"
 ```
 
 #### 입력 필드
 
 ```tsx
 // Text Input
-className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-dajaem-green focus:ring-4 focus:ring-dajaem-green/20 outline-none transition-all"
+className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-dajam-green focus:ring-4 focus:ring-dajam-green/20 outline-none transition-all"
 
 // PIN Code Input
-className="w-16 h-16 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-dajaem-yellow focus:ring-4 focus:ring-dajaem-yellow/20"
+className="w-16 h-16 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-dajam-yellow focus:ring-4 focus:ring-dajam-yellow/20"
 ```
 
 ### 4.4 애니메이션 가이드라인
@@ -293,7 +293,7 @@ className="w-16 h-16 text-center text-2xl font-bold rounded-xl border-2 border-g
 ```css
 /* 정답 애니메이션 */
 @keyframes correct-answer {
-  0% { transform: scale(1); background-color: var(--color-dajaem-green); }
+  0% { transform: scale(1); background-color: var(--color-dajam-green); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
@@ -484,27 +484,27 @@ const engagementMessages = {
 
 ```css
 :root {
-  /* ===== DaJaem Brand Colors ===== */
+  /* ===== Dajam Brand Colors ===== */
 
   /* Primary */
-  --dajaem-green: 149 97% 40%;
-  --dajaem-green-light: 149 70% 95%;
-  --dajaem-teal: 168 100% 19%;
+  --dajam-green: 149 97% 40%;
+  --dajam-green-light: 149 70% 95%;
+  --dajam-teal: 168 100% 19%;
 
   /* Secondary */
-  --dajaem-yellow: 50 100% 50%;
-  --dajaem-yellow-light: 56 100% 95%;
+  --dajam-yellow: 50 100% 50%;
+  --dajam-yellow-light: 56 100% 95%;
 
   /* Accent */
-  --dajaem-red: 352 74% 53%;
-  --dajaem-purple: 267 100% 50%;
-  --dajaem-blue: 220 100% 50%;
+  --dajam-red: 352 74% 53%;
+  --dajam-purple: 267 100% 50%;
+  --dajam-blue: 220 100% 50%;
 
   /* Semantic (HSL) */
-  --color-success: var(--dajaem-green);
-  --color-warning: var(--dajaem-yellow);
-  --color-error: var(--dajaem-red);
-  --color-info: var(--dajaem-blue);
+  --color-success: var(--dajam-green);
+  --color-warning: var(--dajam-yellow);
+  --color-error: var(--dajam-red);
+  --color-info: var(--dajam-blue);
 
   /* ===== Shadows ===== */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -535,7 +535,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        dajaem: {
+        dajam: {
           green: {
             DEFAULT: '#03C75A',
             light: '#E8FAF0',

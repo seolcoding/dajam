@@ -1,7 +1,7 @@
-# 다잼(DaJaem) 브랜딩 구현 워크플로우
+# 다잼(Dajam) 브랜딩 구현 워크플로우
 
 > **Generated**: 2025-12-23
-> **Source**: DAJAEM_BRANDING_IMPROVEMENT_PLAN.md
+> **Source**: DAJAM_BRANDING_IMPROVEMENT_PLAN.md
 > **Strategy**: Systematic (5-Phase, 24-Week)
 
 ---
@@ -44,28 +44,28 @@ tailwind.config.ts            # Tailwind 색상 확장
 ```css
 /* globals.css에 추가할 내용 */
 :root {
-  /* DaJaem Extended Palette */
-  --dajaem-green-50: #E8FAF0;
-  --dajaem-green-100: #C6F2D8;
-  --dajaem-green-200: #8BE4B3;
-  --dajaem-green-300: #50D78E;
-  --dajaem-green-400: #1AC96B;
-  --dajaem-green-500: #03C75A;  /* Primary */
-  --dajaem-green-600: #029547;
-  --dajaem-green-700: #017A3A;
-  --dajaem-green-800: #015F2D;
-  --dajaem-green-900: #004420;
+  /* Dajam Extended Palette */
+  --dajam-green-50: #E8FAF0;
+  --dajam-green-100: #C6F2D8;
+  --dajam-green-200: #8BE4B3;
+  --dajam-green-300: #50D78E;
+  --dajam-green-400: #1AC96B;
+  --dajam-green-500: #03C75A;  /* Primary */
+  --dajam-green-600: #029547;
+  --dajam-green-700: #017A3A;
+  --dajam-green-800: #015F2D;
+  --dajam-green-900: #004420;
 
-  --dajaem-yellow-50: #FFFDE7;
-  --dajaem-yellow-100: #FFF9C4;
-  --dajaem-yellow-200: #FFF176;
-  --dajaem-yellow-300: #FFEE58;
-  --dajaem-yellow-400: #FFE91B;
-  --dajaem-yellow-500: #FFD600;  /* Secondary */
-  --dajaem-yellow-600: #CCB100;
-  --dajaem-yellow-700: #998500;
-  --dajaem-yellow-800: #665900;
-  --dajaem-yellow-900: #332C00;
+  --dajam-yellow-50: #FFFDE7;
+  --dajam-yellow-100: #FFF9C4;
+  --dajam-yellow-200: #FFF176;
+  --dajam-yellow-300: #FFEE58;
+  --dajam-yellow-400: #FFE91B;
+  --dajam-yellow-500: #FFD600;  /* Secondary */
+  --dajam-yellow-600: #CCB100;
+  --dajam-yellow-700: #998500;
+  --dajam-yellow-800: #665900;
+  --dajam-yellow-900: #332C00;
 }
 ```
 
@@ -86,7 +86,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        dajaem: {
+        dajam: {
           green: {
             50: '#E8FAF0',
             100: '#C6F2D8',
@@ -150,7 +150,7 @@ const config: Config = {
       },
       keyframes: {
         'correct-answer': {
-          '0%': { transform: 'scale(1)', backgroundColor: 'var(--dajaem-green-500)' },
+          '0%': { transform: 'scale(1)', backgroundColor: 'var(--dajam-green-500)' },
           '50%': { transform: 'scale(1.1)' },
           '100%': { transform: 'scale(1)' },
         },
@@ -237,23 +237,23 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // DaJaem Primary - Green
-        default: 'bg-dajaem-green-500 text-white hover:bg-dajaem-green-600 shadow-lg shadow-dajaem-green-500/25 hover:shadow-glow-green active:scale-[0.98]',
+        // Dajam Primary - Green
+        default: 'bg-dajam-green-500 text-white hover:bg-dajam-green-600 shadow-lg shadow-dajam-green-500/25 hover:shadow-glow-green active:scale-[0.98]',
 
-        // DaJaem Secondary - Yellow
-        secondary: 'bg-dajaem-yellow-500 text-gray-900 hover:bg-dajaem-yellow-600 shadow-lg shadow-dajaem-yellow-500/25 hover:shadow-glow-yellow active:scale-[0.98]',
+        // Dajam Secondary - Yellow
+        secondary: 'bg-dajam-yellow-500 text-gray-900 hover:bg-dajam-yellow-600 shadow-lg shadow-dajam-yellow-500/25 hover:shadow-glow-yellow active:scale-[0.98]',
 
-        // DaJaem Accent - Red (긴급, 경고)
-        destructive: 'bg-dajaem-red text-white hover:bg-dajaem-red/90 shadow-lg shadow-dajaem-red/25',
+        // Dajam Accent - Red (긴급, 경고)
+        destructive: 'bg-dajam-red text-white hover:bg-dajam-red/90 shadow-lg shadow-dajam-red/25',
 
-        // DaJaem Ghost - Green outline
-        outline: 'border-2 border-dajaem-green-500 text-dajaem-green-500 bg-transparent hover:bg-dajaem-green-50 dark:hover:bg-dajaem-green-500/10',
+        // Dajam Ghost - Green outline
+        outline: 'border-2 border-dajam-green-500 text-dajam-green-500 bg-transparent hover:bg-dajam-green-50 dark:hover:bg-dajam-green-500/10',
 
-        // DaJaem Ghost - No border
-        ghost: 'text-dajaem-green-500 hover:bg-dajaem-green-50 dark:hover:bg-dajaem-green-500/10',
+        // Dajam Ghost - No border
+        ghost: 'text-dajam-green-500 hover:bg-dajam-green-50 dark:hover:bg-dajam-green-500/10',
 
-        // DaJaem Link
-        link: 'text-dajaem-blue underline-offset-4 hover:underline',
+        // Dajam Link
+        link: 'text-dajam-blue underline-offset-4 hover:underline',
       },
       size: {
         sm: 'h-9 px-4 text-sm',
@@ -285,25 +285,25 @@ const cardVariants = cva(
     variants: {
       variant: {
         // Standard Light
-        default: 'bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-dajaem-green-200',
+        default: 'bg-white border border-gray-100 shadow-sm hover:shadow-lg hover:border-dajam-green-200',
 
         // Featured - Gradient
-        featured: 'bg-gradient-to-br from-dajaem-green-500 to-dajaem-teal-500 text-white shadow-xl shadow-dajaem-green-500/25',
+        featured: 'bg-gradient-to-br from-dajam-green-500 to-dajam-teal-500 text-white shadow-xl shadow-dajam-green-500/25',
 
         // Neumorphism
         neumorphic: 'bg-gray-50 shadow-neumorphism dark:bg-gray-900 dark:shadow-neumorphism-dark',
 
         // Interactive (for quiz options)
-        interactive: 'bg-white border-2 border-gray-200 cursor-pointer hover:border-dajaem-green-400 hover:shadow-glow-green active:scale-[0.98]',
+        interactive: 'bg-white border-2 border-gray-200 cursor-pointer hover:border-dajam-green-400 hover:shadow-glow-green active:scale-[0.98]',
 
         // Selected state
-        selected: 'bg-dajaem-green-50 border-2 border-dajaem-green-500 shadow-glow-green',
+        selected: 'bg-dajam-green-50 border-2 border-dajam-green-500 shadow-glow-green',
 
         // Correct answer
-        correct: 'bg-dajaem-green-100 border-2 border-dajaem-green-500 animate-correct-answer',
+        correct: 'bg-dajam-green-100 border-2 border-dajam-green-500 animate-correct-answer',
 
         // Wrong answer
-        wrong: 'bg-red-100 border-2 border-dajaem-red animate-wrong-answer',
+        wrong: 'bg-red-100 border-2 border-dajam-red animate-wrong-answer',
       },
     },
     defaultVariants: {
@@ -326,21 +326,21 @@ const inputVariants = cva(
   {
     variants: {
       variant: {
-        default: 'px-4 py-3 rounded-xl border-2 border-gray-200 bg-white focus:border-dajaem-green-500 focus:ring-4 focus:ring-dajaem-green-500/20',
+        default: 'px-4 py-3 rounded-xl border-2 border-gray-200 bg-white focus:border-dajam-green-500 focus:ring-4 focus:ring-dajam-green-500/20',
 
         // PIN 코드 입력용
-        pin: 'w-14 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-dajaem-yellow-500 focus:ring-4 focus:ring-dajaem-yellow-500/20',
+        pin: 'w-14 h-14 text-center text-2xl font-bold rounded-xl border-2 border-gray-200 focus:border-dajam-yellow-500 focus:ring-4 focus:ring-dajam-yellow-500/20',
 
         // 세션 코드 입력용
-        sessionCode: 'text-center text-3xl font-bold tracking-[0.5em] uppercase px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-dajaem-green-500',
+        sessionCode: 'text-center text-3xl font-bold tracking-[0.5em] uppercase px-6 py-4 rounded-2xl border-2 border-gray-200 focus:border-dajam-green-500',
 
         // 검색
-        search: 'pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 focus:border-dajaem-green-500',
+        search: 'pl-12 pr-4 py-3 rounded-full border-2 border-gray-200 focus:border-dajam-green-500',
       },
       state: {
         default: '',
-        error: 'border-dajaem-red focus:border-dajaem-red focus:ring-dajaem-red/20',
-        success: 'border-dajaem-green-500 focus:border-dajaem-green-500',
+        error: 'border-dajam-red focus:border-dajam-red focus:ring-dajam-red/20',
+        success: 'border-dajam-green-500 focus:border-dajam-green-500',
       },
     },
     defaultVariants: {
@@ -364,12 +364,12 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-dajaem-green-100 text-dajaem-green-700 dark:bg-dajaem-green-900 dark:text-dajaem-green-300',
-        secondary: 'bg-dajaem-yellow-100 text-dajaem-yellow-800',
-        success: 'bg-dajaem-green-500 text-white',
-        warning: 'bg-dajaem-yellow-500 text-gray-900',
-        error: 'bg-dajaem-red text-white',
-        info: 'bg-dajaem-blue text-white',
+        default: 'bg-dajam-green-100 text-dajam-green-700 dark:bg-dajam-green-900 dark:text-dajam-green-300',
+        secondary: 'bg-dajam-yellow-100 text-dajam-yellow-800',
+        success: 'bg-dajam-green-500 text-white',
+        warning: 'bg-dajam-yellow-500 text-gray-900',
+        error: 'bg-dajam-red text-white',
+        info: 'bg-dajam-blue text-white',
         outline: 'border-2 border-current bg-transparent',
 
         // 랭킹용
@@ -378,7 +378,7 @@ const badgeVariants = cva(
         rank3: 'bg-gradient-to-r from-amber-600 to-orange-700 text-white shadow-md',
 
         // 실시간 표시
-        live: 'bg-dajaem-red text-white animate-pulse',
+        live: 'bg-dajam-red text-white animate-pulse',
       },
       size: {
         sm: 'px-2 py-0.5 text-xs rounded-md',
@@ -435,10 +435,10 @@ const FeedbackToast: React.FC<FeedbackToastProps> = ({ type, message }) => {
     feedbackMessages[type][Math.floor(Math.random() * feedbackMessages[type].length)];
 
   const variants = {
-    correct: 'bg-dajaem-green-500 text-white animate-correct-answer',
-    wrong: 'bg-dajaem-red text-white animate-wrong-answer',
-    info: 'bg-dajaem-blue text-white',
-    'rank-up': 'bg-gradient-to-r from-dajaem-green-500 to-dajaem-yellow-500 text-white animate-rank-up',
+    correct: 'bg-dajam-green-500 text-white animate-correct-answer',
+    wrong: 'bg-dajam-red text-white animate-wrong-answer',
+    info: 'bg-dajam-blue text-white',
+    'rank-up': 'bg-gradient-to-r from-dajam-green-500 to-dajam-yellow-500 text-white animate-rank-up',
     'rank-down': 'bg-gray-500 text-white animate-rank-down',
   };
 
@@ -471,7 +471,7 @@ const FeedbackToast: React.FC<FeedbackToastProps> = ({ type, message }) => {
   --card: 168 100% 15%;
   --card-foreground: 0 0% 98%;
 
-  /* Primary (DaJaem Green - 다크모드에서 더 밝게) */
+  /* Primary (Dajam Green - 다크모드에서 더 밝게) */
   --primary: 149 97% 50%;
   --primary-foreground: 168 100% 10%;
 
@@ -483,9 +483,9 @@ const FeedbackToast: React.FC<FeedbackToastProps> = ({ type, message }) => {
   --ring: 149 97% 50%;
 
   /* Semantic Colors (다크모드 최적화) */
-  --dajaem-green-500: #1AD96B;  /* 약간 더 밝게 */
-  --dajaem-yellow-500: #FFE41B;
-  --dajaem-red: #FF4D63;
+  --dajam-green-500: #1AD96B;  /* 약간 더 밝게 */
+  --dajam-yellow-500: #FFE41B;
+  --dajam-red: #FF4D63;
 }
 ```
 
@@ -617,17 +617,17 @@ export function FeedbackMessage({ type, show, onComplete }: FeedbackMessageProps
 
   const variants = {
     correct: {
-      background: 'bg-dajaem-green-500',
+      background: 'bg-dajam-green-500',
       animation: 'animate-correct-answer',
       scale: [1, 1.2, 1],
     },
     wrong: {
-      background: 'bg-dajaem-red',
+      background: 'bg-dajam-red',
       animation: 'animate-wrong-answer',
       x: [-8, 8, -8, 8, 0],
     },
     timeUp: {
-      background: 'bg-dajaem-yellow-500 text-gray-900',
+      background: 'bg-dajam-yellow-500 text-gray-900',
       animation: '',
     },
   };
@@ -776,8 +776,8 @@ export function HWPMagicPass() {
           'border-4 border-dashed rounded-3xl p-12 text-center cursor-pointer',
           'transition-all duration-300',
           isDragActive
-            ? 'border-dajaem-green-500 bg-dajaem-green-50 scale-[1.02]'
-            : 'border-gray-300 hover:border-dajaem-green-400'
+            ? 'border-dajam-green-500 bg-dajam-green-50 scale-[1.02]'
+            : 'border-gray-300 hover:border-dajam-green-400'
         )}
       >
         <input {...getInputProps()} />
@@ -788,7 +788,7 @@ export function HWPMagicPass() {
         <p className="text-gray-500">
           HWP 파일을 드래그하거나 클릭해서 업로드하세요
         </p>
-        <p className="text-sm text-dajaem-green-600 mt-4">
+        <p className="text-sm text-dajam-green-600 mt-4">
           드래그 한 번으로 100문제를 3초 만에!
         </p>
       </div>
@@ -841,7 +841,7 @@ export function MaskModeToggle({ enabled, onToggle }) {
     <div className={cn(
       'p-4 rounded-2xl border-2 transition-all',
       enabled
-        ? 'border-dajaem-purple bg-purple-50 dark:bg-purple-950'
+        ? 'border-dajam-purple bg-purple-50 dark:bg-purple-950'
         : 'border-gray-200'
     )}>
       <div className="flex items-center justify-between">
@@ -857,7 +857,7 @@ export function MaskModeToggle({ enabled, onToggle }) {
         <Switch
           checked={enabled}
           onCheckedChange={onToggle}
-          className="data-[state=checked]:bg-dajaem-purple"
+          className="data-[state=checked]:bg-dajam-purple"
         />
       </div>
 
@@ -1083,4 +1083,4 @@ graph TD
 ---
 
 *워크플로우 생성일: 2025-12-23*
-*Source: DAJAEM_BRANDING_IMPROVEMENT_PLAN.md*
+*Source: DAJAM_BRANDING_IMPROVEMENT_PLAN.md*

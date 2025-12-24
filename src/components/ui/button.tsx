@@ -8,10 +8,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // DaJaem Primary Green - 주요 CTA
+        // Dajam Primary Green - 주요 CTA
         default:
           "bg-dajaem-green text-white shadow-md hover:bg-dajaem-green-600 hover:shadow-glow-green active:bg-dajaem-green-700",
-        // DaJaem Secondary Yellow - 강조/알림
+        // Dajam Secondary Yellow - 강조/알림
         secondary:
           "bg-dajaem-yellow text-gray-900 shadow-md hover:bg-dajaem-yellow-400 hover:shadow-glow-yellow active:bg-dajaem-yellow-600",
         // Destructive Red - 삭제/경고

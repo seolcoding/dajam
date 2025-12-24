@@ -5,7 +5,7 @@ import { ArrowRight, Users, Star, Sparkles } from 'lucide-react';
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden py-20 md:py-28">
-      {/* Background Gradient - DaJaem Colors */}
+      {/* Background Gradient - Dajam Colors */}
       <div className="absolute inset-0 bg-gradient-to-b from-dajaem-green-50 via-dajaem-yellow-50/30 to-transparent opacity-60" />
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-dajaem-green/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-dajaem-yellow/10 rounded-full blur-3xl" />

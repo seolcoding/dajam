@@ -114,7 +114,7 @@ export function MarketingFooter() {
         {/* Bottom Bar */}
         <div className="border-t border-dajaem-green/10 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-            <div>&copy; 2024 다잼(DaJaem). All rights reserved.</div>
+            <div>&copy; 2024 다잼(Dajam). All rights reserved.</div>
             <div className="flex items-center gap-6">
               <a
                 href="https://dajaem.app"

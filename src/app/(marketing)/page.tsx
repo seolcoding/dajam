@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description:
     '투표, 퀴즈, 워드클라우드부터 빙고까지 - 21가지 앱으로 청중과 실시간 소통하세요. 무료로 시작!',
   openGraph: {
-    title: '다잼(DaJaem) - 우리들의 공간, 다잼!',
+    title: '다잼(Dajam) - 우리들의 공간, 다잼!',
     description:
       '투표, 퀴즈, 워드클라우드부터 빙고까지 - 21가지 앱으로 청중과 실시간 소통하세요.',
   },

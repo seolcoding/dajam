@@ -14,7 +14,7 @@ test.describe('Home Page', () => {
   });
 
   test('should display page title and heading', async ({ page }) => {
-    await expect(page).toHaveTitle(/다잼|DaJaem/i);
+    await expect(page).toHaveTitle(/다잼|Dajam/i);
     // Marketing landing page heading
     const heading = page.locator('h1, h2').first();
     await expect(heading).toBeVisible();

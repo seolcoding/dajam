@@ -1,8 +1,8 @@
 {
-  "name": "seolcoding-apps",
+  "name": "dajam",
   "private": true,
   "version": "2.0.0",
-  "description": "SeolCoding Mini Apps - Next.js",
+  "description": "다잼(Dajam) - 다함께 재미있게 잘 | 침묵을 깨는 실시간 인터랙션 플랫폼",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,7 +17,7 @@
     "test:e2e:all": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:deployed": "BASE_URL=https://seolcoding.com playwright test",
+    "test:e2e:deployed": "BASE_URL=https://jam.seolcoding.com playwright test",
     "test:scenarios": "playwright test e2e/scenarios",
     "test:smart": "playwright test e2e/smart",
     "test:accessibility": "playwright test e2e/smart/accessibility.spec.ts",
