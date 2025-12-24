@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project: Dajam (다잼)
 
-🌐 **https://jam.seolcoding.com**
+🌐 **https://dajam.seolcoding.com**
 
 > **"침묵을 깨는 가장 안전하고 위트 있는 방법, 다잼"**
 >

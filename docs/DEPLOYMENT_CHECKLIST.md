@@ -58,7 +58,7 @@ pwd  # /Users/sdh/Dev/02_production/dajam
 3. **변경사항 커밋 및 푸시**
    ```bash
    git add -A
-   git commit -m "chore: rebrand to Dajam (다잼) with jam.seolcoding.com domain"
+   git commit -m "chore: rebrand to Dajam (다잼) with dajam.seolcoding.com domain"
    git push origin main
    ```
 
@@ -66,7 +66,7 @@ pwd  # /Users/sdh/Dev/02_production/dajam
 
 ### 현재 상태
 - 프로젝트명: 확인 필요 → `dajam`으로 변경
-- 도메인: `jam.seolcoding.com` (신규 추가)
+- 도메인: `dajam.seolcoding.com` (신규 추가)
 
 ### 변경 절차
 
@@ -91,14 +91,14 @@ https://vercel.com/dashboard
 
 ② "Add" 버튼 클릭
 
-③ 도메인 입력: `jam.seolcoding.com`
+③ 도메인 입력: `dajam.seolcoding.com`
 
 ④ Vercel이 제시하는 DNS 레코드 복사
 
 ⑤ **DNS 제공자**(예: Cloudflare, Route 53, 가비아 등)에서 설정:
    ```
    Type: CNAME
-   Name: jam
+   Name: dajam
    Value: cname.vercel-dns.com
    TTL: Auto
    ```
@@ -145,7 +145,7 @@ https://vercel.com/dashboard
 
 ### 현재 상태
 - 프로젝트명: 확인 필요 → `dajam` 또는 `다잼`으로 변경
-- 도메인: `jam.seolcoding.com` (추가 필요)
+- 도메인: `dajam.seolcoding.com` (추가 필요)
 
 ### 변경 절차
 
@@ -174,13 +174,13 @@ https://supabase.com/dashboard
 
 ② **Site URL** 설정:
    ```
-   https://jam.seolcoding.com
+   https://dajam.seolcoding.com
    ```
 
 ③ **Redirect URLs** 추가:
    ```
-   https://jam.seolcoding.com/**
-   https://jam.seolcoding.com/auth/callback
+   https://dajam.seolcoding.com/**
+   https://dajam.seolcoding.com/auth/callback
    http://localhost:3000/** (개발용 유지)
    ```
 
@@ -194,7 +194,7 @@ https://supabase.com/dashboard
 
 ③ **Additional Allowed Origins** (또는 CORS) 확인:
    ```
-   https://jam.seolcoding.com
+   https://dajam.seolcoding.com
    http://localhost:3000
    ```
 
@@ -210,7 +210,7 @@ https://supabase.com/dashboard
    - `live_voting_sessions`
    - 등등
 
-③ 정책에서 `jam.seolcoding.com` 도메인의 익명 사용자 접근 확인
+③ 정책에서 `dajam.seolcoding.com` 도메인의 익명 사용자 접근 확인
 
 ④ 문제 있으면 마이그레이션 파일 재실행:
    ```bash
@@ -245,7 +245,7 @@ pnpm test:e2e:deployed
 
 #### 2단계: Vercel
 - [ ] Vercel 프로젝트 이름 변경 → `dajam`
-- [ ] 커스텀 도메인 추가: `jam.seolcoding.com`
+- [ ] 커스텀 도메인 추가: `dajam.seolcoding.com`
 - [ ] DNS 레코드 설정 (CNAME)
 - [ ] GitHub 연동 확인 (`seolcoding/dajam`)
 - [ ] 환경 변수 확인 (SUPABASE_URL, SUPABASE_ANON_KEY, KAKAO_APP_KEY)
@@ -253,15 +253,15 @@ pnpm test:e2e:deployed
 
 #### 3단계: Supabase
 - [ ] Supabase 프로젝트 이름 변경 → `dajam` 또는 `다잼`
-- [ ] Site URL: `https://jam.seolcoding.com`
+- [ ] Site URL: `https://dajam.seolcoding.com`
 - [ ] Redirect URLs 추가
-- [ ] CORS 설정: `jam.seolcoding.com` 추가
+- [ ] CORS 설정: `dajam.seolcoding.com` 추가
 - [ ] RLS 정책 확인
 
 #### 4단계: 테스트
 - [ ] 로컬 빌드 성공 (`pnpm build`)
 - [ ] 프로덕션 배포 성공
-- [ ] https://jam.seolcoding.com 접속 확인
+- [ ] https://dajam.seolcoding.com 접속 확인
 - [ ] 실시간 앱 동작 확인 (audience-engage, live-voting, bingo-game 등)
 - [ ] E2E 테스트 (`pnpm test:e2e:deployed`)
 
@@ -270,10 +270,10 @@ pnpm test:e2e:deployed
 배포 후 DNS 전파 상태 확인:
 ```bash
 # macOS/Linux
-dig jam.seolcoding.com
+dig dajam.seolcoding.com
 
 # 또는 온라인 도구 사용
-# https://www.whatsmydns.net/#CNAME/jam.seolcoding.com
+# https://www.whatsmydns.net/#CNAME/dajam.seolcoding.com
 ```
 
 ---
@@ -283,7 +283,7 @@ dig jam.seolcoding.com
 ### ✅ 로컬 완료
 - [x] package.json: `"name": "dajam"`
 - [x] package.json description: "다잼(Dajam) - 다함께 재미있게 잘"
-- [x] URL 설정: `jam.seolcoding.com`
+- [x] URL 설정: `dajam.seolcoding.com`
 - [x] README.md 브랜딩 업데이트
 - [x] CLAUDE.md 브랜딩 업데이트
 - [x] 문서 파일명 변경: `DAJAEM` → `DAJAM`
@@ -318,21 +318,22 @@ cd dajam
 ```bash
 git remote set-url origin git@github.com:seolcoding/dajam.git
 git add -A
-git commit -m "chore: rebrand to Dajam (다잼) with jam.seolcoding.com domain"
+git commit -m "chore: rebrand to Dajam (다잼) with dajam.seolcoding.com domain"
 git push origin main
 ```
 
 ### Step 4: Vercel 설정 (웹)
 1. https://vercel.com/dashboard → 프로젝트 선택
 2. Settings → General → Project Name → `dajam`
-3. Settings → Domains → Add `jam.seolcoding.com`
-4. DNS에서 CNAME 레코드 추가: `jam` → `cname.vercel-dns.com`
+3. Settings → Domains → Add `dajam.seolcoding.com`
+4. DNS에서 CNAME 레코드 추가: `dajam` → `cname.vercel-dns.com`
+5. (선택) `jam.seolcoding.com` → `dajam.seolcoding.com` 리다이렉트 설정
 
 ### Step 5: Supabase 설정 (웹)
 1. https://supabase.com/dashboard → 프로젝트 선택
 2. Settings → General → Project name → `dajam`
-3. Settings → Authentication → Site URL → `https://jam.seolcoding.com`
-4. Settings → API → CORS → `https://jam.seolcoding.com` 추가
+3. Settings → Authentication → Site URL → `https://dajam.seolcoding.com`
+4. Settings → API → CORS → `https://dajam.seolcoding.com` 추가
 
 ### Step 6: 배포 확인
 ```bash
