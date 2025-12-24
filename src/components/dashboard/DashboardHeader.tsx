@@ -133,7 +133,13 @@ export function DashboardHeader({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {onLogout && (
-                <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-600">
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    onLogout();
+                  }}
+                  className="cursor-pointer text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   로그아웃
                 </DropdownMenuItem>

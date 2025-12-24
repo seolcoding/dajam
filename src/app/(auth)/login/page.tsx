@@ -9,25 +9,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 
 export default function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
+    // Redirect to dashboard if already logged in
+    if (user) {
       router.push('/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
-  if (loading) {
+  // Show login form immediately, redirect will happen if user is detected
+  if (user) {
     return (
       <div className="flex items-center justify-center">
-        <div className="text-slate-500">로딩 중...</div>
+        <div className="text-slate-500">리다이렉트 중...</div>
       </div>
     );
-  }
-
-  if (user) {
-    return null; // Will redirect
   }
 
   return (
