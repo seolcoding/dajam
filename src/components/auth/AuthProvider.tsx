@@ -13,6 +13,9 @@ import type { Profile } from '@/types/database';
  * - 2024-12-24: Step 2 - 세션 감지 개선
  *   - SIGNED_IN/SIGNED_OUT 이벤트 시 router.refresh() 호출
  *   - 서버 컴포넌트들이 새 세션 상태를 반영하도록 함
+ * - 2024-12-24: Step 4 - getSession() 타임아웃 문제 해결
+ *   - getSession() 대신 onAuthStateChange의 INITIAL_SESSION 이벤트 사용
+ *   - Supabase 공식 권장 패턴 적용
  */
 
 interface AuthContextType {
@@ -97,51 +100,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    const initializeAuth = async () => {
-      try {
-        // Wrap getSession with timeout to prevent hanging
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Session timeout')), 5000)
-        );
-
-        const { data: { session: currentSession }, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as Awaited<ReturnType<typeof supabase.auth.getSession>>;
-
-        if (!isMounted) return;
-
-        if (sessionError || !currentSession) {
-          setUser(null);
-          setSession(null);
-          setLoading(false);
-          return;
-        }
-
-        setSession(currentSession);
-        setUser(currentSession.user);
-
-        if (currentSession.user) {
-          await loadOrCreateProfile(currentSession.user);
-        }
-      } catch (error) {
-        // Timeout or other error - treat as no session
-        console.error('Error initializing auth:', error);
-        setUser(null);
-        setSession(null);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeAuth();
-
+    // Step 4: getSession() 대신 onAuthStateChange의 INITIAL_SESSION 이벤트 사용
+    // Supabase 공식 권장 패턴 - onAuthStateChange가 초기 세션도 처리함
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, newSession: Session | null) => {
         if (!isMounted) return;
+
+        console.log('[AuthProvider] onAuthStateChange:', event, newSession?.user?.email);
 
         setSession(newSession);
         setUser(newSession?.user ?? null);
@@ -152,16 +117,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
 
-        // Step 2: 세션 변경 시 서버 컴포넌트 갱신
-        // SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED 이벤트에서 라우터 리프레시
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        // INITIAL_SESSION: 첫 로드 시 세션 상태 확인 완료
+        // SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED: 세션 변경
+        if (event === 'INITIAL_SESSION') {
+          // 초기 세션 로드 완료
+          setLoading(false);
+        } else if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setLoading(false);
           router.refresh();
         }
       }
     );
 
+    // 10초 후에도 INITIAL_SESSION이 안 오면 로딩 해제 (fallback)
+    const fallbackTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.warn('[AuthProvider] Fallback: no INITIAL_SESSION received, setting loading to false');
+        setLoading(false);
+      }
+    }, 10000);
+
     return () => {
       isMounted = false;
+      clearTimeout(fallbackTimeout);
       subscription.unsubscribe();
     };
   }, []); // Empty dependency array - supabase is stored in ref

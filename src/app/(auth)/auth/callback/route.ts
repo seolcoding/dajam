@@ -47,12 +47,15 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    console.log('[OAuth Callback] Exchanging code for session...');
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (error) {
-      console.error('OAuth callback error:', error);
+      console.error('[OAuth Callback] Error:', error);
       return NextResponse.redirect(`${origin}/login?error=${error.message}`);
     }
+
+    console.log('[OAuth Callback] Session created for:', data.session?.user?.email);
 
     // Step 1: x-forwarded-host 헤더 처리
     // 프로덕션 환경에서 로드밸런서/Vercel 프록시 뒤의 실제 도메인 사용
