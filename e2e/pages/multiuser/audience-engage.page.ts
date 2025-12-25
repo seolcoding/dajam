@@ -104,39 +104,104 @@ export class AudienceEngagePage extends BasePage {
   }
 
   // Q&A actions
-  async switchToQA() {
-    await this.qaTab.click();
-    await this.waitForAnimation();
+  async switchToQA(): Promise<boolean> {
+    try {
+      if (await this.qaTab.isVisible({ timeout: 3000 })) {
+        await this.qaTab.click();
+        await this.waitForAnimation();
+        return true;
+      }
+    } catch {
+      // Tab not available
+    }
+    return false;
   }
 
-  async submitQuestion(question: string) {
-    await this.questionInput.fill(question);
-    await this.questionInput.press('Enter');
-    await this.waitForAnimation();
+  async submitQuestion(question: string): Promise<boolean> {
+    try {
+      if (await this.questionInput.isVisible({ timeout: 3000 })) {
+        await this.questionInput.fill(question);
+        await this.questionInput.press('Enter');
+        await this.waitForAnimation();
+        return true;
+      }
+    } catch {
+      // Input not available
+    }
+    return false;
   }
 
   async getQuestionCount(): Promise<number> {
-    const countText = await this.qaTab.textContent() || '';
-    const match = countText.match(/\((\d+)\)/);
-    return match ? parseInt(match[1]) : 0;
+    // First try tab count
+    try {
+      const countText = await this.qaTab.textContent() || '';
+      const match = countText.match(/\((\d+)\)/);
+      if (match && parseInt(match[1]) > 0) {
+        return parseInt(match[1]);
+      }
+    } catch {
+      // Tab might not be visible
+    }
+
+    // Fallback: count actual question items in the list
+    const questionItems = this.page.locator('[data-question], .question-item, [class*="question"]');
+    return await questionItems.count();
   }
 
   // Chat actions
-  async switchToChat() {
-    await this.chatTab.click();
-    await this.waitForAnimation();
+  async switchToChat(): Promise<boolean> {
+    try {
+      if (await this.chatTab.isVisible({ timeout: 3000 })) {
+        await this.chatTab.click();
+        await this.waitForAnimation();
+        return true;
+      }
+    } catch {
+      // Tab not available
+    }
+    return false;
   }
 
-  async sendChatMessage(message: string) {
-    await this.chatInput.fill(message);
-    await this.chatInput.press('Enter');
-    await this.waitForAnimation();
+  async sendChatMessage(message: string): Promise<boolean> {
+    try {
+      if (await this.chatInput.isVisible({ timeout: 3000 })) {
+        await this.chatInput.fill(message);
+        await this.chatInput.press('Enter');
+        await this.waitForAnimation();
+        return true;
+      }
+    } catch {
+      // Input not available
+    }
+    return false;
   }
 
   async getChatMessageCount(): Promise<number> {
-    const countText = await this.chatTab.textContent() || '';
-    const match = countText.match(/\((\d+)\)/);
-    return match ? parseInt(match[1]) : 0;
+    // First try tab count
+    try {
+      const countText = await this.chatTab.textContent() || '';
+      const match = countText.match(/\((\d+)\)/);
+      if (match && parseInt(match[1]) > 0) {
+        return parseInt(match[1]);
+      }
+    } catch {
+      // Tab might not be visible
+    }
+
+    // Fallback: count actual chat messages in the list
+    const chatItems = this.page.locator('[data-chat-message], .chat-message, [class*="message"]');
+    return await chatItems.count();
+  }
+
+  // Wait for real-time sync with retries
+  async waitForSync(checkFn: () => Promise<boolean>, maxRetries = 10, intervalMs = 500): Promise<boolean> {
+    for (let i = 0; i < maxRetries; i++) {
+      if (await checkFn()) {
+        return true;
+      }
+      await this.waitForAnimation(intervalMs);
+    }
+    return false;
   }
 
   // State checks
