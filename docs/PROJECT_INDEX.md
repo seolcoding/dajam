@@ -1,7 +1,7 @@
 # Dajam 프로젝트 인덱스
 
-> **최종 업데이트**: 2024-12-24
-> **버전**: 2.0.0
+> **최종 업데이트**: 2024-12-26
+> **버전**: 2.1.0
 
 ## 개요
 
@@ -213,7 +213,25 @@ pnpm lint             # ESLint
 
 | 항목 | 수치 |
 |------|------|
-| TypeScript 파일 | 448개 |
+| TypeScript 파일 | 460+ |
 | 앱 수 | 21개 |
 | 실시간 앱 | 12개 |
-| E2E 테스트 | 28+ |
+| E2E Page Objects | 19개 |
+| E2E Scenario Tests | 22개 |
+| 테스트 케이스 | 950+ |
+| 테스트 통과율 | 96% |
+
+---
+
+## 테스트 매핑 (APP_INDEX.yaml)
+
+앱-코드-테스트 매핑 정보는 프로젝트 루트의 `APP_INDEX.yaml`에서 확인할 수 있습니다.
+
+```yaml
+# 앱별 테스트 찾기
+apps:
+  salary-calculator:
+    tests:
+      page_object: e2e/pages/calculator/salary.page.ts
+      scenarios: e2e/scenarios/calculator/salary-calculator.spec.ts
+```

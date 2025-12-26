@@ -78,14 +78,18 @@ e2e/
 │   │   ├── chosung-quiz.page.ts
 │   │   ├── ladder-game.page.ts
 │   │   └── bingo-game.page.ts
-│   └── utility/              # 유틸리티 앱
-│       ├── live-voting.page.ts
-│       ├── random-picker.page.ts
-│       ├── team-divider.page.ts
-│       ├── lunch-roulette.page.ts
-│       ├── group-order.page.ts
-│       ├── id-validator.page.ts
-│       └── student-network.page.ts
+│   ├── utility/              # 유틸리티 앱
+│   │   ├── live-voting.page.ts
+│   │   ├── random-picker.page.ts
+│   │   ├── team-divider.page.ts
+│   │   ├── lunch-roulette.page.ts
+│   │   └── group-order.page.ts
+│   ├── social/               # 소셜 앱
+│   │   └── student-network.page.ts
+│   ├── multiuser/            # 멀티유저 앱
+│   │   └── audience-engage.page.ts
+│   └── auth/                 # 인증
+│       └── login.page.ts
 ├── scenarios/                # 시나리오 테스트
 │   ├── calculator/
 │   │   ├── salary-calculator.spec.ts
@@ -98,14 +102,20 @@ e2e/
 │   │   ├── chosung-quiz.spec.ts
 │   │   ├── ladder-game.spec.ts
 │   │   └── bingo-game.spec.ts
-│   └── utility/
-│       ├── live-voting.spec.ts
-│       ├── random-picker.spec.ts
-│       ├── team-divider.spec.ts
-│       ├── lunch-roulette.spec.ts
-│       ├── group-order.spec.ts
-│       ├── id-validator.spec.ts
-│       └── student-network.spec.ts
+│   ├── utility/
+│   │   ├── live-voting.spec.ts
+│   │   ├── random-picker.spec.ts
+│   │   ├── team-divider.spec.ts
+│   │   └── lunch-roulette.spec.ts
+│   ├── social/               # 소셜 앱 테스트
+│   │   └── student-network.spec.ts
+│   ├── multiuser/            # 멀티유저 테스트
+│   │   └── presentation-e2e.spec.ts
+│   ├── auth/                 # 인증 테스트
+│   │   └── login.spec.ts
+│   └── edge-cases/           # 엣지케이스 테스트
+│       ├── input-validation.spec.ts
+│       └── browser-behavior.spec.ts
 ├── smart/                    # 스마트 테스트
 │   ├── accessibility.spec.ts # 접근성 테스트
 │   ├── responsive.spec.ts    # 반응형 테스트
@@ -374,10 +384,72 @@ const GAME_OPTIONS = ['A', 'B'];
 
 | Category | Target | Current |
 |----------|--------|---------|
-| Scenario Coverage | 100% | 0% |
-| UI Coverage | 90% | 0% |
-| Accessibility | 100% pass | N/A |
-| Responsive | 4 viewports | N/A |
+| Scenario Coverage | 100% | **88%** (14/16 앱) |
+| UI Coverage | 90% | **75%** |
+| Accessibility | 100% pass | **95%+** |
+| Responsive | 4 viewports | **4 viewports** |
+
+---
+
+## Current Test Status (2024-12-26)
+
+### Page Objects (19개)
+| 카테고리 | 파일 | 상태 |
+|---------|------|------|
+| calculator | salary.page.ts | ✅ |
+| calculator | dutch-pay.page.ts | ✅ |
+| calculator | id-validator.page.ts | ✅ |
+| calculator | **gpa.page.ts** | ✅ NEW |
+| calculator | **rent.page.ts** | ✅ NEW |
+| game | balance-game.page.ts | ✅ |
+| game | bingo.page.ts | ✅ |
+| game | ladder.page.ts | ✅ |
+| game | **chosung-quiz.page.ts** | ✅ NEW |
+| game | **ideal-worldcup.page.ts** | ✅ NEW |
+| utility | live-voting.page.ts | ✅ |
+| utility | random-picker.page.ts | ✅ |
+| utility | team-divider.page.ts | ✅ |
+| utility | **lunch-roulette.page.ts** | ✅ NEW |
+| social | **student-network.page.ts** | ✅ NEW |
+| multiuser | audience-engage.page.ts | ✅ |
+| auth | login.page.ts | ✅ |
+
+### Scenario Tests (22개)
+| 카테고리 | 파일 | 테스트 수 | 상태 |
+|---------|------|----------|------|
+| calculator | salary-calculator.spec.ts | 10+ | ✅ |
+| calculator | dutch-pay.spec.ts | 12+ | ✅ |
+| calculator | id-validator.spec.ts | 8+ | ✅ |
+| calculator | **gpa-calculator.spec.ts** | **30+** | ✅ NEW |
+| calculator | **rent-calculator.spec.ts** | **20+** | ✅ NEW |
+| game | balance-game.spec.ts | 10+ | ✅ |
+| game | bingo-game.spec.ts | 8+ | ✅ |
+| game | ladder-game.spec.ts | 10+ | ✅ |
+| game | **chosung-quiz.spec.ts** | **25+** | ✅ NEW |
+| game | **ideal-worldcup.spec.ts** | **12+** | ✅ NEW |
+| utility | live-voting.spec.ts | 12+ | ✅ |
+| utility | random-picker.spec.ts | 10+ | ✅ |
+| utility | team-divider.spec.ts | 8+ | ✅ |
+| utility | **lunch-roulette.spec.ts** | **17** | ✅ NEW |
+| social | **student-network.spec.ts** | **41+** | ✅ NEW |
+| multiuser | presentation-e2e.spec.ts | 20+ | ✅ |
+| auth | login.spec.ts | 15+ | ✅ |
+| edge-cases | input-validation.spec.ts | 10+ | ✅ |
+| edge-cases | browser-behavior.spec.ts | 8+ | ✅ |
+
+### Latest Test Run (2024-12-26)
+- **927 passed** (96%)
+- **39 failed** (4%)
+- **6 skipped**
+- **Duration**: 14분
+
+### Known Issues
+| 테스트 | 브라우저 | 이슈 |
+|--------|---------|------|
+| Auth Protected Routes | all | 미들웨어 리다이렉션 타이밍 |
+| ID Validator generate | chromium, tablet | 알고리즘 엣지케이스 |
+| Multiuser sync | firefox | WebSocket 타이밍 |
+| Mobile CTA buttons | mobile-* | 모바일 레이아웃 차이 |
 
 ---
 
