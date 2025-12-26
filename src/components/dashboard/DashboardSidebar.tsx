@@ -31,7 +31,7 @@ const navItems = [
   { href: '/dashboard', icon: Home, label: '대시보드' },
   { href: '/dashboard/my-sessions', icon: Folder, label: '내 세션' },
   { href: '/dashboard/settings', icon: Settings, label: '설정' },
-  { href: '/dashboard/subscription', icon: CreditCard, label: '구독 관리' },
+  { href: '/dashboard/settings/subscription', icon: CreditCard, label: '구독 관리' },
   { href: '/dashboard/billing', icon: Receipt, label: '결제 내역' },
 ];
 
@@ -84,7 +84,11 @@ export function DashboardSidebar({
 
       {/* User Info */}
       <div className="p-4">
-        <div className="flex items-center gap-3 mb-3">
+        <Link
+          href="/dashboard/settings/profile"
+          className="flex items-center gap-3 mb-3 p-2 -m-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          onClick={() => setIsMobileOpen(false)}
+        >
           <Avatar className="w-9 h-9">
             <AvatarImage src={userProfile?.avatar_url || undefined} />
             <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">
@@ -101,7 +105,7 @@ export function DashboardSidebar({
               </div>
             )}
           </div>
-        </div>
+        </Link>
         <LogoutButton variant="button" />
       </div>
     </div>
