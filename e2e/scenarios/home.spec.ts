@@ -62,13 +62,13 @@ test.describe('Apps Gallery', () => {
     await page.goto('/apps');
   });
 
-  test('should display all 16+ apps', async ({ page }) => {
-    // Check that app links exist
+  test('should display all 22 apps', async ({ page }) => {
+    // Check that app links exist (22 apps total)
     const appLinks = page.locator('a[href*="/"]').filter({
       has: page.locator('h3, h4, .font-semibold, .font-bold')
     });
     const count = await appLinks.count();
-    expect(count).toBeGreaterThanOrEqual(16);
+    expect(count).toBeGreaterThanOrEqual(22);
   });
 
   test('should navigate to salary calculator', async ({ page }) => {
