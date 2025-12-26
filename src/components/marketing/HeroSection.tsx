@@ -34,8 +34,8 @@ export function HeroSection() {
             투표, 퀴즈, 워드클라우드부터 빙고까지 - 모두가 함께하는 실시간 인터랙션
           </p>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12 animate-fade-in">
+          {/* CTA Buttons - No animation for immediate visibility */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Link href="/login">
               <Button size="lg" variant="default" className="px-8 h-12">
                 지금 바로 시작! 🚀

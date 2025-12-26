@@ -1,11 +1,26 @@
 /**
  * 테스트용 주민등록번호 생성
+ * 1900년대(genderCode 1-2) 또는 2000년대(genderCode 3-4) 생년 생성
  */
 export function generateTestRRN(): string {
-  const year = Math.floor(Math.random() * 75) + 50; // 1950-2024
+  // 50% 확률로 1900년대 또는 2000년대 선택
+  const is2000s = Math.random() > 0.5;
+
+  let year: number;
+  let genderCode: number;
+
+  if (is2000s) {
+    // 2000-2019 (체크섬 검증 대상)
+    year = Math.floor(Math.random() * 20); // 0-19
+    genderCode = Math.floor(Math.random() * 2) + 3; // 3-4
+  } else {
+    // 1950-1999
+    year = Math.floor(Math.random() * 50) + 50; // 50-99
+    genderCode = Math.floor(Math.random() * 2) + 1; // 1-2
+  }
+
   const month = Math.floor(Math.random() * 12) + 1;
   const day = Math.floor(Math.random() * 28) + 1; // 안전하게 1-28일
-  const genderCode = Math.floor(Math.random() * 4) + 1; // 1-4
 
   const rrn =
     String(year).padStart(2, '0') +
