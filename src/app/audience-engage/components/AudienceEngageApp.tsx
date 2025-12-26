@@ -100,8 +100,10 @@ export default function AudienceEngageApp() {
     if (code) {
       setSessionCode(code);
       setViewMode('host');
+    } else {
+      alert('세션을 생성할 수 없어요. 네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.');
     }
-  };
+  };;
 
   // 세션 참여
   const handleJoinSession = async () => {

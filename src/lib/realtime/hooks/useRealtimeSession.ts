@@ -95,6 +95,17 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
       return;
     }
 
+    if (!supabase) {
+      console.error('[loadSession] Supabase client not configured');
+      setState((prev) => ({
+        ...prev,
+        isLoading: false,
+        error: 'Supabase가 설정되지 않았습니다.',
+        isCloudMode: false,
+      }));
+      return;
+    }
+
     try {
       // 세션 조회
       const { data: sessionData, error: sessionError } = await supabase
@@ -159,17 +170,18 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
 
       onSessionLoadedRef.current?.(session);
     } catch (err) {
+      console.error('[loadSession] Error:', err);
       setState((prev) => ({
         ...prev,
         isLoading: false,
         error: err instanceof Error ? err.message : '알 수 없는 오류',
       }));
     }
-  }, [appType, sessionCode, enabled, supabase, dataTable]);
+  }, [appType, sessionCode, enabled, supabase, dataTable]);;
 
   // 데이터 다시 로드
   const loadData = useCallback(async () => {
-    if (!state.sessionId) return;
+    if (!state.sessionId || !supabase) return;
 
     if (dataTable === 'session_participants') {
       const { data: participantsData } = await supabase
@@ -196,7 +208,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
       setState((prev) => ({ ...prev, data }));
       onDataReceivedRef.current?.(data);
     }
-  }, [state.sessionId, dataTable, supabase]);
+  }, [state.sessionId, dataTable, supabase]);;
 
   // Realtime 구독
   const { connectionStatus, isConnected } = useRealtimeSubscription({
@@ -225,6 +237,11 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
   // 세션 생성
   const createSession = useCallback(
     async (options: CreateSessionOptions<TConfig>): Promise<string | null> => {
+      if (!supabase) {
+        console.error('[createSession] Supabase client not configured');
+        return null;
+      }
+
       try {
         const { data: userData } = await supabase.auth.getUser();
         const code = generateSessionCode();
@@ -246,6 +263,7 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .single();
 
         if (error || !data) {
+          console.error('[createSession] Failed:', error);
           throw error || new Error('세션 생성 실패');
         }
 
@@ -259,20 +277,26 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
 
         return code;
       } catch (err) {
-        console.error('Failed to create session:', err);
+        console.error('[createSession] Error:', err);
         return null;
       }
     },
     [supabase]
-  );
+  );;
 
   // 세션 참여 - sessionIdRef 사용으로 stale closure 방지
   const joinSession = useCallback(
     async (options: JoinSessionOptions): Promise<SessionParticipant | null> => {
+      if (!supabase) {
+        console.error('[joinSession] Supabase client not configured');
+        return null;
+      }
+
       // Use ref to get the latest sessionId (avoids stale closure)
       const currentSessionId = sessionIdRef.current;
 
       if (!currentSessionId) {
+        console.error('[joinSession] No session ID available');
         return null;
       }
 
@@ -292,25 +316,32 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .single();
 
         if (error || !data) {
+          console.error('[joinSession] Database error:', error);
           throw error || new Error('참여 실패');
         }
 
         return data as SessionParticipant;
       } catch (err) {
-        console.error('[joinSession] Failed:', err);
+        console.error('[joinSession] Error:', err);
         return null;
       }
     },
     [supabase] // sessionId 제거 - ref 사용으로 의존성 불필요
-  );
+  );;
 
   // 세션 재참여 또는 신규 참여
   // persistentParticipantId: localStorage에서 가져온 디바이스별 고유 ID
   const joinOrRejoinSession = useCallback(
     async (options: JoinSessionOptions & { persistentParticipantId?: string }): Promise<SessionParticipant | null> => {
+      if (!supabase) {
+        console.error('[joinOrRejoinSession] Supabase client not configured');
+        return null;
+      }
+
       const currentSessionId = sessionIdRef.current;
 
       if (!currentSessionId) {
+        console.error('[joinOrRejoinSession] No session ID available');
         return null;
       }
 
@@ -361,21 +392,22 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
           .single();
 
         if (error || !data) {
+          console.error('[joinOrRejoinSession] Database error:', error);
           throw error || new Error('참여 실패');
         }
 
         return data as SessionParticipant;
       } catch (err) {
-        console.error('[joinOrRejoinSession] Failed:', err);
+        console.error('[joinOrRejoinSession] Error:', err);
         return null;
       }
     },
     [supabase]
-  );
+  );;
 
   // 세션 종료
   const closeSession = useCallback(async (): Promise<boolean> => {
-    if (!state.sessionId) return false;
+    if (!state.sessionId || !supabase) return false;
 
     try {
       const { error } = await supabase
@@ -386,10 +418,10 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
       if (error) throw error;
       return true;
     } catch (err) {
-      console.error('Failed to close session:', err);
+      console.error('[closeSession] Error:', err);
       return false;
     }
-  }, [state.sessionId, supabase]);
+  }, [state.sessionId, supabase]);;
 
   // 초기 로드
   useEffect(() => {
