@@ -102,7 +102,7 @@ export function SubscriptionCard({
         {/* Action Button */}
         {isPro ? (
           <Button variant="outline" className="w-full" asChild>
-            <Link href="/dashboard/subscription">
+            <Link href="/dashboard/settings/subscription">
               구독 관리
               <ArrowRight className="w-4 h-4 ml-2" />
             </Link>
@@ -110,7 +110,7 @@ export function SubscriptionCard({
         ) : (
           <div className="space-y-2">
             <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600" asChild>
-              <Link href="/dashboard/subscription">
+              <Link href="/dashboard/settings/subscription">
                 <Crown className="w-4 h-4 mr-2" />
                 Pro로 업그레이드
               </Link>

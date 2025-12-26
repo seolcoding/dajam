@@ -71,24 +71,27 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Support */}
           <div>
-            <h3 className="font-semibold text-slate-900 mb-3">회사</h3>
+            <h3 className="font-semibold text-slate-900 mb-3">지원</h3>
             <ul className="space-y-2 text-sm text-slate-600">
               <li>
-                <Link href="/about" className="hover:text-slate-900">
-                  서비스 소개
-                </Link>
-              </li>
-              <li>
-                <Link href="/blog" className="hover:text-slate-900">
-                  블로그
-                </Link>
-              </li>
-              <li>
-                <Link href="/contact" className="hover:text-slate-900">
+                <a
+                  href="mailto:ssalssi1@gmail.com"
+                  className="hover:text-slate-900"
+                >
                   문의하기
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/seolcoding/dajam/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slate-900"
+                >
+                  버그 리포트
+                </a>
               </li>
             </ul>
           </div>
