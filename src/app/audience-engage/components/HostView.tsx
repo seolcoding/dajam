@@ -61,6 +61,7 @@ export default function HostView({
   const [uploadedSlides, setUploadedSlides] = useState<UploadedSlide[]>([]);
   const [slideSourceType, setSlideSourceType] = useState<SlideSourceType | null>(null);
   const [googleSlidesUrl, setGoogleSlidesUrl] = useState<string | null>(null);
+  const [embedTotalSlides, setEmbedTotalSlides] = useState<number | undefined>(undefined);
 
   // Slide sync hook
   const {
@@ -306,6 +307,7 @@ export default function HostView({
                       sourceType={slideSourceType}
                       isHost={true}
                       slideIndex={activeScene.slideIndex || 0}
+                      totalSlides={embedTotalSlides}
                       onSlideChange={goToSlide}
                       className="h-full"
                     />
@@ -337,10 +339,33 @@ export default function HostView({
                   </Button>
 
                   <div className="flex items-center gap-4">
-                    <div className="text-sm text-muted-foreground">
-                      {activeScene.type === 'slides'
-                        ? `슬라이드 ${(activeScene.slideIndex || 0) + 1}${uploadedSlides.length > 0 ? ` / ${uploadedSlides.length}` : ''}`
-                        : activeScene.type}
+                    <div className="text-sm text-muted-foreground flex items-center gap-2">
+                      {activeScene.type === 'slides' ? (
+                        <>
+                          슬라이드 {(activeScene.slideIndex || 0) + 1}
+                          {/* 이미지 업로드의 경우 자동으로 슬라이드 수 표시 */}
+                          {slideSourceType === 'images' && uploadedSlides.length > 0 && (
+                            ` / ${uploadedSlides.length}`
+                          )}
+                          {/* Google Slides/Canva 임베드의 경우 사용자가 총 슬라이드 수 입력 가능 */}
+                          {(slideSourceType === 'google-slides' || slideSourceType === 'canva') && (
+                            <>
+                              {' / '}
+                              <input
+                                type="number"
+                                min="1"
+                                value={embedTotalSlides || ''}
+                                onChange={(e) => setEmbedTotalSlides(e.target.value ? parseInt(e.target.value, 10) : undefined)}
+                                placeholder="?"
+                                className="w-10 h-6 text-center text-sm border rounded px-1 bg-white"
+                                title="총 슬라이드 수 입력"
+                              />
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        activeScene.type
+                      )}
                     </div>
                     <Button
                       variant="ghost"

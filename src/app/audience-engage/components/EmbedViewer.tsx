@@ -10,6 +10,7 @@ interface EmbedViewerProps {
   sourceType: SlideSourceType;
   isHost: boolean;
   slideIndex?: number;
+  totalSlides?: number;
   onSlideChange?: (index: number) => void;
   className?: string;
 }
@@ -33,6 +34,7 @@ export function EmbedViewer({
   sourceType,
   isHost,
   slideIndex = 0,
+  totalSlides,
   onSlideChange,
   className = '',
 }: EmbedViewerProps) {
@@ -60,8 +62,10 @@ export function EmbedViewer({
   }, [currentSlide, goToSlide]);
 
   const goToNextSlide = useCallback(() => {
-    goToSlide(currentSlide + 1);
-  }, [currentSlide, goToSlide]);
+    if (!totalSlides || currentSlide < totalSlides - 1) {
+      goToSlide(currentSlide + 1);
+    }
+  }, [currentSlide, goToSlide, totalSlides]);
 
   // 전체화면 토글
   const toggleFullscreen = useCallback(() => {
@@ -151,12 +155,13 @@ export function EmbedViewer({
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <span className="text-white font-medium px-3 py-1 bg-black/30 rounded-md">
-                  슬라이드 {currentSlide + 1}
+                  슬라이드 {currentSlide + 1}{totalSlides ? ` / ${totalSlides}` : ''}
                 </span>
                 <Button
                   variant="secondary"
                   size="icon"
                   onClick={goToNextSlide}
+                  disabled={totalSlides ? currentSlide >= totalSlides - 1 : false}
                   className="bg-white/90 hover:bg-white"
                 >
                   <ChevronRight className="w-5 h-5" />
