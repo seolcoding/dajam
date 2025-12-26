@@ -26,7 +26,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A Next.js 15 App Router monorepo containing 16 Korean mini web apps. The apps are designed for Korean users with Korean-optimized UX and Pretendard font.
+A Next.js 15 App Router monorepo containing **22 Korean mini web apps**. The apps are designed for Korean users with Korean-optimized UX and Pretendard font.
 
 ## Commands
 
@@ -62,7 +62,7 @@ src/
 │   ├── page.tsx              # Home (app gallery)
 │   ├── layout.tsx            # Root layout with metadata
 │   ├── globals.css           # Global styles + animations
-│   └── [app-name]/           # 16 app routes
+│   └── [app-name]/           # 22 app routes
 │       ├── page.tsx          # Server component entry
 │       ├── components/       # App-specific components
 │       ├── store/            # Zustand stores (if needed)
@@ -161,13 +161,22 @@ When creating or modifying UI components, use the `frontend-for-opus-4.5` skill 
 /frontend-for-opus-4.5
 ```
 
-### App Routes
+### App Routes (22개)
 
-All 16 apps are at root-level routes:
-- `/salary-calculator`, `/rent-calculator`, `/gpa-calculator`, `/dutch-pay`
-- `/ideal-worldcup`, `/balance-game`, `/chosung-quiz`, `/ladder-game`, `/bingo-game`
-- `/live-voting`, `/random-picker`, `/team-divider`, `/lunch-roulette`
-- `/group-order`, `/id-validator`, `/student-network`
+All 22 apps are at root-level routes:
+
+**계산기 (5개)**
+- `/salary-calculator`, `/rent-calculator`, `/gpa-calculator`, `/dutch-pay`, `/id-validator`
+
+**게임 (8개)**
+- `/balance-game`, `/bingo-game`, `/chosung-quiz`, `/ideal-worldcup`, `/ladder-game`
+- `/personality-test`, `/realtime-quiz`, `/this-or-that`
+
+**유틸리티 (5개)**
+- `/random-picker`, `/team-divider`, `/lunch-roulette`, `/group-order`, `/word-cloud`
+
+**실시간/소셜 (4개)**
+- `/live-voting`, `/audience-engage`, `/student-network`, `/human-bingo`
 
 ## App-Code-Test Quick Reference
 
