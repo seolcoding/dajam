@@ -1,0 +1,398 @@
+# Dajam App Index
+# 이 파일은 코드베이스 인덱싱을 위한 앱-코드-테스트 매핑 정보입니다.
+# AI 에이전트와 개발자 모두가 빠르게 코드를 찾을 수 있도록 설계되었습니다.
+
+version: "1.0"
+project: dajam
+description: "16개 한국어 미니 웹앱 모노레포"
+base_url: "https://dajam.seolcoding.com"
+
+# ============================================================================
+# TIER 분류 (핵심 가치 기준)
+# ============================================================================
+tiers:
+  core:
+    description: "실시간 멀티유저 필수 기능"
+    apps: [live-voting, group-order, bingo-game, audience-engage]
+
+  high:
+    description: "의견 통합 + 공유 기능"
+    apps: [balance-game, ideal-worldcup, student-network]
+
+  medium:
+    description: "같이하기 (오프라인 중심)"
+    apps: [ladder-game, team-divider, chosung-quiz]
+
+  utility:
+    description: "개인 도구"
+    apps: [salary-calculator, rent-calculator, gpa-calculator, dutch-pay, random-picker, lunch-roulette, id-validator]
+
+# ============================================================================
+# 앱별 상세 매핑
+# ============================================================================
+apps:
+  # --------------------------------------------------------------------------
+  # CORE TIER - 실시간 멀티유저
+  # --------------------------------------------------------------------------
+  live-voting:
+    route: /live-voting
+    category: realtime
+    description: "실시간 투표/설문"
+    code:
+      main: src/app/live-voting/page.tsx
+      components: src/app/live-voting/components/
+      store: src/app/live-voting/store/
+      hooks: src/app/live-voting/hooks/
+    tests:
+      page_object: e2e/pages/utility/live-voting.page.ts
+      scenarios: e2e/scenarios/utility/live-voting.spec.ts
+    features:
+      - 실시간 투표 생성/참여
+      - QR 코드 공유
+      - 결과 실시간 집계
+    keywords: [voting, poll, realtime, QR]
+
+  audience-engage:
+    route: /audience-engage
+    category: realtime
+    description: "청중 참여 프레젠테이션"
+    code:
+      main: src/app/audience-engage/page.tsx
+      components: src/app/audience-engage/components/
+      store: src/app/audience-engage/store/
+      types: src/app/audience-engage/types/
+    tests:
+      scenarios: e2e/scenarios/multiuser/presentation-e2e.spec.ts
+    features:
+      - 슬라이드 동기화
+      - 실시간 퀴즈/투표
+      - 워드클라우드
+      - 빙고/사다리/밸런스게임 씬
+    keywords: [presentation, slides, realtime, host, participant]
+
+  bingo-game:
+    route: /bingo-game
+    category: game
+    description: "빙고 게임"
+    code:
+      main: src/app/bingo-game/page.tsx
+      components: src/app/bingo-game/components/
+      stores: src/app/bingo-game/stores/
+    tests:
+      page_object: e2e/pages/game/bingo.page.ts
+      scenarios: e2e/scenarios/game/bingo-game.spec.ts
+    features:
+      - 빙고 보드 생성
+      - 호스트/참여자 모드
+      - 실시간 동기화
+    keywords: [bingo, game, multiplayer]
+
+  group-order:
+    route: /group-order
+    category: utility
+    description: "단체 주문"
+    code:
+      main: src/app/group-order/page.tsx
+      components: src/app/group-order/components/
+    features:
+      - 메뉴 공유
+      - 주문 집계
+      - 가격 계산
+    keywords: [order, food, group, share]
+
+  # --------------------------------------------------------------------------
+  # HIGH TIER - 의견 통합
+  # --------------------------------------------------------------------------
+  balance-game:
+    route: /balance-game
+    category: game
+    description: "밸런스 게임"
+    code:
+      main: src/app/balance-game/page.tsx
+      components: src/app/balance-game/components/
+      utils: src/app/balance-game/utils/
+    tests:
+      page_object: e2e/pages/game/balance-game.page.ts
+      scenarios: e2e/scenarios/game/balance-game.spec.ts
+    features:
+      - A vs B 선택
+      - 결과 통계
+      - 커스텀 질문
+    keywords: [balance, choice, versus, poll]
+
+  ideal-worldcup:
+    route: /ideal-worldcup
+    category: game
+    description: "이상형 월드컵"
+    code:
+      main: src/app/ideal-worldcup/page.tsx
+      components: src/app/ideal-worldcup/components/
+      store: src/app/ideal-worldcup/store/
+    features:
+      - 토너먼트 형식
+      - 이미지/텍스트 항목
+      - 결과 공유
+    keywords: [worldcup, tournament, pick, favorite]
+
+  student-network:
+    route: /student-network
+    category: social
+    description: "학생 네트워크 (명함 교환)"
+    code:
+      main: src/app/student-network/page.tsx
+      components: src/app/student-network/components/
+      store: src/app/student-network/store/
+    features:
+      - 프로필 생성
+      - QR 명함
+      - 연락처 교환
+    keywords: [network, profile, contact, QR, business-card]
+
+  # --------------------------------------------------------------------------
+  # MEDIUM TIER - 오프라인 같이하기
+  # --------------------------------------------------------------------------
+  ladder-game:
+    route: /ladder-game
+    category: game
+    description: "사다리 게임"
+    code:
+      main: src/app/ladder-game/page.tsx
+      client: src/app/ladder-game/LadderGameApp.tsx
+      components: src/app/ladder-game/components/
+    tests:
+      page_object: e2e/pages/game/ladder.page.ts
+      scenarios: e2e/scenarios/game/ladder-game.spec.ts
+    features:
+      - 사다리 생성
+      - 결과 애니메이션
+      - 커스텀 항목
+    keywords: [ladder, random, pick, animation]
+
+  team-divider:
+    route: /team-divider
+    category: utility
+    description: "팀 나누기"
+    code:
+      main: src/app/team-divider/page.tsx
+      components: src/app/team-divider/components/
+      store: src/app/team-divider/store/
+    tests:
+      page_object: e2e/pages/utility/team-divider.page.ts
+      scenarios: e2e/scenarios/utility/team-divider.spec.ts
+    features:
+      - 랜덤 팀 분배
+      - 팀 수 조절
+      - 결과 공유
+    keywords: [team, divide, random, group]
+
+  chosung-quiz:
+    route: /chosung-quiz
+    category: game
+    description: "초성 퀴즈"
+    code:
+      main: src/app/chosung-quiz/page.tsx
+      client: src/app/chosung-quiz/ChosungQuizClient.tsx
+      components: src/app/chosung-quiz/components/
+      pages: src/app/chosung-quiz/pages/
+      store: src/app/chosung-quiz/store/
+    features:
+      - 초성 힌트
+      - 타이머
+      - 점수 시스템
+    keywords: [quiz, korean, chosung, consonant, game]
+
+  # --------------------------------------------------------------------------
+  # UTILITY TIER - 개인 도구
+  # --------------------------------------------------------------------------
+  salary-calculator:
+    route: /salary-calculator
+    category: calculator
+    description: "연봉 계산기"
+    code:
+      main: src/app/salary-calculator/page.tsx
+      client: src/app/salary-calculator/SalaryCalculatorApp.tsx
+      components: src/app/salary-calculator/components/
+    tests:
+      page_object: e2e/pages/calculator/salary.page.ts
+      scenarios: e2e/scenarios/calculator/salary-calculator.spec.ts
+      accessibility: e2e/smart/accessibility.spec.ts
+    features:
+      - 세전/세후 계산
+      - 4대보험 공제
+      - 실수령액 시뮬레이션
+    keywords: [salary, tax, income, calculator, 연봉, 실수령액]
+
+  rent-calculator:
+    route: /rent-calculator
+    category: calculator
+    description: "전월세 계산기"
+    code:
+      main: src/app/rent-calculator/page.tsx
+      client: src/app/rent-calculator/RentCalculatorClient.tsx
+      components: src/app/rent-calculator/components/
+      store: src/app/rent-calculator/store/
+    tests:
+      scenarios: e2e/scenarios/calculator/rent-calculator.spec.ts
+      accessibility: e2e/smart/accessibility.spec.ts
+    features:
+      - 전세→월세 전환
+      - 월세→전세 전환
+      - 전환율 계산
+    keywords: [rent, jeonse, wolse, calculator, 전세, 월세]
+
+  gpa-calculator:
+    route: /gpa-calculator
+    category: calculator
+    description: "학점 계산기"
+    code:
+      main: src/app/gpa-calculator/page.tsx
+      components: src/app/gpa-calculator/components/
+    tests:
+      scenarios: e2e/scenarios/calculator/gpa-calculator.spec.ts
+    features:
+      - 학점 입력
+      - GPA 계산
+      - 목표 학점 시뮬레이션
+    keywords: [gpa, grade, calculator, university, 학점]
+
+  dutch-pay:
+    route: /dutch-pay
+    category: calculator
+    description: "더치페이 계산기"
+    code:
+      main: src/app/dutch-pay/page.tsx
+      client: src/app/dutch-pay/DutchPayApp.tsx
+      components: src/app/dutch-pay/components/
+      store: src/app/dutch-pay/store/
+      lib: src/app/dutch-pay/lib/
+    tests:
+      page_object: e2e/pages/calculator/dutch-pay.page.ts
+      scenarios: e2e/scenarios/calculator/dutch-pay.spec.ts
+      accessibility: e2e/smart/accessibility.spec.ts
+    features:
+      - 지출 항목 관리
+      - 참여자별 정산
+      - 송금 안내
+    keywords: [dutch, split, pay, settlement, 정산, 더치페이]
+
+  random-picker:
+    route: /random-picker
+    category: utility
+    description: "랜덤 뽑기 룰렛"
+    code:
+      main: src/app/random-picker/page.tsx
+      client: src/app/random-picker/RandomPickerClient.tsx
+      components: src/app/random-picker/components/
+      store: src/app/random-picker/store/
+    tests:
+      page_object: e2e/pages/utility/random-picker.page.ts
+      scenarios: e2e/scenarios/utility/random-picker.spec.ts
+    features:
+      - 휠 회전 애니메이션
+      - 항목 추가/삭제
+      - 히스토리
+    keywords: [random, picker, wheel, roulette, 랜덤, 뽑기]
+
+  lunch-roulette:
+    route: /lunch-roulette
+    category: utility
+    description: "점심 메뉴 룰렛"
+    code:
+      main: src/app/lunch-roulette/page.tsx
+      components: src/app/lunch-roulette/components/
+      store: src/app/lunch-roulette/store/
+    features:
+      - 주변 맛집 검색 (Kakao Maps)
+      - 랜덤 선택
+      - 카테고리 필터
+    keywords: [lunch, food, restaurant, map, 점심, 맛집]
+
+  id-validator:
+    route: /id-validator
+    category: utility
+    description: "주민등록번호 검증기"
+    code:
+      main: src/app/id-validator/page.tsx
+      client: src/app/id-validator/IdValidatorClient.tsx
+      components: src/app/id-validator/components/
+    tests:
+      page_object: e2e/pages/calculator/id-validator.page.ts
+      scenarios: e2e/scenarios/calculator/id-validator.spec.ts
+    features:
+      - 주민번호 형식 검증
+      - 테스트 번호 생성
+      - 생년월일 추출
+    keywords: [id, rrn, validator, 주민등록번호, 검증]
+
+# ============================================================================
+# 테스트 매핑
+# ============================================================================
+test_structure:
+  page_objects:
+    base: e2e/pages/base.page.ts
+    categories:
+      calculator: [salary, dutch-pay, id-validator]
+      game: [balance-game, bingo, ladder]
+      utility: [live-voting, random-picker, team-divider]
+      auth: [login]
+      multiuser: [audience-engage]
+
+  scenarios:
+    auth: e2e/scenarios/auth/
+    calculator: e2e/scenarios/calculator/
+    game: e2e/scenarios/game/
+    utility: e2e/scenarios/utility/
+    edge-cases: e2e/scenarios/edge-cases/
+    multiuser: e2e/scenarios/multiuser/
+
+  smart:
+    accessibility: e2e/smart/accessibility.spec.ts
+    responsive: e2e/smart/responsive.spec.ts
+    performance: e2e/smart/performance.spec.ts
+
+# ============================================================================
+# 공유 컴포넌트
+# ============================================================================
+shared:
+  ui:
+    path: src/components/ui/
+    description: "shadcn/ui 기반 공통 컴포넌트"
+    components:
+      - button, card, dialog, input, label
+      - tabs, progress, slider, switch
+      - checkbox, radio-group, select
+      - dropdown-menu, popover, tooltip, toast
+      - avatar, accordion, separator, alert-dialog
+
+  dashboard:
+    path: src/components/dashboard/
+    description: "대시보드 레이아웃 컴포넌트"
+
+  share:
+    path: src/components/share/
+    description: "공유 버튼 등"
+
+  realtime:
+    path: src/lib/realtime/
+    description: "Supabase 실시간 훅"
+    hooks:
+      - useRealtimeSession
+      - useSessionElements
+      - useElementResponses
+
+# ============================================================================
+# 검색 가이드
+# ============================================================================
+search_guide:
+  by_feature:
+    "실시간 동기화": [live-voting, audience-engage, bingo-game]
+    "계산기": [salary-calculator, rent-calculator, gpa-calculator, dutch-pay]
+    "랜덤 선택": [random-picker, lunch-roulette, ladder-game, team-divider]
+    "게임": [balance-game, bingo-game, chosung-quiz, ladder-game, ideal-worldcup]
+    "QR 코드": [live-voting, student-network, audience-engage]
+
+  by_tech:
+    "Zustand 상태관리": [chosung-quiz, dutch-pay, ideal-worldcup, live-voting, lunch-roulette, random-picker, rent-calculator, student-network, team-divider, audience-engage]
+    "Canvas 애니메이션": [random-picker, ladder-game]
+    "Kakao Maps API": [lunch-roulette]
+    "Supabase Realtime": [live-voting, audience-engage, bingo-game]

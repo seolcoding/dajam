@@ -169,13 +169,90 @@ All 16 apps are at root-level routes:
 - `/live-voting`, `/random-picker`, `/team-divider`, `/lunch-roulette`
 - `/group-order`, `/id-validator`, `/student-network`
 
+## App-Code-Test Quick Reference
+
+> 전체 매핑은 `APP_INDEX.yaml` 참조
+
+### 카테고리별 앱 찾기
+
+| 카테고리 | 앱 | 코드 경로 | E2E 테스트 |
+|---------|-----|----------|-----------|
+| **Calculator** | salary-calculator | `src/app/salary-calculator/` | `e2e/scenarios/calculator/` |
+| | rent-calculator | `src/app/rent-calculator/` | `e2e/scenarios/calculator/` |
+| | dutch-pay | `src/app/dutch-pay/` | `e2e/scenarios/calculator/` |
+| | gpa-calculator | `src/app/gpa-calculator/` | `e2e/scenarios/calculator/` |
+| | id-validator | `src/app/id-validator/` | `e2e/scenarios/calculator/` |
+| **Game** | balance-game | `src/app/balance-game/` | `e2e/scenarios/game/` |
+| | bingo-game | `src/app/bingo-game/` | `e2e/scenarios/game/` |
+| | ladder-game | `src/app/ladder-game/` | `e2e/scenarios/game/` |
+| | chosung-quiz | `src/app/chosung-quiz/` | - |
+| | ideal-worldcup | `src/app/ideal-worldcup/` | - |
+| **Utility** | random-picker | `src/app/random-picker/` | `e2e/scenarios/utility/` |
+| | team-divider | `src/app/team-divider/` | `e2e/scenarios/utility/` |
+| | live-voting | `src/app/live-voting/` | `e2e/scenarios/utility/` |
+| | lunch-roulette | `src/app/lunch-roulette/` | - |
+| **Realtime** | audience-engage | `src/app/audience-engage/` | `e2e/scenarios/multiuser/` |
+| **Social** | student-network | `src/app/student-network/` | - |
+
+### 기능으로 앱 찾기
+
+```yaml
+실시간 동기화: live-voting, audience-engage, bingo-game
+계산/정산: salary-calculator, rent-calculator, dutch-pay, gpa-calculator
+랜덤 선택: random-picker, ladder-game, team-divider, lunch-roulette
+QR 코드: live-voting, student-network, audience-engage
+Canvas 애니메이션: random-picker, ladder-game
+```
+
+## V2 Data Architecture (2024-12-25)
+
+### 3-Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 1: CORE (RDB Fixed)                                  │
+│  institutions → workspaces → contacts, attendance           │
+├─────────────────────────────────────────────────────────────┤
+│  LAYER 2: CONTENT (JSONB Flexible)                          │
+│  session_elements → element_responses → element_aggregates  │
+├─────────────────────────────────────────────────────────────┤
+│  LAYER 3: CRM (Extended Fields)                             │
+│  contacts (40+ fields), course_history, interaction_logs    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Migrations Applied
+- `020_core_v2_institutions_workspaces.sql` - Core layer
+- `021_flexible_elements.sql` - Content layer (JSONB)
+- `022_contacts_extended_fields.sql` - CRM layer
+
+### Element Types (18+)
+```typescript
+type ElementType =
+  | 'poll' | 'quiz' | 'word_cloud' | 'balance_game'
+  | 'ladder' | 'qna' | 'survey' | 'bingo'
+  | 'ideal_worldcup' | 'team_divider' | 'personality_test'
+  | 'this_or_that' | 'chosung_quiz' | 'realtime_quiz'
+  | 'human_bingo' | 'reaction' | 'ranking' | 'open_ended';
+```
+
+### Key Files
+- `src/types/database.ts` - V2 TypeScript 타입 정의
+- `docs/ARCHITECTURE_V2.md` - 아키텍처 상세 스펙
+- `docs/V2_IMPLEMENTATION_TASKS.md` - 구현 태스크
+- `prd/00-v2-data-architecture.md` - V2 PRD
+
 ## Related Docs
 
 - `README.md` - Quick start and app list
 - `APPS_DOCUMENTATION.md` - Full app catalog
+- `APP_INDEX.yaml` - **앱-코드-테스트 매핑 인덱스** (AI 에이전트용)
 - `E2E_TEST_PLAN.md` - Testing strategy
 - `prd/*.md` - Product requirements for each app
 - `docs/BRANDING_RESEARCH_DAJAM.md` - Dajam 브랜딩 가이드라인
+- `docs/ARCHITECTURE_V2.md` - V2 아키텍처 스펙
+- `docs/V2_IMPLEMENTATION_TASKS.md` - V2 구현 태스크
+- `docs/FOLDER_STRUCTURE_PROPOSAL.md` - 폴더 구조 개선 제안
 
 ## Authentication (Supabase SSR)
 
@@ -219,24 +296,41 @@ export async function POST(req: Request) {
 2. `AuthProvider`가 `onAuthStateChange`로 세션 상태 감지
 3. 로그아웃 → POST `/auth/signout` → 서버에서 쿠키 삭제 → 홈 리다이렉트
 
-## Paused Work (2024-12-23)
+## Competitor Reference: 위라이브온 (WeLiveOn)
 
-### Audience Engage 멀티유저 E2E 테스트 디버깅 (일시 중단)
+경쟁 제품 기능 비교 및 Dajam 대응 현황:
 
-**문제**: 참여자가 세션에 참여할 때 `joinSession` 함수가 null 반환
+| 위라이브온 기능 | Dajam 현황 | Element Type |
+|--------------|-----------|--------------|
+| 아이스브레이킹 | ✅ 구현완료 | quiz, word_cloud, poll |
+| 사전/사후 테스트 | ⏳ 개발필요 | quiz + 결과 비교 기능 |
+| 만족도 조사 | ✅ 구현완료 | survey |
+| 퀴즈 대결 | ✅ 구현완료 | realtime_quiz |
+| 질의 응답 (Q&A) | ✅ 구현완료 | qna |
+| 강연 자료 공유 | ✅ 구현완료 | audience-engage slide sync |
+| 경품 추첨 | ✅ 개별앱 존재 | random_picker (element화 필요) |
 
-**진행 상황**:
-1. RLS 정책 수정 완료 (`supabase/migrations/011_allow_anonymous_participants.sql`)
-   - 익명 사용자가 public 세션에 참여할 수 있도록 허용
-2. 직접 API 호출은 성공 (RLS 정책 정상 작동 확인)
-3. `useRealtimeSession` 훅에 디버그 로그 추가됨
-4. Dajam 브랜딩 구현 완료 (`tailwind.config.ts`, `globals.css` 등)
+**추가 개발 필요 기능**:
+- 사전/사후 테스트 결과 비교 분석
+- 경품 추첨 element 타입 추가
+- 리모콘 모드 (발표자용 간편 제어)
 
-**의심 원인**:
-- `joinSession` 콜백의 `state.sessionId` 클로저 이슈
-- 세션 프리로드 시점과 `joinSession` 호출 시점의 상태 불일치
+## Work In Progress (2024-12-25)
 
-**재개 시 할 일**:
-1. 콘솔 로그로 `state.sessionId` 값 추적
-2. `handleJoinSession`에서 `session.id`를 직접 사용하도록 수정 검토
-3. E2E 테스트 통과 확인
+### V2 Data Architecture 완료
+
+**완료된 작업**:
+1. ✅ Phase 1-3 DB 마이그레이션 완료 (020, 021, 022)
+2. ✅ TypeScript 타입 정의 완료 (`src/types/database.ts`)
+3. ✅ V2 아키텍처 문서화 완료
+
+**다음 단계** (Phase 4):
+1. Element Editor Component (`src/app/audience-engage/components/ElementEditor.tsx`)
+2. Realtime Hooks (`useSessionElements`, `useElementResponses`)
+3. Element Response Components (Poll, Quiz, WordCloud 등)
+4. CRM Dashboard UI
+
+### 이전 이슈: Audience Engage E2E 테스트 (미해결)
+
+**문제**: `joinSession` 함수가 null 반환
+**상태**: V2 작업 우선, 추후 재검토
