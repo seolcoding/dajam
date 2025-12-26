@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Users, Sparkles, ArrowLeft, Trophy, Home } from 'lucide-react';
+import { Play, Users, Sparkles, ArrowLeft, Trophy, Home, Monitor, Smartphone, Loader2 } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SessionCodeInput } from '@/components/entry';
 import { useQuizStore } from '../store/quizStore';
 import { defaultQuizzes, calculateScore } from '../data/quizzes';
 import HostView from './HostView';
 import ParticipantView from './ParticipantView';
 import Leaderboard from './Leaderboard';
-import type { Quiz, ParticipantAnswer } from '../types';
+import type { ParticipantAnswer } from '../types';
 import { AppHeader, AppFooter } from '@/components/layout';
 
 type ViewMode = 'home' | 'select-quiz' | 'waiting' | 'countdown' | 'playing' | 'leaderboard' | 'finished';
@@ -30,6 +32,7 @@ export default function RealtimeQuizApp() {
   const [sessionCode, setSessionCode] = useState('');
   const [nickname, setNickname] = useState('');
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
+  const [isJoining, setIsJoining] = useState(false);
 
   // Quiz store
   const {
@@ -111,17 +114,20 @@ export default function RealtimeQuizApp() {
 
   // 참가자: 세션 참여
   const handleJoinSession = () => {
-    setRole('participant');
-    setViewMode('select-quiz'); // 간단히 하기 위해 코드 입력 대신 퀴즈 선택
-  };
+    if (!nickname.trim() || sessionCode.length !== 6) return;
 
-  const handleParticipantJoin = () => {
-    if (!nickname.trim() || !selectedQuizId) return;
-
-    const selectedQuiz = defaultQuizzes.find((q) => q.id === selectedQuizId);
-    if (!selectedQuiz) return;
+    setIsJoining(true);
+    
+    // 실제로는 Supabase에서 세션 조회해야 함
+    // 여기서는 로컬 모드로 시뮬레이션 - 첫 번째 퀴즈 선택
+    const selectedQuiz = defaultQuizzes[0];
+    if (!selectedQuiz) {
+      setIsJoining(false);
+      return;
+    }
 
     setQuiz(selectedQuiz);
+    setRole('participant');
 
     // 참가자 ID 생성
     const participantId = `participant-${Date.now()}`;
@@ -140,6 +146,7 @@ export default function RealtimeQuizApp() {
     });
 
     setViewMode('waiting');
+    setIsJoining(false);
   };
 
   // 게임 시작
@@ -212,49 +219,139 @@ export default function RealtimeQuizApp() {
     setSessionCode('');
     setNickname('');
     setSelectedQuizId('');
+    setIsJoining(false);
   };
 
   // 홈 화면
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <AppHeader
           title="실시간 퀴즈쇼"
           description="Kahoot 스타일 실시간 퀴즈 게임"
           icon={Trophy}
           iconGradient="from-yellow-500 to-orange-500"
+          variant="compact"
         />
-        <div className="flex-1 flex items-center justify-center p-4">
-        <div className="max-w-4xl w-full">
+        <div className="flex-1 container mx-auto px-6 py-12">
+          {/* Main Entry Tabs */}
+          <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="host" className="flex items-center gap-2">
+                <Monitor className="w-4 h-4" />
+                호스트 (발표자)
+              </TabsTrigger>
+              <TabsTrigger value="participant" className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4" />
+                참여하기
+              </TabsTrigger>
+            </TabsList>
 
-          {/* 액션 버튼 */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card className="bg-white/95 backdrop-blur-sm hover:scale-105 transition-transform cursor-pointer" onClick={handleCreateSession}>
-              <CardHeader>
-                <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Play className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl text-center">호스트로 시작</CardTitle>
-                <CardDescription className="text-center text-lg">
-                  퀴즈를 만들고 게임을 진행하세요
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {/* Host Tab */}
+            <TabsContent value="host" className="mt-6">
+              <Card className="border-2 border-dajaem-green/20">
+                <CardHeader>
+                  <CardTitle>퀴즈 세션 만들기</CardTitle>
+                  <CardDescription>
+                    퀴즈를 선택하고 게임을 진행하세요
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={handleCreateSession}
+                    size="lg"
+                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    퀴즈 선택하기
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-            <Card className="bg-white/95 backdrop-blur-sm hover:scale-105 transition-transform cursor-pointer" onClick={handleJoinSession}>
-              <CardHeader>
-                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl text-center">참가자로 입장</CardTitle>
-                <CardDescription className="text-center text-lg">
-                  코드를 입력하고 게임에 참여하세요
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            {/* Participant Tab */}
+            <TabsContent value="participant" className="mt-6">
+              <Card className="border-2 border-dajaem-green/20">
+                <CardHeader>
+                  <CardTitle>퀴즈 참여</CardTitle>
+                  <CardDescription>
+                    코드를 입력하고 닉네임을 설정하세요
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <SessionCodeInput
+                    value={sessionCode}
+                    onChange={setSessionCode}
+                    label="세션 코드"
+                    placeholder="ABC123"
+                  />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nickname">닉네임</Label>
+                    <Input
+                      id="nickname"
+                      placeholder="닉네임을 입력하세요"
+                      value={nickname}
+                      onChange={(e) => setNickname(e.target.value)}
+                      maxLength={20}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleJoinSession}
+                    disabled={sessionCode.length !== 6 || !nickname.trim() || isJoining}
+                    size="lg"
+                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                  >
+                    {isJoining ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        참여 중...
+                      </>
+                    ) : (
+                      <>
+                        <Users className="w-5 h-5 mr-2" />
+                        참여하기
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* 기능 소개 */}
+          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+                <Trophy size={32} className="text-yellow-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">실시간 경쟁</h3>
+              <p className="text-gray-600">
+                Kahoot 스타일로 실시간 퀴즈 대결을 즐기세요. 점수와 순위가 바로 업데이트됩니다.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Sparkles size={32} className="text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">다양한 퀴즈</h3>
+              <p className="text-gray-600">
+                일반 상식, IT, 역사 등 다양한 주제의 퀴즈를 제공합니다.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <Users size={32} className="text-green-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">간편한 참여</h3>
+              <p className="text-gray-600">
+                6자리 코드만 입력하면 앱 설치 없이 바로 참여할 수 있습니다.
+              </p>
+            </div>
           </div>
-
-        </div>
         </div>
         <AppFooter variant="compact" />
       </div>
@@ -277,66 +374,32 @@ export default function RealtimeQuizApp() {
 
           <div className="text-center mb-12">
             <h2 className="text-5xl font-black text-white mb-4">
-              {role === 'host' ? '퀴즈 선택' : '닉네임 입력'}
+              퀴즈 선택
             </h2>
           </div>
 
-          {role === 'participant' && (
-            <Card className="max-w-md mx-auto mb-8">
-              <CardHeader>
-                <CardTitle>닉네임</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Input
-                  placeholder="닉네임을 입력하세요"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  maxLength={20}
-                />
-              </CardContent>
-            </Card>
-          )}
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {defaultQuizzes.map((quiz) => (
+            {defaultQuizzes.map((quizItem) => (
               <Card
-                key={quiz.id}
+                key={quizItem.id}
                 className="cursor-pointer hover:scale-105 transition-transform"
-                onClick={() => {
-                  if (role === 'host') {
-                    handleQuizSelect(quiz.id);
-                  } else {
-                    setSelectedQuizId(quiz.id);
-                  }
-                }}
+                onClick={() => handleQuizSelect(quizItem.id)}
               >
                 <CardHeader>
-                  <CardTitle>{quiz.title}</CardTitle>
-                  <CardDescription>{quiz.description}</CardDescription>
+                  <CardTitle>{quizItem.title}</CardTitle>
+                  <CardDescription>{quizItem.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-center justify-between text-sm text-gray-600">
-                    <span>{quiz.questions.length}문제</span>
+                    <span>{quizItem.questions.length}문제</span>
                     <span>
-                      {quiz.questions.reduce((sum, q) => sum + q.points, 0).toLocaleString()}점
+                      {quizItem.questions.reduce((sum, q) => sum + q.points, 0).toLocaleString()}점
                     </span>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {role === 'participant' && selectedQuizId && nickname.trim() && (
-            <div className="fixed bottom-8 left-0 right-0 flex justify-center">
-              <Button
-                size="lg"
-                onClick={handleParticipantJoin}
-                className="bg-green-600 hover:bg-green-700 text-white text-xl px-12 py-6"
-              >
-                참여하기
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     );

@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { nanoid } from 'nanoid';
-import { Plus, Users, Sparkles, ArrowLeft, Cloud } from 'lucide-react';
+import { Plus, Users, Sparkles, ArrowLeft, Cloud, Monitor, Smartphone, Loader2 } from 'lucide-react';
 import { AppHeader, AppFooter } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SessionCodeInput } from '@/components/entry';
 import { HostView } from './HostView';
 import { ParticipantView } from './ParticipantView';
 import { useWordCloudStore } from '../store/wordCloudStore';
@@ -109,8 +112,8 @@ export default function WordCloudApp() {
     }
   }, [cloudSession, realtimeIsCloudMode, setSession, setIsCloudMode]);
 
-  const handleCreateSession = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateSession = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!questionTitle.trim()) {
       alert('질문을 입력해주세요.');
@@ -140,8 +143,8 @@ export default function WordCloudApp() {
     }
   };
 
-  const handleJoinSession = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleJoinSession = async (e?: React.FormEvent) => {
+    e?.preventDefault();
 
     if (!joinCode.trim()) {
       alert('세션 코드를 입력해주세요.');
@@ -228,80 +231,182 @@ export default function WordCloudApp() {
   // Home View
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="min-h-screen bg-white flex flex-col">
         <AppHeader
           title="워드 클라우드"
           description="실시간으로 참가자들의 의견을 수집하고 시각화하세요"
           icon={Cloud}
           iconGradient="from-purple-500 to-pink-500"
+          variant="compact"
         />
 
-        <div className="max-w-4xl mx-auto px-4 py-12 flex-1">
-          {/* Action Buttons */}
-          <div className="grid md:grid-cols-2 gap-6 mb-12">
-            <button
-              onClick={() => navigateTo('create')}
-              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-[1.02]"
-            >
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <Plus size={32} className="text-white" strokeWidth={3} />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">새 워드 클라우드</h3>
-                  <p className="text-white/80">질문을 만들고 참가자 초대</p>
-                </div>
-              </div>
-            </button>
+        <div className="flex-1 container mx-auto px-6 py-12">
+          {/* Main Entry Tabs */}
+          <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="host" className="flex items-center gap-2">
+                <Monitor className="w-4 h-4" />
+                호스트 (발표자)
+              </TabsTrigger>
+              <TabsTrigger value="participant" className="flex items-center gap-2">
+                <Smartphone className="w-4 h-4" />
+                참여하기
+              </TabsTrigger>
+            </TabsList>
 
-            <button
-              onClick={() => navigateTo('join')}
-              className="group relative overflow-hidden bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-purple-500 p-8 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
-            >
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Users size={32} className="text-purple-600" strokeWidth={2.5} />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">참여하기</h3>
-                  <p className="text-gray-600">코드를 입력하고 단어 제출</p>
-                </div>
-              </div>
-            </button>
-          </div>
+            {/* Host Tab */}
+            <TabsContent value="host" className="mt-6">
+              <Card className="border-2 border-dajaem-green/20">
+                <CardHeader>
+                  <CardTitle>새 워드 클라우드 만들기</CardTitle>
+                  <CardDescription>
+                    질문을 만들고 참가자들의 의견을 수집하세요
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="question-title" className="text-sm font-medium mb-2 block">
+                      질문
+                    </Label>
+                    <Input
+                      id="question-title"
+                      type="text"
+                      value={questionTitle}
+                      onChange={(e) => setQuestionTitle(e.target.value)}
+                      placeholder="예: 오늘 기분을 한 단어로 표현하면?"
+                      className="border-2"
+                      maxLength={200}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleCreateSession}
+                    disabled={isCreating || !questionTitle.trim()}
+                    size="lg"
+                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                  >
+                    {isCreating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : (
+                      '워드 클라우드 만들기'
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Participant Tab */}
+            <TabsContent value="participant" className="mt-6">
+              <Card className="border-2 border-dajaem-green/20">
+                <CardHeader>
+                  <CardTitle>워드 클라우드 참여</CardTitle>
+                  <CardDescription>
+                    6자리 코드로 세션에 참여하세요
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <SessionCodeInput
+                    value={joinCode}
+                    onChange={setJoinCode}
+                    label="세션 코드"
+                    placeholder="ABC123"
+                  />
+
+                  <div>
+                    <Label htmlFor="participant-name" className="text-sm font-medium mb-2 block">
+                      이름
+                    </Label>
+                    <Input
+                      id="participant-name"
+                      type="text"
+                      value={participantName}
+                      onChange={(e) => setParticipantName(e.target.value)}
+                      placeholder="홍길동"
+                      className="border-2"
+                      maxLength={20}
+                    />
+                  </div>
+
+                  <Button
+                    onClick={handleJoinSession}
+                    disabled={joinCode.length !== 6 || !participantName.trim() || isJoining}
+                    size="lg"
+                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                  >
+                    {isJoining ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        참여 중...
+                      </>
+                    ) : (
+                      '참여하기'
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
 
           {/* Features */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">
-              주요 기능
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-4xl mb-3">⚡</div>
-                <h3 className="font-bold text-gray-900 mb-2">실시간 동기화</h3>
-                <p className="text-sm text-gray-600">
-                  입력 즉시 워드 클라우드에 반영
-                </p>
+          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 mb-12">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                <Sparkles size={32} className="text-purple-600" />
               </div>
-              <div className="text-center">
-                <div className="text-4xl mb-3">🎨</div>
-                <h3 className="font-bold text-gray-900 mb-2">다양한 테마</h3>
-                <p className="text-sm text-gray-600">
-                  5가지 색상 테마로 커스터마이징
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl mb-3">📥</div>
-                <h3 className="font-bold text-gray-900 mb-2">이미지 저장</h3>
-                <p className="text-sm text-gray-600">
-                  결과를 PNG 이미지로 다운로드
-                </p>
-              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">실시간 동기화</h3>
+              <p className="text-gray-600">
+                참가자가 입력한 단어가 즉시 워드 클라우드에 반영됩니다.
+              </p>
             </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mb-4">
+                <Cloud size={32} className="text-pink-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">다양한 테마</h3>
+              <p className="text-gray-600">
+                5가지 색상 테마로 워드 클라우드를 커스터마이징할 수 있습니다.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <Users size={32} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">QR 코드 참여</h3>
+              <p className="text-gray-600">
+                QR 코드로 빠르게 참여하고 바로 단어를 제출할 수 있습니다.
+              </p>
+            </div>
+          </div>
+
+          {/* Use Cases */}
+          <div className="max-w-3xl mx-auto bg-purple-50 border border-purple-200 rounded-xl p-8">
+            <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">이런 곳에서 사용해보세요</h2>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+                <span className="text-gray-700">강의/워크샵에서 아이스브레이킹 활동</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+                <span className="text-gray-700">회의에서 브레인스토밍 및 아이디어 수집</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+                <span className="text-gray-700">이벤트/행사에서 참여자 의견 시각화</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="flex-shrink-0 w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+                <span className="text-gray-700">학교/교육에서 학생 피드백 수집</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        <AppFooter />
+        <AppFooter variant="compact" />
       </div>
     );
   }

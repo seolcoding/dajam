@@ -1,11 +1,30 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Vote, Users, TrendingUp } from 'lucide-react';
+import { Vote, Users, TrendingUp, Monitor, Smartphone, Loader2 } from 'lucide-react';
 import { AppHeader, AppFooter } from '@/components/layout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SessionCodeInput } from '@/components/entry';
 
 export function HomePage() {
   const router = useRouter();
+  const [pollCode, setPollCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
+
+  const handleJoinPoll = async () => {
+    if (pollCode.length !== 6) return;
+
+    setIsJoining(true);
+    try {
+      // Navigate to the vote page with the poll code
+      router.push(`/live-voting/vote/${pollCode}`);
+    } catch {
+      setIsJoining(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -18,20 +37,79 @@ export function HomePage() {
       />
 
       <div className="flex-1 container mx-auto px-6 py-12">
+        {/* Main Entry Tabs */}
+        <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="host" className="flex items-center gap-2">
+              <Monitor className="w-4 h-4" />
+              호스트 (발표자)
+            </TabsTrigger>
+            <TabsTrigger value="participant" className="flex items-center gap-2">
+              <Smartphone className="w-4 h-4" />
+              참여하기
+            </TabsTrigger>
+          </TabsList>
 
-        {/* CTA */}
-        <div className="max-w-md mx-auto mb-16">
-          <button
-            onClick={() => router.push('/live-voting/create')}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition flex items-center justify-center gap-3"
-          >
-            <Plus size={24} />
-            투표 만들기
-          </button>
-        </div>
+          {/* Host Tab */}
+          <TabsContent value="host" className="mt-6">
+            <Card className="border-2 border-dajaem-green/20">
+              <CardHeader>
+                <CardTitle>새 투표 만들기</CardTitle>
+                <CardDescription>
+                  투표를 생성하고 참여자를 초대하세요
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  onClick={() => router.push('/live-voting/create')}
+                  size="lg"
+                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                >
+                  투표 만들기
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Participant Tab */}
+          <TabsContent value="participant" className="mt-6">
+            <Card className="border-2 border-dajaem-green/20">
+              <CardHeader>
+                <CardTitle>투표 참여</CardTitle>
+                <CardDescription>
+                  6자리 코드로 투표에 참여하세요
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <SessionCodeInput
+                  value={pollCode}
+                  onChange={setPollCode}
+                  label="투표 코드"
+                  placeholder="ABC123"
+                />
+
+                <Button
+                  onClick={handleJoinPoll}
+                  disabled={pollCode.length !== 6 || isJoining}
+                  size="lg"
+                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+                >
+                  {isJoining ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      참여 중...
+                    </>
+                  ) : (
+                    '참여하기'
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* 기능 소개 */}
-        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 mb-12">
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Vote size={32} className="text-blue-600" />
@@ -64,7 +142,7 @@ export function HomePage() {
         </div>
 
         {/* 사용 시나리오 */}
-        <div className="max-w-3xl mx-auto mt-16 bg-blue-50 border border-blue-200 rounded-xl p-8">
+        <div className="max-w-3xl mx-auto bg-blue-50 border border-blue-200 rounded-xl p-8">
           <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">이런 곳에서 사용해보세요</h2>
           <ul className="space-y-3">
             <li className="flex items-start gap-3">
@@ -85,7 +163,6 @@ export function HomePage() {
             </li>
           </ul>
         </div>
-
       </div>
 
       <AppFooter variant="compact" />

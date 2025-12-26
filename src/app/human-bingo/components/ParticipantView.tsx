@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
 import { BingoBoard } from './BingoBoard';
 import { TraitCheckModal } from './TraitCheckModal';
 import { ALL_TRAITS } from '../data/traits';
@@ -18,6 +18,7 @@ interface ParticipantViewProps {
   onModeChange: (mode: ViewMode) => void;
   sessionCode: string;
   onSessionCodeChange: (code: string) => void;
+  initialName?: string;
 }
 
 export function ParticipantView({
@@ -26,16 +27,29 @@ export function ParticipantView({
   onModeChange,
   sessionCode,
   onSessionCodeChange,
+  initialName = '',
 }: ParticipantViewProps) {
-  const [joinCode, setJoinCode] = useState('');
-  const [nickname, setNickname] = useState('');
+  const [joinCode, setJoinCode] = useState(sessionCode);
+  const [nickname, setNickname] = useState(initialName);
   const [myCard, setMyCard] = useState<ParticipantCard | null>(null);
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
   const [showCheckModal, setShowCheckModal] = useState(false);
-  const [showBingoAnimation, setShowBingoAnimation] = useState(false);
 
-  // 참여 화면
-  if (mode === 'participant-join') {
+  // Auto-join when coming from tabs with initialName already set
+  useEffect(() => {
+    if (mode === 'participant-join' && initialName && sessionCode && !myCard) {
+      // Generate bingo card for participant
+      const traits = generateBalancedTraits(ALL_TRAITS, 5, true);
+      const participantId = `${Date.now()}-${Math.random()}`;
+      const card = createBingoCard(traits, 5, participantId, initialName);
+
+      setMyCard(card);
+      onModeChange('participant');
+    }
+  }, [mode, initialName, sessionCode, myCard, onModeChange]);
+
+  // 참여 화면 (fallback when not coming from tabs)
+  if (mode === 'participant-join' && !initialName) {
     const handleJoin = () => {
       if (!joinCode || !nickname) return;
 
@@ -88,7 +102,7 @@ export function ParticipantView({
               <Button
                 onClick={handleJoin}
                 disabled={joinCode.length !== 6 || !nickname}
-                className="w-full"
+                className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
                 size="lg"
               >
                 참여하기
