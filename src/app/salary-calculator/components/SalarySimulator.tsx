@@ -90,6 +90,7 @@ export function SalarySimulator() {
               max={MAX_SALARY}
               step={STEP}
               className="w-full"
+              aria-label="연봉 조절 슬라이더"
             />
             {/* Progress indicator */}
             <div className="flex justify-between items-center mt-2 text-xs">

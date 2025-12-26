@@ -17,7 +17,7 @@ export class RandomPickerPage extends BasePage {
 
   // Locators
   get itemInput() {
-    return this.page.getByPlaceholder(/항목 입력|항목|item/i);
+    return this.page.getByPlaceholder(/항목 입력/);
   }
 
   get addButton() {
@@ -26,7 +26,7 @@ export class RandomPickerPage extends BasePage {
   }
 
   get spinButton() {
-    return this.page.getByRole('button', { name: /SPIN|돌리기|시작/i });
+    return this.page.getByRole('button', { name: /SPIN!|회전 중/i });
   }
 
   get wheelCanvas() {
@@ -44,8 +44,8 @@ export class RandomPickerPage extends BasePage {
   }
 
   get historyButton() {
-    // History icon button in header
-    return this.page.locator('button:has(.lucide-history)');
+    // History button in header with aria-label
+    return this.page.getByRole('button', { name: /히스토리/i });
   }
 
   get historyDialog() {
@@ -58,8 +58,8 @@ export class RandomPickerPage extends BasePage {
   }
 
   get itemCards() {
-    // Items are displayed as Cards with the item label
-    return this.page.locator('.space-y-2 .p-3, .bg-gray-50.p-3');
+    // Items are displayed as Cards inside space-y-2 container
+    return this.page.locator('.space-y-2 > div.p-3.bg-gray-50');
   }
 
   // Actions
@@ -68,10 +68,17 @@ export class RandomPickerPage extends BasePage {
   }
 
   async addItem(name: string) {
-    await this.itemInput.fill(name);
-    // Press Enter to submit since button may be icon-only
-    await this.itemInput.press('Enter');
-    await this.waitForAnimation(200);
+    // Focus and clear the input
+    await this.itemInput.click();
+    await this.itemInput.clear();
+    // Type character by character to ensure React state updates
+    await this.itemInput.type(name, { delay: 50 });
+    // Wait for React state to update
+    await this.page.waitForTimeout(100);
+    // Submit via Enter key (most reliable for React forms)
+    await this.page.keyboard.press('Enter');
+    // Wait for animation and state update
+    await this.waitForAnimation(500);
   }
 
   async addItems(names: string[]) {
@@ -87,15 +94,26 @@ export class RandomPickerPage extends BasePage {
   }
 
   async removeItem(name: string) {
-    // Find the card containing the item name and click the trash button
-    const itemCard = this.page.locator(`.p-3:has-text("${name}")`);
-    await itemCard.locator('button:has(.lucide-trash-2), button:last-child').click();
-    await this.waitForAnimation(200);
+    // Find the delete button with aria-label containing the item name
+    const deleteButton = this.page.getByRole('button', { name: new RegExp(`${name} 삭제`) });
+    await deleteButton.click();
+    await this.waitForAnimation(300);
   }
 
   async closeModal() {
-    await this.page.keyboard.press('Escape');
-    await this.waitForAnimation(200);
+    // Wait for result modal to be visible first
+    const modal = this.page.locator('[data-testid="result-modal"]');
+    await modal.waitFor({ state: 'visible', timeout: 10000 });
+
+    // Click the close button inside the modal (first one is the main close button)
+    const closeButton = modal.getByRole('button', { name: /닫기/i }).first();
+    await closeButton.click();
+
+    // Wait for modal to fully close (overlay disappears)
+    await modal.waitFor({ state: 'hidden', timeout: 5000 });
+
+    // Additional wait for animation
+    await this.waitForAnimation(500);
   }
 
   // Assertions

@@ -30,8 +30,12 @@ export const ResultModal: React.FC<ResultModalProps> = ({
   const date = new Date(result.timestamp);
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        onClose();
+      }
+    }}>
+      <DialogContent className="sm:max-w-md" data-testid="result-modal">
         <DialogHeader>
           <DialogTitle className="text-3xl font-extrabold text-purple-600">
             당첨!

@@ -77,7 +77,11 @@ export function ExpenseForm({ isOpen, onClose }: ExpenseFormProps) {
         <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
             <h2 className="text-lg font-semibold">지출 항목 추가</h2>
-            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded"
+              aria-label="닫기"
+            >
               <X className="w-5 h-5" />
             </button>
           </div>

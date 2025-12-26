@@ -69,6 +69,7 @@ export function WolseToJeonseConverter() {
                 max={10}
                 step={0.1}
                 className="w-full"
+                aria-label="전월세 전환율 조절 슬라이더"
               />
               <div className="flex justify-between text-sm text-gray-600">
                 <span>0.1%</span>
