@@ -49,13 +49,16 @@ export function useRealtimeSession<TConfig = Json, TData = unknown>({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const supabase = useSupabase() as any;
 
+  // 초기 로딩 상태: enabled가 false이거나 sessionCode가 없으면 로딩 불필요
+  const initialLoading = enabled && !!sessionCode;
+
   const [state, setState] = useState<RealtimeSessionState<TConfig, TData>>({
     session: null,
     sessionId: null,
     config: null,
     participants: [],
     data: [],
-    isLoading: true,
+    isLoading: initialLoading,
     error: null,
     isCloudMode: false,
     connectionStatus: 'disconnected',

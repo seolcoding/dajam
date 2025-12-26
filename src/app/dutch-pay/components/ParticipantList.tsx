@@ -85,6 +85,7 @@ export function ParticipantList() {
                   <button
                     onClick={() => removeParticipant(participant.id)}
                     className="absolute top-2 right-2 p-1 rounded-full bg-white/80 hover:bg-red-500 hover:text-white text-gray-400 transition-colors"
+                    aria-label={`${participant.name} 삭제`}
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -94,6 +95,7 @@ export function ParticipantList() {
                   onClick={() => setTreasurer(participant.id)}
                   className="group"
                   title={participant.isTreasurer ? '총무' : '총무로 설정'}
+                  aria-label={participant.isTreasurer ? `${participant.name} (총무)` : `${participant.name}을(를) 총무로 설정`}
                 >
                   <Avatar className={`w-16 h-16 ${getAvatarColor(participant.name)}`}>
                     <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">

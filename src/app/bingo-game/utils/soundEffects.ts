@@ -7,8 +7,15 @@ class SoundManager {
   private audioContext: AudioContext | null = null;
 
   constructor() {
-    if (typeof window !== 'undefined' && window.AudioContext) {
-      this.audioContext = new AudioContext();
+    if (typeof window !== 'undefined') {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        try {
+          this.audioContext = new AudioContextClass();
+        } catch {
+          // AudioContext 생성 실패 시 무시
+        }
+      }
     }
   }
 

@@ -219,6 +219,7 @@ export function SettlementResult() {
                         ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
+                    aria-label={`${transaction.fromName}이(가) ${transaction.toName}에게 ${formatCurrency(transaction.amount)}원 송금${isCompleted ? ' 완료' : ''}`}
                   >
                     <div className="flex items-center gap-4">
                       {/* From Avatar */}

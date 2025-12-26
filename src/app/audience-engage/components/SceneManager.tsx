@@ -170,7 +170,7 @@ export function SceneManager({
 interface SlideViewerProps {
   presentation?: {
     id: string;
-    sourceType: 'google-slides' | 'pdf' | 'images';
+    sourceType: 'google-slides' | 'canva' | 'pdf' | 'images';
     sourceUrl?: string;
   };
   slideIndex: number;
@@ -200,7 +200,24 @@ function SlideViewer({ presentation, slideIndex, isHost }: SlideViewerProps) {
           src={embedUrl}
           className="w-full h-full border-0 rounded-lg"
           allowFullScreen
-          title="Presentation"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+          title="Google Slides Presentation"
+        />
+      </div>
+    );
+  }
+
+  // Canva embed
+  if (presentation.sourceType === 'canva' && presentation.sourceUrl) {
+    const embedUrl = convertToCanvaEmbedUrl(presentation.sourceUrl);
+    return (
+      <div className="h-full w-full">
+        <iframe
+          src={embedUrl}
+          className="w-full h-full border-0 rounded-lg"
+          allowFullScreen
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
+          title="Canva Presentation"
         />
       </div>
     );
@@ -223,6 +240,25 @@ function convertToEmbedUrl(url: string): string {
   if (match) {
     const presentationId = match[1];
     return `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000`;
+  }
+  return url;
+}
+
+// Helper to convert Canva URL to embed URL
+function convertToCanvaEmbedUrl(url: string): string {
+  // Canva design URL format: https://www.canva.com/design/DAF.../view
+  // Canva embed URL format: https://www.canva.com/design/DAF.../view?embed
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.hostname.includes('canva.com') && url.includes('/design/')) {
+      // Add embed parameter if not present
+      if (!urlObj.searchParams.has('embed')) {
+        urlObj.searchParams.set('embed', '');
+      }
+      return urlObj.toString();
+    }
+  } catch {
+    // Invalid URL, return as-is
   }
   return url;
 }

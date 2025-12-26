@@ -15,7 +15,14 @@ export async function middleware(request: NextRequest) {
   // First, update the Supabase session
   const response = await updateSession(request);
 
-  const { pathname } = request.nextUrl;
+  const { pathname, hostname } = request.nextUrl;
+
+  // 개발/테스트 환경에서 인증 우회 (localhost)
+  const isDev = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+  if (isDev || isLocalhost) {
+    return response;
+  }
 
   // Check if Supabase is configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -104,6 +104,7 @@ export function GameSettings() {
               value={questionCount}
               onChange={(e) => setQuestionCount(Number(e.target.value))}
               className="w-full h-3 bg-gray-300 rounded-full appearance-none cursor-pointer accent-blue-600 slider-thumb"
+              aria-label="문제 개수 조절"
             />
             <div className="flex justify-between text-sm font-semibold text-gray-600 mt-2">
               <span>5개</span>
@@ -124,6 +125,7 @@ export function GameSettings() {
               value={timeLimit}
               onChange={(e) => setTimeLimit(Number(e.target.value))}
               className="w-full h-3 bg-gray-300 rounded-full appearance-none cursor-pointer accent-orange-600 slider-thumb"
+              aria-label="제한 시간 조절"
             />
             <div className="flex justify-between text-sm font-semibold text-gray-600 mt-2">
               <span>15초</span>

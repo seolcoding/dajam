@@ -17,10 +17,10 @@ export function DashboardLayout({
   headerTitle,
 }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex">
       <DashboardSidebar userProfile={userProfile} />
 
-      <div className="lg:pl-64">
+      <div className="flex-1 min-w-0">
         <DashboardHeader
           title={headerTitle}
           userProfile={userProfile}

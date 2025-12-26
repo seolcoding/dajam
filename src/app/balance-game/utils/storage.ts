@@ -3,14 +3,21 @@ import type { Question } from '../types';
 const STORAGE_KEY = 'balance-game-votes';
 const QUESTIONS_KEY = 'balance-game-questions';
 
+/**
+ * 브라우저 환경인지 확인
+ */
+const isBrowser = typeof window !== 'undefined';
+
 // Vote record management
 export const saveVote = (questionId: string, choice: 'A' | 'B'): void => {
+  if (!isBrowser) return;
   const votes = getVotes();
   votes[questionId] = choice;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(votes));
 };
 
 export const getVotes = (): Record<string, 'A' | 'B'> => {
+  if (!isBrowser) return {};
   const data = localStorage.getItem(STORAGE_KEY);
   return data ? JSON.parse(data) : {};
 };
@@ -22,6 +29,13 @@ export const hasVoted = (questionId: string): boolean => {
 
 // Question statistics (simulation for demo)
 export const getQuestionStats = (questionId: string): { A: number; B: number } => {
+  if (!isBrowser) {
+    return {
+      A: Math.floor(Math.random() * 500) + 100,
+      B: Math.floor(Math.random() * 500) + 100,
+    };
+  }
+
   const statsKey = `stats-${questionId}`;
   const cached = localStorage.getItem(statsKey);
 
@@ -40,6 +54,7 @@ export const getQuestionStats = (questionId: string): { A: number; B: number } =
 };
 
 export const incrementVote = (questionId: string, choice: 'A' | 'B'): void => {
+  if (!isBrowser) return;
   const stats = getQuestionStats(questionId);
   stats[choice] += 1;
   localStorage.setItem(`stats-${questionId}`, JSON.stringify(stats));
@@ -47,12 +62,14 @@ export const incrementVote = (questionId: string, choice: 'A' | 'B'): void => {
 
 // Custom question management
 export const saveCustomQuestion = (question: Question): void => {
+  if (!isBrowser) return;
   const questions = getCustomQuestions();
   questions.push(question);
   localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
 };
 
 export const getCustomQuestions = (): Question[] => {
+  if (!isBrowser) return [];
   const data = localStorage.getItem(QUESTIONS_KEY);
   return data ? JSON.parse(data) : [];
 };

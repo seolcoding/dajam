@@ -85,6 +85,7 @@ export function CostComparisonChart() {
                   max={10}
                   step={0.1}
                   className="w-full"
+                  aria-label="대출 금리 조절 슬라이더"
                 />
                 <div className="flex justify-between text-sm text-gray-600">
                   <span>0.1%</span>

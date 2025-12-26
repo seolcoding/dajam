@@ -200,6 +200,7 @@ export const useSettlementStore = create<SettlementStore>((set, get) => ({
   reset: () => set({ settlement: null, result: null }),
 
   saveToLocalStorage: () => {
+    if (typeof window === 'undefined') return;
     const { settlement } = get();
     if (!settlement) return;
 
@@ -240,6 +241,7 @@ export const useSettlementStore = create<SettlementStore>((set, get) => ({
   },
 
   loadFromLocalStorage: (id) => {
+    if (typeof window === 'undefined') return;
     const data = localStorage.getItem(`settlement-${id}`);
     if (!data) return;
 
@@ -259,6 +261,7 @@ export const useSettlementStore = create<SettlementStore>((set, get) => ({
   },
 
   getRecentSettlements: () => {
+    if (typeof window === 'undefined') return [];
     const recentList = JSON.parse(
       localStorage.getItem('recent-settlements') || '[]'
     );

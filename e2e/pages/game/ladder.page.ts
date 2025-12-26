@@ -41,12 +41,14 @@ export class LadderGamePage extends BasePage {
   }
 
   get participantLabels() {
-    // Participant names are shown at top of canvas area
+    // Note: Participant names are rendered on canvas, not as DOM elements
+    // Keeping this for potential future UI changes
     return this.page.locator('.participant-label, [data-participant], .text-emerald-700');
   }
 
   get resultModal() {
-    return this.page.locator('[role="dialog"], [data-state="open"]');
+    // The dialog uses Radix Dialog which adds role="dialog"
+    return this.page.locator('[role="dialog"]');
   }
 
   // Actions
@@ -77,14 +79,30 @@ export class LadderGamePage extends BasePage {
   }
 
   async clickParticipant(index: number) {
-    const labels = await this.participantLabels.all();
-    if (labels[index]) {
-      await labels[index].click();
-      await this.waitForAnimation(2000); // Animation takes time
-    }
+    // Participants are rendered on canvas, need to click at calculated position
+    const canvas = this.canvas;
+    await canvas.waitFor({ state: 'visible' });
+
+    const box = await canvas.boundingBox();
+    if (!box) return;
+
+    // Canvas layout: padding=40, participants at top
+    const padding = 40;
+    const usableWidth = box.width - padding * 2;
+    const participantCount = await this.participantInputs.count();
+    const columnGap = usableWidth / (participantCount - 1);
+
+    // Click on the participant label area (top of canvas, y=30)
+    const clickX = padding + index * columnGap;
+    const clickY = 30; // Top area where participant names are rendered
+
+    await canvas.click({ position: { x: clickX, y: clickY } });
+    await this.waitForAnimation(3000); // Animation takes ~2-3 seconds
   }
 
   async reset() {
+    // Reset button only appears after ladder is generated
+    await this.resetButton.waitFor({ state: 'visible', timeout: 5000 });
     await this.resetButton.click();
   }
 
@@ -102,7 +120,7 @@ export class LadderGamePage extends BasePage {
   }
 
   async expectResultModalVisible() {
-    await expect(this.resultModal).toBeVisible();
+    await expect(this.resultModal).toBeVisible({ timeout: 10000 });
   }
 
   async expectParticipantCount(count: number) {

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import AudienceEngageApp from './components/AudienceEngageApp';
 
 export const metadata: Metadata = {
@@ -7,6 +8,21 @@ export const metadata: Metadata = {
   keywords: ['실시간 발표', '청중 참여', '투표', '퀴즈', 'Q&A', '슬라이드'],
 };
 
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-dajaem-green mx-auto mb-4" />
+        <p className="text-muted-foreground">로딩 중...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function AudienceEngagePage() {
-  return <AudienceEngageApp />;
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AudienceEngageApp />
+    </Suspense>
+  );
 }

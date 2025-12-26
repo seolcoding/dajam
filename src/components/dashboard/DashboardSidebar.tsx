@@ -139,7 +139,7 @@ export function DashboardSidebar({
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className={cn('hidden lg:block w-64 h-screen sticky top-0', className)}>
+      <aside className={cn('hidden lg:flex lg:flex-col lg:w-64 lg:min-h-screen', className)}>
         {sidebarContent}
       </aside>
     </>

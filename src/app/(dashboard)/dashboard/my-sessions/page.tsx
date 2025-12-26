@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Search, Filter, MoreVertical, Eye, Link2, Trash2, Users, Plus } from 'lucide-react';
 import { useSessionHistory } from '@/hooks/useSessionHistory';
 import type { AppType } from '@/types/database';
@@ -27,6 +38,8 @@ export default function MySessionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterAppType, setFilterAppType] = useState<AppType | 'all'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'ended'>('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState<{ id: string; title: string } | null>(null);
 
   const { sessions, isLoading } = useSessionHistory({
     appType: filterAppType !== 'all' ? filterAppType : undefined,
@@ -36,12 +49,22 @@ export default function MySessionsPage() {
   const handleCopyLink = (code: string) => {
     const url = `${window.location.origin}?code=${code}`;
     navigator.clipboard.writeText(url);
-    // TODO: Show toast notification
+    toast.success('링크가 복사되었습니다');
   };
 
-  const handleDelete = (id: string) => {
-    // TODO: Implement delete with confirmation dialog
-    console.log('Delete session:', id);
+  const handleDeleteClick = (session: { id: string; title: string }) => {
+    setSessionToDelete(session);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!sessionToDelete) return;
+
+    // TODO: Call API to delete session
+    console.log('Delete session:', sessionToDelete.id);
+    toast.success(`"${sessionToDelete.title}" 세션이 삭제되었습니다`);
+    setDeleteDialogOpen(false);
+    setSessionToDelete(null);
   };
 
   const filteredSessions = sessions.filter((session) =>
@@ -222,12 +245,20 @@ export default function MySessionsPage() {
                             상세보기
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleCopyLink(session.code)}>
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            handleCopyLink(session.code);
+                          }}
+                        >
                           <Link2 className="w-4 h-4 mr-2" />
                           링크 복사
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleDelete(session.id)}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            handleDeleteClick({ id: session.id, title: session.title });
+                          }}
                           className="text-red-600"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
@@ -242,6 +273,33 @@ export default function MySessionsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>세션을 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {sessionToDelete && (
+                <>
+                  &quot;{sessionToDelete.title}&quot; 세션이 영구적으로 삭제됩니다.
+                  <br />
+                  이 작업은 되돌릴 수 없습니다.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

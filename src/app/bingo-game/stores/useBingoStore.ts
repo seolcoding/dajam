@@ -205,6 +205,7 @@ export const useBingoStore = create<BingoStore>()(
       partialize: (state) => ({
         soundEnabled: state.soundEnabled,
       }),
+      skipHydration: true,
     }
   )
 );

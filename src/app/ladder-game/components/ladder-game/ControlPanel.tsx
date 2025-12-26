@@ -99,6 +99,7 @@ export function ControlPanel({
                       max={0.8}
                       step={0.1}
                       className="flex-1"
+                      aria-label="가로선 밀도 조절 슬라이더"
                     />
                     <span className="text-sm font-bold text-purple-600 w-12 text-right">
                       {Math.round(config.density * 100)}%

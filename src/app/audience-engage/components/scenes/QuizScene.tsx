@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QuizHost, QuizParticipant } from '@/features/interactions';
-import { useSupabase } from '@/hooks/useSupabase';
-import type { QuizQuestion, GameState, ParticipantAnswer } from '@/features/interactions';
+import { PlusCircle } from 'lucide-react';
+import { useSessionElements } from '@/lib/realtime/hooks/useSessionElements';
+import { QuizResponse } from '../elements/quiz/QuizResponse';
+import { QuizResults } from '../elements/quiz/QuizResults';
+import type { SessionElement } from '@/types/database';
 
 export interface QuizSceneProps {
   sessionId: string;
@@ -14,18 +15,13 @@ export interface QuizSceneProps {
   participantName?: string;
 }
 
-interface QuizSessionState {
-  questions: QuizQuestion[];
-  currentQuestionIndex: number;
-  gameState: GameState;
-  showAnswer: boolean;
-  timeLeft: number;
-  answers: ParticipantAnswer[];
-}
-
 /**
- * QuizScene - Quiz wrapper for audience-engage
- * Manages quiz state and renders appropriate view (host/participant)
+ * QuizScene - V2 Quiz Element를 사용하는 퀴즈 씬
+ *
+ * Phase 4 V2 아키텍처 통합:
+ * - session_elements 테이블의 quiz 타입 element 사용
+ * - element_responses 테이블로 답변 저장
+ * - element_aggregates 테이블로 점수/순위 집계
  */
 export function QuizScene({
   sessionId,
@@ -33,159 +29,108 @@ export function QuizScene({
   participantId,
   participantName,
 }: QuizSceneProps) {
-  const supabase = useSupabase();
-  const [quizState, setQuizState] = useState<QuizSessionState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [hasAnswered, setHasAnswered] = useState(false);
+  // V2 Element 훅 사용
+  const {
+    elements,
+    activeElement,
+    isLoading,
+    createElement,
+  } = useSessionElements({
+    sessionId,
+  });
 
-  // Load quiz session state
-  useEffect(() => {
-    if (!supabase || !sessionId) return;
+  // quiz 타입 element 찾기
+  const quizElement = activeElement?.element_type === 'quiz'
+    ? activeElement
+    : elements.find((e) => e.element_type === 'quiz');
 
-    const loadQuizState = async () => {
-      setIsLoading(true);
-      try {
-        // Load from quiz_sessions table
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
-          .from('quiz_sessions')
-          .select('*')
-          .eq('session_id', sessionId)
-          .single();
+  // 새 퀴즈 생성 (호스트)
+  const handleCreateQuiz = async () => {
+    await createElement({
+      session_id: sessionId,
+      element_type: 'quiz',
+      title: '새 퀴즈',
+      config: {
+        questions: [
+          {
+            id: 'q1',
+            type: 'multiple_choice',
+            text: '첫 번째 문제입니다',
+            options: ['보기 1', '보기 2', '보기 3', '보기 4'],
+            correctAnswer: 0,
+            points: 100,
+            timeLimit: 30,
+          },
+        ],
+        shuffleQuestions: false,
+        shuffleOptions: false,
+        showCorrectAnswer: true,
+        showLeaderboard: true,
+        speedBonus: true,
+      },
+    });
+  };
 
-        if (error) {
-          console.error('Failed to load quiz state:', error);
-          return;
-        }
-
-        if (data) {
-          setQuizState({
-            questions: data.questions || [],
-            currentQuestionIndex: data.current_question_index || 0,
-            gameState: data.game_state || 'waiting',
-            showAnswer: data.show_answer || false,
-            timeLeft: data.time_left || 30,
-            answers: [],
-          });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadQuizState();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`quiz:${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'quiz_sessions',
-          filter: `session_id=eq.${sessionId}`,
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (payload: any) => {
-          if (payload.new) {
-            const data = payload.new;
-            setQuizState((prev) => ({
-              ...prev!,
-              currentQuestionIndex: data.current_question_index || 0,
-              gameState: data.game_state || 'waiting',
-              showAnswer: data.show_answer || false,
-              timeLeft: data.time_left || 30,
-            }));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, sessionId]);
-
-  // Handle answer submission (participant)
-  const handleSubmitAnswer = useCallback(
-    async (answerIndex: number) => {
-      if (!supabase || !participantId || hasAnswered) return;
-
-      setSelectedAnswer(answerIndex);
-      setHasAnswered(true);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from('quiz_answers').insert({
-        session_id: sessionId,
-        participant_id: participantId,
-        question_index: quizState?.currentQuestionIndex,
-        answer_index: answerIndex,
-        answered_at: new Date().toISOString(),
-      });
-    },
-    [supabase, sessionId, participantId, quizState?.currentQuestionIndex, hasAnswered]
-  );
-
-  // Loading state
+  // 로딩 상태
   if (isLoading) {
     return (
       <Card className="h-full flex items-center justify-center">
         <CardContent>
-          <p className="text-muted-foreground">퀴즈 불러오는 중이에요...</p>
+          <p className="text-muted-foreground">퀴즈 불러오는 중...</p>
         </CardContent>
       </Card>
     );
   }
 
-  // No quiz data
-  if (!quizState || quizState.questions.length === 0) {
+  // Quiz element가 없는 경우
+  if (!quizElement) {
     return (
       <Card className="h-full flex items-center justify-center bg-gradient-to-br from-dajaem-green/10 to-dajaem-yellow/10">
         <CardContent className="text-center">
           <p className="text-4xl mb-4">🎯</p>
-          <p className="text-xl font-semibold mb-2">퀴즈</p>
+          <p className="text-xl font-semibold mb-2">실시간 퀴즈</p>
           <p className="text-muted-foreground mb-4">
-            {isHost ? '퀴즈를 만들어 보세요' : '퀴즈가 시작되면 참여할 수 있어요'}
+            {isHost ? '퀴즈를 만들어 시작하세요' : '퀴즈가 시작되면 참여할 수 있습니다'}
           </p>
           {isHost && (
-            <Button className="bg-dajaem-green hover:bg-dajaem-green/90 text-white">퀴즈 만들기</Button>
+            <Button
+              onClick={handleCreateQuiz}
+              className="bg-dajaem-green hover:bg-dajaem-green/90 text-white"
+            >
+              <PlusCircle className="w-4 h-4 mr-2" />
+              퀴즈 만들기
+            </Button>
           )}
         </CardContent>
       </Card>
     );
   }
 
-  const currentQuestion = quizState.questions[quizState.currentQuestionIndex];
-
-  // Host view
+  // 호스트: 결과/컨트롤 뷰
   if (isHost) {
     return (
-      <QuizHost
-        question={currentQuestion}
-        questionNumber={quizState.currentQuestionIndex + 1}
-        totalQuestions={quizState.questions.length}
-        timeLeft={quizState.timeLeft}
-        answeredCount={quizState.answers.length}
-        totalParticipants={10} // TODO: Get from session
-        showAnswer={quizState.showAnswer}
-      />
+      <div className="h-full flex flex-col p-4 bg-gradient-to-br from-dajaem-green/10 to-dajaem-yellow/10">
+        <QuizResults
+          element={quizElement}
+          sessionId={sessionId}
+          showControls={true}
+          className="flex-1"
+        />
+      </div>
     );
   }
 
-  // Participant view
+  // 참여자: 퀴즈 풀이 뷰
   return (
-    <QuizParticipant
-      question={currentQuestion}
-      questionNumber={quizState.currentQuestionIndex + 1}
-      totalQuestions={quizState.questions.length}
-      timeLeft={quizState.timeLeft}
-      hasAnswered={hasAnswered}
-      onAnswer={handleSubmitAnswer}
-      isCorrect={quizState.showAnswer ? currentQuestion.correctIndex === selectedAnswer : undefined}
-      correctAnswer={quizState.showAnswer ? currentQuestion.correctIndex : undefined}
-    />
+    <div className="h-full flex flex-col p-4 bg-gradient-to-br from-dajaem-green/10 to-dajaem-yellow/10">
+      <QuizResponse
+        element={quizElement}
+        sessionId={sessionId}
+        participantId={participantId}
+        displayName={participantName}
+        className="flex-1"
+      />
+    </div>
   );
 }
 

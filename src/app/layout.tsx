@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Toaster } from 'sonner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { KakaoScript } from '@/components/common/KakaoScript';
 import { AuthProvider } from '@/components/auth/AuthProvider';
@@ -71,6 +72,14 @@ export default function RootLayout({
         <GoogleAnalytics />
         <KakaoScript />
         <AuthProvider>{children}</AuthProvider>
+        <Toaster
+          position="top-center"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
       </body>
     </html>
   );

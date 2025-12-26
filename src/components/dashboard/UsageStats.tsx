@@ -1,49 +1,62 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Users, FolderOpen, Activity, Crown } from 'lucide-react';
+import { useUserStats } from '@/lib/analytics';
+import type { UserStats } from '@/lib/analytics';
 
 interface UsageStatsProps {
-  stats?: {
-    monthlySessionsUsed: number;
-    monthlySessionsLimit: number;
-    totalParticipants: number;
-    activeSessions: number;
-    plan: 'free' | 'pro';
-  };
-  isLoading?: boolean;
+  userId: string | null;
+  plan?: 'free' | 'pro';
+  monthlyLimit?: number;
 }
 
-// Mock data for demonstration
-const mockStats = {
-  monthlySessionsUsed: 5,
-  monthlySessionsLimit: 10,
-  totalParticipants: 142,
-  activeSessions: 2,
-  plan: 'free' as const,
-};
+// Free plan 기본 제한
+const DEFAULT_MONTHLY_LIMIT = 10;
 
-export function UsageStats({ stats = mockStats, isLoading = false }: UsageStatsProps) {
-  const usagePercentage = Math.round(
-    (stats.monthlySessionsUsed / stats.monthlySessionsLimit) * 100
-  );
+// 개발 환경에서 로그인 없이 테스트할 때 사용할 mock user ID
+const DEV_USER_ID = process.env.NEXT_PUBLIC_DEV_USER_ID;
+
+export function UsageStats({
+  userId,
+  plan = 'free',
+  monthlyLimit = DEFAULT_MONTHLY_LIMIT,
+}: UsageStatsProps) {
+  // 개발 환경에서 userId가 없으면 DEV_USER_ID 사용
+  const effectiveUserId = userId ?? (process.env.NODE_ENV === 'development' ? DEV_USER_ID : null) ?? null;
+
+  const { stats, isLoading, error } = useUserStats({
+    userId: effectiveUserId,
+    period: 'month',
+    enabled: !!effectiveUserId,
+  });
+
+  const actualStats: UserStats = stats ?? {
+    totalSessions: 0,
+    totalParticipants: 0,
+    activeSessions: 0,
+    byAppType: {},
+    byDate: [],
+  };
+
+  const usagePercentage = Math.round((actualStats.totalSessions / monthlyLimit) * 100);
 
   const statCards = [
     {
       icon: FolderOpen,
       label: '이번 달 세션',
-      value: `${stats.monthlySessionsUsed} / ${stats.monthlySessionsLimit}`,
-      subValue: `${usagePercentage}% 사용`,
-      progress: usagePercentage,
+      value: `${actualStats.totalSessions} / ${monthlyLimit}`,
+      subValue: `${Math.min(usagePercentage, 100)}% 사용`,
+      progress: Math.min(usagePercentage, 100),
       iconColor: 'text-blue-500',
       bgColor: 'bg-blue-50',
     },
     {
       icon: Users,
       label: '총 참여자 수',
-      value: stats.totalParticipants.toLocaleString(),
+      value: actualStats.totalParticipants.toLocaleString(),
       subValue: '누적 참여자',
       iconColor: 'text-green-500',
       bgColor: 'bg-green-50',
@@ -51,7 +64,7 @@ export function UsageStats({ stats = mockStats, isLoading = false }: UsageStatsP
     {
       icon: Activity,
       label: '활성 세션',
-      value: stats.activeSessions,
+      value: actualStats.activeSessions,
       subValue: '현재 진행 중',
       iconColor: 'text-orange-500',
       bgColor: 'bg-orange-50',
@@ -60,11 +73,11 @@ export function UsageStats({ stats = mockStats, isLoading = false }: UsageStatsP
       icon: Crown,
       label: '플랜',
       value: (
-        <Badge variant={stats.plan === 'pro' ? 'default' : 'secondary'}>
-          {stats.plan === 'pro' ? 'Pro' : 'Free'}
+        <Badge variant={plan === 'pro' ? 'default' : 'secondary'}>
+          {plan === 'pro' ? 'Pro' : 'Free'}
         </Badge>
       ),
-      subValue: stats.plan === 'pro' ? '프로 회원' : '무료 회원',
+      subValue: plan === 'pro' ? '프로 회원' : '무료 회원',
       iconColor: 'text-purple-500',
       bgColor: 'bg-purple-50',
     },
@@ -80,6 +93,18 @@ export function UsageStats({ stats = mockStats, isLoading = false }: UsageStatsP
             </CardContent>
           </Card>
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="col-span-full">
+          <CardContent className="pt-6 text-center text-muted-foreground">
+            통계를 불러오는 중 오류가 발생했습니다.
+          </CardContent>
+        </Card>
       </div>
     );
   }

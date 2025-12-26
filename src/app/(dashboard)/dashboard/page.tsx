@@ -7,7 +7,7 @@ import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard';
 import { useAuth } from '@/components/auth/AuthProvider';
 
 export default function DashboardPage() {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
 
   return (
     <div className="space-y-6">
@@ -22,7 +22,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Usage Stats */}
-      <UsageStats />
+      <UsageStats userId={user?.id ?? null} />
 
       {/* Quick Actions */}
       <QuickActions />

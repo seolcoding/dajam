@@ -32,6 +32,45 @@ export type AppType =
 
 export type SessionRole = 'host' | 'moderator' | 'participant' | 'spectator';
 
+// V2 Data Model Enums
+export type InstitutionType =
+  | 'welfare_center'
+  | 'lifelong_learning'
+  | 'senior_center'
+  | 'community_center'
+  | 'library'
+  | 'corporation'
+  | 'academy'
+  | 'other';
+
+export type WorkspaceRole = 'owner' | 'admin' | 'instructor' | 'assistant';
+
+export type AttendanceMethod = 'qr' | 'code' | 'kakao' | 'manual' | 'auto';
+
+export type GenderType = 'male' | 'female' | 'other' | 'prefer_not_to_say';
+
+export type AgeGroup = 'under_20' | '20s' | '30s' | '40s' | '50s' | '60s' | '70s' | '80_plus';
+
+export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export type ContactStatus = 'active' | 'inactive' | 'churned' | 'vip';
+
+export type CompletionStatus = 'in_progress' | 'completed' | 'dropped' | 'pending';
+
+export type IntegrationType =
+  | 'google_sheets'
+  | 'google_forms'
+  | 'notion'
+  | 'slack'
+  | 'kakao_channel'
+  | 'webhook';
+
+export type MarketingConsentType = {
+  sms: boolean;
+  email: boolean;
+  kakao: boolean;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -81,6 +120,12 @@ export interface Database {
           expires_at: string | null;
           created_at: string;
           updated_at: string;
+          // V2 extensions
+          institution_id: string | null;
+          workspace_id: string | null;
+          class_id: string | null;
+          accessibility_mode: boolean;
+          large_text_mode: boolean;
         };
         Insert: {
           id?: string;
@@ -95,6 +140,12 @@ export interface Database {
           expires_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          // V2 extensions
+          institution_id?: string | null;
+          workspace_id?: string | null;
+          class_id?: string | null;
+          accessibility_mode?: boolean;
+          large_text_mode?: boolean;
         };
         Update: {
           id?: string;
@@ -109,6 +160,12 @@ export interface Database {
           expires_at?: string | null;
           created_at?: string;
           updated_at?: string;
+          // V2 extensions
+          institution_id?: string | null;
+          workspace_id?: string | null;
+          class_id?: string | null;
+          accessibility_mode?: boolean;
+          large_text_mode?: boolean;
         };
       };
       session_participants: {
@@ -121,6 +178,8 @@ export interface Database {
           is_banned: boolean;
           metadata: Json;
           joined_at: string;
+          // V2 extension
+          contact_id: string | null;
         };
         Insert: {
           id?: string;
@@ -131,6 +190,8 @@ export interface Database {
           is_banned?: boolean;
           metadata?: Json;
           joined_at?: string;
+          // V2 extension
+          contact_id?: string | null;
         };
         Update: {
           id?: string;
@@ -141,6 +202,8 @@ export interface Database {
           is_banned?: boolean;
           metadata?: Json;
           joined_at?: string;
+          // V2 extension
+          contact_id?: string | null;
         };
       };
       votes: {
@@ -364,6 +427,600 @@ export interface Database {
           created_at?: string;
         };
       };
+      // ============================================
+      // V2 Data Model Tables
+      // ============================================
+      institutions: {
+        Row: {
+          id: string;
+          name: string;
+          institution_type: InstitutionType;
+          address: string | null;
+          phone: string | null;
+          email: string | null;
+          website: string | null;
+          logo_url: string | null;
+          settings: Json;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          institution_type?: InstitutionType;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          website?: string | null;
+          logo_url?: string | null;
+          settings?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          institution_type?: InstitutionType;
+          address?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          website?: string | null;
+          logo_url?: string | null;
+          settings?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      workspaces: {
+        Row: {
+          id: string;
+          institution_id: string | null;
+          owner_id: string;
+          name: string;
+          slug: string | null;
+          description: string | null;
+          logo_url: string | null;
+          settings: Json;
+          plan_type: 'free' | 'pro' | 'enterprise';
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          institution_id?: string | null;
+          owner_id: string;
+          name: string;
+          slug?: string | null;
+          description?: string | null;
+          logo_url?: string | null;
+          settings?: Json;
+          plan_type?: 'free' | 'pro' | 'enterprise';
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          institution_id?: string | null;
+          owner_id?: string;
+          name?: string;
+          slug?: string | null;
+          description?: string | null;
+          logo_url?: string | null;
+          settings?: Json;
+          plan_type?: 'free' | 'pro' | 'enterprise';
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      workspace_members: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string;
+          role: WorkspaceRole;
+          permissions: Json;
+          invited_by: string | null;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id: string;
+          role: WorkspaceRole;
+          permissions?: Json;
+          invited_by?: string | null;
+          joined_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          user_id?: string;
+          role?: WorkspaceRole;
+          permissions?: Json;
+          invited_by?: string | null;
+          joined_at?: string;
+        };
+      };
+      contacts: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          user_id: string | null;
+          name: string;
+          phone: string | null;
+          email: string | null;
+          source: string | null;
+          source_session_id: string | null;
+          marketing_consent: Json;
+          marketing_consent_at: string | null;
+          tags: string[];
+          custom_fields: Json;
+          sessions_attended: number;
+          last_session_at: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          // Extended CRM fields
+          gender: GenderType | null;
+          birth_year: number | null;
+          age_group: AgeGroup | null;
+          address: string | null;
+          address_detail: Json;
+          interests: string[];
+          preferred_topics: string[];
+          skill_level: SkillLevel;
+          total_sessions: number;
+          completed_courses: number;
+          total_attendance_minutes: number;
+          average_satisfaction: number | null;
+          last_active_at: string | null;
+          interaction_stats: Json;
+          device_info: Json;
+          accessibility_needs: string[];
+          preferred_font_size: 'normal' | 'large' | 'x-large';
+          preferred_contact_method: 'phone' | 'sms' | 'email' | 'kakao';
+          preferred_contact_time: string | null;
+          status: ContactStatus;
+          churn_risk_score: number;
+          lifetime_value: number;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          user_id?: string | null;
+          name: string;
+          phone?: string | null;
+          email?: string | null;
+          source?: string | null;
+          source_session_id?: string | null;
+          marketing_consent?: Json;
+          marketing_consent_at?: string | null;
+          tags?: string[];
+          custom_fields?: Json;
+          sessions_attended?: number;
+          last_session_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          // Extended CRM fields
+          gender?: GenderType | null;
+          birth_year?: number | null;
+          age_group?: AgeGroup | null;
+          address?: string | null;
+          address_detail?: Json;
+          interests?: string[];
+          preferred_topics?: string[];
+          skill_level?: SkillLevel;
+          total_sessions?: number;
+          completed_courses?: number;
+          total_attendance_minutes?: number;
+          average_satisfaction?: number | null;
+          last_active_at?: string | null;
+          interaction_stats?: Json;
+          device_info?: Json;
+          accessibility_needs?: string[];
+          preferred_font_size?: 'normal' | 'large' | 'x-large';
+          preferred_contact_method?: 'phone' | 'sms' | 'email' | 'kakao';
+          preferred_contact_time?: string | null;
+          status?: ContactStatus;
+          churn_risk_score?: number;
+          lifetime_value?: number;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          user_id?: string | null;
+          name?: string;
+          phone?: string | null;
+          email?: string | null;
+          source?: string | null;
+          source_session_id?: string | null;
+          marketing_consent?: Json;
+          marketing_consent_at?: string | null;
+          tags?: string[];
+          custom_fields?: Json;
+          sessions_attended?: number;
+          last_session_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          // Extended CRM fields
+          gender?: GenderType | null;
+          birth_year?: number | null;
+          age_group?: AgeGroup | null;
+          address?: string | null;
+          address_detail?: Json;
+          interests?: string[];
+          preferred_topics?: string[];
+          skill_level?: SkillLevel;
+          total_sessions?: number;
+          completed_courses?: number;
+          total_attendance_minutes?: number;
+          average_satisfaction?: number | null;
+          last_active_at?: string | null;
+          interaction_stats?: Json;
+          device_info?: Json;
+          accessibility_needs?: string[];
+          preferred_font_size?: 'normal' | 'large' | 'x-large';
+          preferred_contact_method?: 'phone' | 'sms' | 'email' | 'kakao';
+          preferred_contact_time?: string | null;
+          status?: ContactStatus;
+          churn_risk_score?: number;
+          lifetime_value?: number;
+        };
+      };
+      attendance: {
+        Row: {
+          id: string;
+          session_id: string;
+          contact_id: string | null;
+          participant_id: string | null;
+          check_in_method: AttendanceMethod;
+          check_in_at: string;
+          check_out_at: string | null;
+          verified: boolean;
+          verified_by: string | null;
+          location: Json | null;
+          device_info: Json | null;
+          qr_code: string | null;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          contact_id?: string | null;
+          participant_id?: string | null;
+          check_in_method?: AttendanceMethod;
+          check_in_at?: string;
+          check_out_at?: string | null;
+          verified?: boolean;
+          verified_by?: string | null;
+          location?: Json | null;
+          device_info?: Json | null;
+          qr_code?: string | null;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          contact_id?: string | null;
+          participant_id?: string | null;
+          check_in_method?: AttendanceMethod;
+          check_in_at?: string;
+          check_out_at?: string | null;
+          verified?: boolean;
+          verified_by?: string | null;
+          location?: Json | null;
+          device_info?: Json | null;
+          qr_code?: string | null;
+        };
+      };
+      integrations: {
+        Row: {
+          id: string;
+          workspace_id: string;
+          integration_type: IntegrationType;
+          name: string;
+          config: Json;
+          credentials_encrypted: string | null;
+          is_active: boolean;
+          last_sync_at: string | null;
+          sync_status: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          integration_type: IntegrationType;
+          name: string;
+          config?: Json;
+          credentials_encrypted?: string | null;
+          is_active?: boolean;
+          last_sync_at?: string | null;
+          sync_status?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          workspace_id?: string;
+          integration_type?: IntegrationType;
+          name?: string;
+          config?: Json;
+          credentials_encrypted?: string | null;
+          is_active?: boolean;
+          last_sync_at?: string | null;
+          sync_status?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      integration_logs: {
+        Row: {
+          id: string;
+          integration_id: string;
+          action: string;
+          status: 'success' | 'failed' | 'pending';
+          request_data: Json | null;
+          response_data: Json | null;
+          error_message: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          integration_id: string;
+          action: string;
+          status: 'success' | 'failed' | 'pending';
+          request_data?: Json | null;
+          response_data?: Json | null;
+          error_message?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          integration_id?: string;
+          action?: string;
+          status?: 'success' | 'failed' | 'pending';
+          request_data?: Json | null;
+          response_data?: Json | null;
+          error_message?: string | null;
+          created_at?: string;
+        };
+      };
+      // ============================================
+      // Flexible Content Layer (JSONB 기반)
+      // ============================================
+      session_elements: {
+        Row: {
+          id: string;
+          session_id: string;
+          element_type: string; // poll, quiz, word_cloud, balance_game, ladder, etc.
+          title: string | null;
+          description: string | null;
+          config: Json;
+          state: Json;
+          order_index: number;
+          is_active: boolean;
+          is_visible: boolean;
+          starts_at: string | null;
+          ends_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          element_type: string;
+          title?: string | null;
+          description?: string | null;
+          config?: Json;
+          state?: Json;
+          order_index?: number;
+          is_active?: boolean;
+          is_visible?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          element_type?: string;
+          title?: string | null;
+          description?: string | null;
+          config?: Json;
+          state?: Json;
+          order_index?: number;
+          is_active?: boolean;
+          is_visible?: boolean;
+          starts_at?: string | null;
+          ends_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      element_responses: {
+        Row: {
+          id: string;
+          element_id: string;
+          session_id: string;
+          participant_id: string | null;
+          user_id: string | null;
+          contact_id: string | null;
+          anonymous_id: string | null;
+          display_name: string | null;
+          response_type: string; // vote, answer, reaction, submission, etc.
+          data: Json;
+          score: number | null;
+          is_correct: boolean | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          element_id: string;
+          session_id: string;
+          participant_id?: string | null;
+          user_id?: string | null;
+          contact_id?: string | null;
+          anonymous_id?: string | null;
+          display_name?: string | null;
+          response_type: string;
+          data?: Json;
+          score?: number | null;
+          is_correct?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          element_id?: string;
+          session_id?: string;
+          participant_id?: string | null;
+          user_id?: string | null;
+          contact_id?: string | null;
+          anonymous_id?: string | null;
+          display_name?: string | null;
+          response_type?: string;
+          data?: Json;
+          score?: number | null;
+          is_correct?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      element_aggregates: {
+        Row: {
+          id: string;
+          element_id: string;
+          aggregate_key: string;
+          count: number;
+          sum_value: number | null;
+          metadata: Json;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          element_id: string;
+          aggregate_key: string;
+          count?: number;
+          sum_value?: number | null;
+          metadata?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          element_id?: string;
+          aggregate_key?: string;
+          count?: number;
+          sum_value?: number | null;
+          metadata?: Json;
+          updated_at?: string;
+        };
+      };
+      // ============================================
+      // CRM Extended Tables
+      // ============================================
+      course_history: {
+        Row: {
+          id: string;
+          contact_id: string;
+          session_id: string | null;
+          course_name: string;
+          course_type: string | null;
+          instructor_name: string | null;
+          started_at: string | null;
+          completed_at: string | null;
+          attendance_rate: number | null;
+          completion_status: CompletionStatus;
+          final_score: number | null;
+          certificate_issued: boolean;
+          satisfaction_score: number | null;
+          feedback_text: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          contact_id: string;
+          session_id?: string | null;
+          course_name: string;
+          course_type?: string | null;
+          instructor_name?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          attendance_rate?: number | null;
+          completion_status?: CompletionStatus;
+          final_score?: number | null;
+          certificate_issued?: boolean;
+          satisfaction_score?: number | null;
+          feedback_text?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          contact_id?: string;
+          session_id?: string | null;
+          course_name?: string;
+          course_type?: string | null;
+          instructor_name?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          attendance_rate?: number | null;
+          completion_status?: CompletionStatus;
+          final_score?: number | null;
+          certificate_issued?: boolean;
+          satisfaction_score?: number | null;
+          feedback_text?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+      };
+      interaction_logs: {
+        Row: {
+          id: string;
+          contact_id: string | null;
+          session_id: string | null;
+          element_id: string | null;
+          interaction_type: string;
+          interaction_data: Json;
+          is_correct: boolean | null;
+          points_earned: number;
+          device_type: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          contact_id?: string | null;
+          session_id?: string | null;
+          element_id?: string | null;
+          interaction_type: string;
+          interaction_data?: Json;
+          is_correct?: boolean | null;
+          points_earned?: number;
+          device_type?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          contact_id?: string | null;
+          session_id?: string | null;
+          element_id?: string | null;
+          interaction_type?: string;
+          interaction_data?: Json;
+          is_correct?: boolean | null;
+          points_earned?: number;
+          device_type?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -389,10 +1046,24 @@ export interface Database {
         Args: { p_session_id: string; p_user_id: string };
         Returns: SessionRole;
       };
+      // V2 Functions
+      generate_qr_code: {
+        Args: { p_session_id: string; p_participant_id?: string };
+        Returns: string;
+      };
+      link_participant_to_contact: {
+        Args: { p_participant_id: string; p_contact_id: string };
+        Returns: void;
+      };
     };
     Enums: {
       app_type: AppType;
       session_role: SessionRole;
+      // V2 Enums
+      institution_type: InstitutionType;
+      workspace_role: WorkspaceRole;
+      attendance_method: AttendanceMethod;
+      integration_type: IntegrationType;
     };
   };
 }
@@ -411,6 +1082,162 @@ export type ActivityLog = Database['public']['Tables']['activity_logs']['Row'];
 export type SessionInsert = Database['public']['Tables']['sessions']['Insert'];
 export type VoteInsert = Database['public']['Tables']['votes']['Insert'];
 export type OrderInsert = Database['public']['Tables']['orders']['Insert'];
+
+// V2 Data Model Types
+export type Institution = Database['public']['Tables']['institutions']['Row'];
+export type Workspace = Database['public']['Tables']['workspaces']['Row'];
+export type WorkspaceMember = Database['public']['Tables']['workspace_members']['Row'];
+export type Contact = Database['public']['Tables']['contacts']['Row'];
+export type Attendance = Database['public']['Tables']['attendance']['Row'];
+export type Integration = Database['public']['Tables']['integrations']['Row'];
+export type IntegrationLog = Database['public']['Tables']['integration_logs']['Row'];
+
+// V2 Insert types
+export type InstitutionInsert = Database['public']['Tables']['institutions']['Insert'];
+export type WorkspaceInsert = Database['public']['Tables']['workspaces']['Insert'];
+export type WorkspaceMemberInsert = Database['public']['Tables']['workspace_members']['Insert'];
+export type ContactInsert = Database['public']['Tables']['contacts']['Insert'];
+export type AttendanceInsert = Database['public']['Tables']['attendance']['Insert'];
+export type IntegrationInsert = Database['public']['Tables']['integrations']['Insert'];
+
+// Flexible Content Layer Types
+export type SessionElement = Database['public']['Tables']['session_elements']['Row'];
+export type ElementResponse = Database['public']['Tables']['element_responses']['Row'];
+export type ElementAggregate = Database['public']['Tables']['element_aggregates']['Row'];
+
+export type SessionElementInsert = Database['public']['Tables']['session_elements']['Insert'];
+export type ElementResponseInsert = Database['public']['Tables']['element_responses']['Insert'];
+
+// ============================================
+// Element Type Definitions (코드레벨 스키마)
+// ============================================
+
+// 지원되는 element_type 목록
+export type ElementType =
+  | 'poll'              // 투표
+  | 'quiz'              // 퀴즈
+  | 'word_cloud'        // 워드클라우드
+  | 'balance_game'      // 밸런스게임
+  | 'ladder'            // 사다리게임
+  | 'qna'               // Q&A
+  | 'survey'            // 설문조사
+  | 'bingo'             // 빙고
+  | 'ideal_worldcup'    // 이상형월드컵
+  | 'team_divider'      // 팀 나누기
+  | 'personality_test'  // 성격테스트
+  | 'this_or_that'      // 이거저거
+  | 'chosung_quiz'      // 초성퀴즈
+  | 'realtime_quiz'     // 실시간퀴즈
+  | 'human_bingo'       // 휴먼빙고
+  | 'reaction'          // 실시간 리액션
+  | 'ranking'           // 순위투표
+  | 'open_ended'        // 주관식 응답
+  | 'lucky_draw';       // 경품 추첨 (Phase 6)
+
+// 응답 타입
+export type ResponseType =
+  | 'vote'              // 선택 투표
+  | 'answer'            // 텍스트 답변
+  | 'reaction'          // 이모지/리액션
+  | 'submission'        // 제출 (파일, 이미지 등)
+  | 'choice'            // 단일 선택
+  | 'multiple_choice'   // 다중 선택
+  | 'ranking'           // 순위 매기기
+  | 'text';             // 자유 텍스트
+
+// Element Config Types (element_type별 config 스키마)
+export interface PollConfig {
+  options: Array<{ id: string; text: string; color?: string }>;
+  allowMultiple: boolean;
+  showResults: boolean;
+  anonymousVoting: boolean;
+}
+
+export interface QuizConfig {
+  questions: Array<{
+    id: string;
+    text: string;
+    type: 'multiple_choice' | 'true_false' | 'short_answer';
+    options?: string[];
+    correctAnswer: string | number;
+    points: number;
+    timeLimit?: number;
+  }>;
+  shuffleQuestions: boolean;
+  showCorrectAnswer: boolean;
+}
+
+export interface WordCloudConfig {
+  maxWords: number;
+  minLength: number;
+  maxLength: number;
+  allowDuplicates: boolean;
+  profanityFilter: boolean;
+}
+
+export interface BalanceGameConfig {
+  questions: Array<{
+    id: string;
+    optionA: { text: string; image?: string };
+    optionB: { text: string; image?: string };
+  }>;
+}
+
+export interface LadderConfig {
+  participants: string[];
+  results: string[];
+  revealed: boolean;
+}
+
+export interface QnAConfig {
+  allowAnonymous: boolean;
+  allowUpvote: boolean;
+  moderationRequired: boolean;
+}
+
+export interface LuckyDrawConfig {
+  prizes: Array<{ name: string; count: number; image?: string }>;
+  animationType: 'slot' | 'wheel' | 'confetti';
+  excludePreviousWinners: boolean;
+  requireAttendance: boolean;
+}
+
+// Element State Types (실시간 상태)
+export interface PollState {
+  isOpen: boolean;
+  totalVotes: number;
+  results?: Record<string, number>;
+}
+
+export interface QuizState {
+  currentQuestionIndex: number;
+  isRevealed: boolean;
+  scores: Record<string, number>;
+}
+
+export interface WordCloudState {
+  words: Array<{ text: string; count: number }>;
+}
+
+// Response Data Types (response_type별 data 스키마)
+export interface VoteResponseData {
+  selectedOption: string;
+  selectedOptions?: string[]; // multiple choice
+}
+
+export interface AnswerResponseData {
+  text: string;
+  questionId?: string;
+}
+
+export interface ReactionResponseData {
+  emoji: string;
+  timestamp: number;
+}
+
+export interface RankingResponseData {
+  ranking: string[]; // ordered list of option IDs
+}
 
 // App-specific config types
 export interface LiveVotingConfig {

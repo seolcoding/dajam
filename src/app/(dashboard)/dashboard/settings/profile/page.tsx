@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,19 +10,21 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Upload, Save, Loader2 } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ProfileSettingsPage() {
-  const router = useRouter();
   const { profile, isLoading, updateProfile } = useProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [nickname, setNickname] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (profile?.nickname) {
       setNickname(profile.nickname);
     }
   }, [profile?.nickname]);
-  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     if (!profile) return;
@@ -30,18 +32,77 @@ export default function ProfileSettingsPage() {
     try {
       setIsSaving(true);
       await updateProfile({ nickname });
-      alert('프로필이 업데이트되었습니다.');
+      toast.success('프로필이 업데이트되었습니다');
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('프로필 업데이트에 실패했습니다.');
+      toast.error('프로필 업데이트에 실패했습니다');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleAvatarUpload = () => {
-    // TODO: Implement avatar upload
-    alert('아바타 업로드 기능은 곧 추가될 예정입니다.');
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !profile) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('이미지 파일만 업로드할 수 있습니다');
+      return;
+    }
+
+    // Validate file size (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('파일 크기는 2MB 이하여야 합니다');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const supabase = createClient();
+      if (!supabase) {
+        throw new Error('Supabase client not available');
+      }
+
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          upsert: true,
+          contentType: file.type,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile with new avatar URL
+      await updateProfile({ avatar_url: publicUrl });
+      toast.success('프로필 사진이 업데이트되었습니다');
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast.error('프로필 사진 업로드에 실패했습니다');
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
   };
 
   if (isLoading) {
@@ -95,12 +156,33 @@ export default function ProfileSettingsPage() {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <Button variant="outline" size="sm" onClick={handleAvatarUpload}>
-                <Upload className="w-4 h-4 mr-2" />
-                사진 업로드
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleAvatarUpload}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAvatarClick}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    업로드 중...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    사진 업로드
+                  </>
+                )}
               </Button>
               <p className="text-xs text-muted-foreground mt-2">
-                JPG, PNG 형식. 최대 2MB.
+                JPG, PNG, WebP 형식. 최대 2MB.
               </p>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Link, FileImage, X, Check, Loader2 } from 'lucide-react';
+import { Upload, Link, FileImage, X, Check, Loader2, Palette } from 'lucide-react';
 import { useSupabase } from '@/hooks/useSupabase';
 import type { SlideSourceType } from '../types';
 
@@ -47,6 +47,7 @@ export function SlideUploader({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<SlideSourceType>('google-slides');
   const [googleSlidesUrl, setGoogleSlidesUrl] = useState('');
+  const [canvaUrl, setCanvaUrl] = useState('');
   const [uploadState, setUploadState] = useState<UploadState>({
     status: 'idle',
     progress: 0,
@@ -63,6 +64,24 @@ export function SlideUploader({
       if (match) {
         const presentationId = match[1];
         return `https://docs.google.com/presentation/d/${presentationId}/embed?start=false&loop=false&delayms=3000`;
+      }
+
+      return null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Canva URL 검증 및 임베드 URL 생성
+  const parseCanvaUrl = useCallback((url: string): string | null => {
+    try {
+      const urlObj = new URL(url);
+
+      // canva.com/design/{id}/... 형식
+      const match = url.match(/canva\.com\/design\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        const designId = match[1];
+        return `https://www.canva.com/design/${designId}/view?embed`;
       }
 
       return null;
@@ -89,6 +108,25 @@ export function SlideUploader({
     // Google Slides는 iframe으로 처리하므로 슬라이드 배열 없이 URL만 전달
     onSlidesReady([{ position: 0, imageUrl: embedUrl }]);
   }, [googleSlidesUrl, parseGoogleSlidesUrl, onSlidesReady]);
+
+  // Canva 연결
+  const handleCanvaSubmit = useCallback(async () => {
+    const embedUrl = parseCanvaUrl(canvaUrl);
+    if (!embedUrl) {
+      setUploadState({
+        status: 'error',
+        progress: 0,
+        error: 'Canva URL이 올바르지 않아요. 공유 링크를 확인해 주세요.',
+        slides: [],
+      });
+      return;
+    }
+
+    setUploadState({ status: 'complete', progress: 100, slides: [] });
+
+    // Canva도 iframe으로 처리하므로 슬라이드 배열 없이 URL만 전달
+    onSlidesReady([{ position: 0, imageUrl: embedUrl }]);
+  }, [canvaUrl, parseCanvaUrl, onSlidesReady]);
 
   // PDF 파일 처리
   const handlePdfUpload = useCallback(async (file: File) => {
@@ -261,10 +299,14 @@ export function SlideUploader({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SlideSourceType)}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="google-slides" disabled={isUploading}>
               <Link className="w-4 h-4 mr-2" />
               Google Slides
+            </TabsTrigger>
+            <TabsTrigger value="canva" disabled={isUploading}>
+              <Palette className="w-4 h-4 mr-2" />
+              Canva
             </TabsTrigger>
             <TabsTrigger value="pdf" disabled={isUploading}>
               <FileImage className="w-4 h-4 mr-2" />
@@ -296,6 +338,40 @@ export function SlideUploader({
               <Button
                 onClick={handleGoogleSlidesSubmit}
                 disabled={!googleSlidesUrl || isUploading}
+                className="w-full"
+              >
+                {uploadState.status === 'complete' ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    연결 완료
+                  </>
+                ) : (
+                  '연결하기'
+                )}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Canva Tab */}
+          <TabsContent value="canva" className="mt-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="canva-url">Canva URL</Label>
+                <Input
+                  id="canva-url"
+                  type="url"
+                  placeholder="https://www.canva.com/design/..."
+                  value={canvaUrl}
+                  onChange={(e) => setCanvaUrl(e.target.value)}
+                  disabled={isUploading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Canva 프레젠테이션 공유 링크를 입력하세요. 공유 → 링크 복사
+                </p>
+              </div>
+              <Button
+                onClick={handleCanvaSubmit}
+                disabled={!canvaUrl || isUploading}
                 className="w-full"
               >
                 {uploadState.status === 'complete' ? (

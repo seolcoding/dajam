@@ -245,6 +245,17 @@ const apps = [
     category: 'utility',
     isNew: true,
   },
+  {
+    name: 'Audience Engage',
+    path: '/audience-engage',
+    icon: Users,
+    color: 'from-dajaem-green to-dajaem-teal',
+    description: '프레젠테이션 인터랙션',
+    category: 'utility',
+    popular: true,
+    isNew: true,
+    trending: true,
+  },
 ];
 
 function AppCard({

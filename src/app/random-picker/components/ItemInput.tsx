@@ -37,6 +37,7 @@ export const ItemInput: React.FC<ItemInputProps> = ({ onAdd, disabled }) => {
         size="icon"
         disabled={disabled || !input.trim()}
         className="bg-purple-600 hover:bg-purple-700 text-white"
+        aria-label="항목 추가"
       >
         <Plus className="h-4 w-4" />
       </Button>

@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Check, BarChart3 } from 'lucide-react';
-import { useSupabase } from '@/hooks/useSupabase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { PlusCircle } from 'lucide-react';
+import { useSessionElements } from '@/lib/realtime/hooks/useSessionElements';
+import { PollResponse } from '../elements/poll/PollResponse';
+import { PollResults } from '../elements/poll/PollResults';
+import type { SessionElement } from '@/types/database';
 
 export interface VoteSceneProps {
   sessionId: string;
@@ -16,172 +15,54 @@ export interface VoteSceneProps {
   participantName?: string;
 }
 
-interface VoteOption {
-  id: string;
-  text: string;
-  votes: number;
-}
-
-interface VoteState {
-  question: string;
-  options: VoteOption[];
-  isActive: boolean;
-  showResults: boolean;
-  totalVotes: number;
-}
-
 /**
- * VoteScene - Live Voting wrapper for audience-engage
+ * VoteScene - V2 Poll Element를 사용하는 투표 씬
+ *
+ * Phase 4 V2 아키텍처 통합:
+ * - session_elements 테이블의 poll 타입 element 사용
+ * - element_responses 테이블로 투표 저장
+ * - element_aggregates 테이블로 실시간 집계
  */
 export function VoteScene({
   sessionId,
   isHost,
   participantId,
+  participantName,
 }: VoteSceneProps) {
-  const supabase = useSupabase();
-  const [state, setState] = useState<VoteState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
+  // V2 Element 훅 사용
+  const {
+    elements,
+    activeElement,
+    isLoading,
+    createElement,
+  } = useSessionElements({
+    sessionId,
+  });
 
-  // Load session state
-  useEffect(() => {
-    if (!supabase || !sessionId) return;
+  // poll 타입 element 찾기
+  const pollElement = activeElement?.element_type === 'poll'
+    ? activeElement
+    : elements.find((e) => e.element_type === 'poll');
 
-    const loadState = async () => {
-      setIsLoading(true);
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any)
-          .from('vote_sessions')
-          .select('*')
-          .eq('session_id', sessionId)
-          .single();
+  // 새 투표 생성 (호스트)
+  const handleCreatePoll = async () => {
+    await createElement({
+      session_id: sessionId,
+      element_type: 'poll',
+      title: '새 투표',
+      config: {
+        type: 'single',
+        options: [
+          { id: 'opt-1', text: '옵션 1' },
+          { id: 'opt-2', text: '옵션 2' },
+        ],
+        allowAnonymous: true,
+        showResultsLive: true,
+      },
+    });
+  };
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Failed to load vote state:', error);
-        }
-
-        if (data) {
-          const totalVotes = data.options?.reduce(
-            (sum: number, opt: VoteOption) => sum + (opt.votes || 0),
-            0
-          ) || 0;
-
-          setState({
-            question: data.question || '투표해주세요',
-            options: data.options || [],
-            isActive: data.is_active ?? true,
-            showResults: data.show_results ?? false,
-            totalVotes,
-          });
-
-          // Check if participant already voted
-          if (participantId) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { data: voteData } = await (supabase as any)
-              .from('vote_submissions')
-              .select('option_id')
-              .eq('session_id', sessionId)
-              .eq('participant_id', participantId)
-              .single();
-
-            if (voteData) {
-              setSelectedOption(voteData.option_id);
-              setHasVoted(true);
-            }
-          }
-        } else {
-          // Default state
-          setState({
-            question: '투표해주세요',
-            options: [],
-            isActive: true,
-            showResults: false,
-            totalVotes: 0,
-          });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadState();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel(`vote:${sessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'vote_sessions',
-          filter: `session_id=eq.${sessionId}`,
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (payload: any) => {
-          if (payload.new) {
-            const data = payload.new;
-            const totalVotes = data.options?.reduce(
-              (sum: number, opt: VoteOption) => sum + (opt.votes || 0),
-              0
-            ) || 0;
-
-            setState({
-              question: data.question || '투표해주세요',
-              options: data.options || [],
-              isActive: data.is_active ?? true,
-              showResults: data.show_results ?? false,
-              totalVotes,
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, sessionId, participantId]);
-
-  // Submit vote (participant)
-  const handleVote = useCallback(
-    async (optionId: string) => {
-      if (!supabase || !participantId || hasVoted || !state?.isActive) return;
-
-      setSelectedOption(optionId);
-      setHasVoted(true);
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from('vote_submissions').insert({
-        session_id: sessionId,
-        participant_id: participantId,
-        option_id: optionId,
-      });
-
-      // Increment vote count (use RPC for atomic update)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).rpc('increment_vote', {
-        p_session_id: sessionId,
-        p_option_id: optionId,
-      });
-    },
-    [supabase, sessionId, participantId, hasVoted, state?.isActive]
-  );
-
-  // Toggle results visibility (host)
-  const handleToggleResults = useCallback(async () => {
-    if (!supabase || !isHost) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any)
-      .from('vote_sessions')
-      .update({ show_results: !state?.showResults })
-      .eq('session_id', sessionId);
-  }, [supabase, sessionId, isHost, state?.showResults]);
-
-  // Loading state
+  // 로딩 상태
   if (isLoading) {
     return (
       <Card className="h-full flex items-center justify-center">
@@ -192,97 +73,52 @@ export function VoteScene({
     );
   }
 
-  // No data
-  if (!state || state.options.length === 0) {
+  // Poll element가 없는 경우
+  if (!pollElement) {
     return (
       <Card className="h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50">
         <CardContent className="text-center">
           <p className="text-4xl mb-4">📊</p>
           <p className="text-xl font-semibold mb-2">실시간 투표</p>
           <p className="text-muted-foreground mb-4">
-            {isHost ? '투표를 설정하세요' : '투표가 시작되면 참여할 수 있습니다'}
+            {isHost ? '투표를 만들어 시작하세요' : '투표가 시작되면 참여할 수 있습니다'}
           </p>
-          {isHost && <Button variant="outline">투표 만들기</Button>}
+          {isHost && (
+            <Button onClick={handleCreatePoll}>
+              <PlusCircle className="w-4 h-4 mr-2" />
+              투표 만들기
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
   }
 
-  const showResults = isHost || state.showResults || hasVoted;
+  // 호스트: 결과 뷰
+  if (isHost) {
+    return (
+      <div className="h-full flex flex-col p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <PollResults
+          element={pollElement}
+          sessionId={sessionId}
+          showControls={true}
+          className="flex-1"
+        />
+      </div>
+    );
+  }
 
+  // 참여자: 투표 뷰
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">{state.question}</h2>
-        {isHost && (
-          <Button variant="outline" size="sm" onClick={handleToggleResults}>
-            <BarChart3 className="w-4 h-4 mr-1" />
-            {state.showResults ? '결과 숨기기' : '결과 보기'}
-          </Button>
-        )}
-      </div>
-
-      {/* Total votes */}
-      <Badge variant="secondary" className="w-fit mb-4">
-        총 {state.totalVotes}표
-      </Badge>
-
-      {/* Options */}
-      <div className="flex-1 space-y-3 overflow-y-auto">
-        <AnimatePresence>
-          {state.options.map((option, index) => {
-            const percentage = state.totalVotes > 0
-              ? Math.round((option.votes / state.totalVotes) * 100)
-              : 0;
-            const isSelected = selectedOption === option.id;
-
-            return (
-              <motion.div
-                key={option.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <button
-                  onClick={() => handleVote(option.id)}
-                  disabled={hasVoted || !state.isActive}
-                  className={`
-                    w-full p-4 rounded-lg border-2 text-left transition-all
-                    ${isSelected
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
-                    }
-                    ${hasVoted || !state.isActive ? 'cursor-default' : 'cursor-pointer'}
-                  `}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">{option.text}</span>
-                    {isSelected && <Check className="w-5 h-5 text-blue-500" />}
-                  </div>
-
-                  {showResults && (
-                    <>
-                      <Progress value={percentage} className="h-2 mb-1" />
-                      <div className="flex justify-between text-sm text-muted-foreground">
-                        <span>{option.votes}표</span>
-                        <span>{percentage}%</span>
-                      </div>
-                    </>
-                  )}
-                </button>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      {/* Status */}
-      {!state.isActive && (
-        <div className="text-center py-4 text-muted-foreground">
-          투표가 종료되었습니다
-        </div>
-      )}
+    <div className="h-full flex flex-col p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
+      <PollResponse
+        element={pollElement}
+        sessionId={sessionId}
+        participantId={participantId}
+        displayName={participantName}
+        showResultsAfterVote={true}
+        className="flex-1"
+      />
     </div>
   );
 }

@@ -1,0 +1,52 @@
+{
+  "testSlides": {
+    "googleSlides": {
+      "editUrl": "https://docs.google.com/presentation/d/1mmlpfQ9RB8CUPTiMVzoUYQYmZBTN8FQmQEYb1HXnADs/edit?usp=sharing",
+      "embedUrl": "https://docs.google.com/presentation/d/e/2PACX-1vQz2K8P9C2F0l0uLV_5pZ1HjGg4oTJX6KjN8a0Y9M3W2X1V0qR4S5T6U7I8O/embed?start=false&loop=false&delayms=3000",
+      "publicUrl": "https://docs.google.com/presentation/d/1mmlpfQ9RB8CUPTiMVzoUYQYmZBTN8FQmQEYb1HXnADs/pub?start=false&loop=false&delayms=3000",
+      "slideCount": 5,
+      "title": "테스트 프레젠테이션 - Google Slides (실제)"
+    },
+    "canva": {
+      "editUrl": "https://www.canva.com/design/DAG6-CRR1B8/B-dazNvG8J6xKEhNODuJWA/edit?utm_content=DAG6-CRR1B8&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton",
+      "embedUrl": "https://www.canva.com/design/DAG6-CRR1B8/view?embed",
+      "viewUrl": "https://www.canva.com/design/DAG6-CRR1B8/view",
+      "slideCount": 3,
+      "title": "테스트 프레젠테이션 - Canva (실제)"
+    },
+    "localPdf": {
+      "filename": "test-presentation.pdf",
+      "path": "e2e/fixtures/presentation/test-presentation.pdf",
+      "pageCount": 4,
+      "title": "테스트 PDF 프레젠테이션"
+    },
+    "localPptx": {
+      "filename": "test-presentation.pptx",
+      "path": "e2e/fixtures/presentation/test-presentation.pptx",
+      "slideCount": 6,
+      "title": "테스트 PowerPoint 프레젠테이션"
+    }
+  },
+  "testParticipants": [
+    { "name": "참여자A", "device": "mobile", "viewport": { "width": 375, "height": 812 } },
+    { "name": "참여자B", "device": "mobile", "viewport": { "width": 390, "height": 844 } },
+    { "name": "참여자C", "device": "desktop", "viewport": { "width": 1920, "height": 1080 } },
+    { "name": "참여자D", "device": "tablet", "viewport": { "width": 768, "height": 1024 } }
+  ],
+  "testInteractions": {
+    "questions": [
+      "발표 내용 중 가장 중요한 포인트가 무엇인가요?",
+      "실제 적용 사례가 있나요?",
+      "예상되는 어려움은 무엇인가요?",
+      "다음 단계는 어떻게 되나요?"
+    ],
+    "chatMessages": [
+      "안녕하세요! 잘 들리고 있습니다",
+      "화면 공유 잘 보입니다",
+      "좋은 발표 감사합니다",
+      "질문 있습니다!"
+    ],
+    "reactions": ["thumbsUp", "heart", "laugh", "clap", "party"],
+    "pollOptions": ["옵션 A", "옵션 B", "옵션 C"]
+  }
+}

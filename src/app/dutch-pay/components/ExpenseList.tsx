@@ -82,6 +82,7 @@ export function ExpenseList() {
                           <button
                             onClick={() => removeExpense(expense.id)}
                             className="p-2 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                            aria-label={`${expense.name} 삭제`}
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>

@@ -35,6 +35,23 @@ export default function AudienceEngageApp() {
   // Session title for creation
   const [sessionTitle, setSessionTitle] = useState('');
 
+  // E2E 테스트를 위한 전역 API 노출 (테스트 환경에서만)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).__TEST_API__ = {
+        setSessionTitle,
+        getSessionTitle: () => sessionTitle,
+      };
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (window as any).__TEST_API__;
+      }
+    };
+  }, [sessionTitle]);
+
   // 6자리 코드가 입력되면 세션을 미리 로드
   const shouldPreloadSession = joinCodeInput.length === 6 && viewMode === 'home';
 

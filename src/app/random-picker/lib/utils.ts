@@ -1,6 +1,11 @@
 import type { WheelItem } from "../types";
 
 /**
+ * 브라우저 환경인지 확인
+ */
+const isBrowser = typeof window !== 'undefined';
+
+/**
  * HSL 색상환을 균등 분할하여 색상 생성 (Golden Angle 사용)
  */
 export function generateColor(index: number): string {
@@ -33,6 +38,7 @@ export function getCurrentIndex(rotation: number, itemCount: number): number {
  */
 export const storage = {
   getItems: (): WheelItem[] => {
+    if (!isBrowser) return [];
     const data = localStorage.getItem("wheel-items");
     if (!data) return [];
     try {
@@ -43,10 +49,12 @@ export const storage = {
   },
 
   saveItems: (items: WheelItem[]) => {
+    if (!isBrowser) return;
     localStorage.setItem("wheel-items", JSON.stringify(items));
   },
 
   getHistory: () => {
+    if (!isBrowser) return [];
     const data = localStorage.getItem("wheel-history");
     if (!data) return [];
     try {
@@ -57,10 +65,12 @@ export const storage = {
   },
 
   saveHistory: (history: any[]) => {
+    if (!isBrowser) return;
     localStorage.setItem("wheel-history", JSON.stringify(history));
   },
 
   clearHistory: () => {
+    if (!isBrowser) return;
     localStorage.removeItem("wheel-history");
   },
 };

@@ -26,7 +26,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" aria-label="설정">
           <Settings className="h-4 w-4" />
         </Button>
       </DialogTrigger>

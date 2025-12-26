@@ -9,9 +9,15 @@ const STORAGE_KEYS = {
 } as const
 
 /**
+ * 브라우저 환경인지 확인
+ */
+const isBrowser = typeof window !== 'undefined';
+
+/**
  * localStorage에 데이터 저장
  */
 export function saveToStorage<T>(key: string, data: T): void {
+  if (!isBrowser) return;
   try {
     localStorage.setItem(key, JSON.stringify(data))
   } catch (error) {
@@ -23,6 +29,7 @@ export function saveToStorage<T>(key: string, data: T): void {
  * localStorage에서 데이터 불러오기
  */
 export function loadFromStorage<T>(key: string, defaultValue: T): T {
+  if (!isBrowser) return defaultValue;
   try {
     const item = localStorage.getItem(key)
     if (!item) return defaultValue
@@ -44,6 +51,7 @@ export function loadFromStorage<T>(key: string, defaultValue: T): T {
  * localStorage에서 데이터 삭제
  */
 export function removeFromStorage(key: string): void {
+  if (!isBrowser) return;
   try {
     localStorage.removeItem(key)
   } catch (error) {

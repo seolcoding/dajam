@@ -25,7 +25,7 @@ export const HistoryPanel: React.FC<HistoryPanelProps> = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" aria-label="히스토리">
           <History className="h-4 w-4" />
         </Button>
       </DialogTrigger>

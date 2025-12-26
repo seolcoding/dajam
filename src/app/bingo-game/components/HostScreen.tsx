@@ -83,11 +83,16 @@ export function HostScreen() {
     return () => clearInterval(timer);
   }, [autoCallEnabled, autoCallInterval, randomCall, soundEnabled]);
 
-  const handleCopyCode = () => {
+  const handleCopyCode = async () => {
     if (gameCode) {
-      navigator.clipboard.writeText(gameCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(gameCode);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // 클립보드 API 실패 시 폴백
+        console.warn('Clipboard API not available');
+      }
     }
   };
 

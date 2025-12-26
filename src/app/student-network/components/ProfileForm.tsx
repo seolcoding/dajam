@@ -129,8 +129,9 @@ export const ProfileForm: React.FC<{ onComplete: () => void }> = ({ onComplete }
 
       {/* 전공/분야 */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">전공/분야 *</label>
+        <label htmlFor="field-select" className="block text-sm font-medium text-gray-700 mb-2">전공/분야 *</label>
         <select
+          id="field-select"
           required
           value={formData.field}
           onChange={(e) => setFormData({ ...formData, field: e.target.value })}
@@ -165,6 +166,7 @@ export const ProfileForm: React.FC<{ onComplete: () => void }> = ({ onComplete }
                   type="button"
                   onClick={() => handleRemoveInterest(interest)}
                   className="hover:opacity-80 transition-opacity"
+                  aria-label={`${interest} 삭제`}
                 >
                   ✕
                 </button>

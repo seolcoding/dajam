@@ -16,7 +16,7 @@ export type SceneType =
   | 'balance-game';
 
 // 슬라이드 소스 타입
-export type SlideSourceType = 'google-slides' | 'pdf' | 'images';
+export type SlideSourceType = 'google-slides' | 'canva' | 'pdf' | 'images';
 
 // 프레젠테이션 상태
 export type PresentationStatus = 'processing' | 'ready' | 'error';

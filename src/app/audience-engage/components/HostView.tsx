@@ -26,6 +26,7 @@ import SceneManager from './SceneManager';
 import SlideUploader, { type UploadedSlide } from './SlideUploader';
 import SlideViewer from './SlideViewer';
 import GoogleSlidesEmbed from './GoogleSlidesEmbed';
+import EmbedViewer from './EmbedViewer';
 import PresenterNotes from './PresenterNotes';
 import SessionAnalytics from './SessionAnalytics';
 import TemplateManager from './TemplateManager';
@@ -92,10 +93,18 @@ export default function HostView({
     setUploadedSlides(slides);
     setShowUploader(false);
 
-    // Check if it's a Google Slides embed URL
-    if (slides.length === 1 && slides[0].imageUrl.includes('docs.google.com')) {
-      setSlideSourceType('google-slides');
-      setGoogleSlidesUrl(slides[0].imageUrl);
+    // Check if it's an embed URL (Google Slides or Canva)
+    if (slides.length === 1) {
+      const url = slides[0].imageUrl;
+      if (url.includes('docs.google.com')) {
+        setSlideSourceType('google-slides');
+        setGoogleSlidesUrl(url);
+      } else if (url.includes('canva.com')) {
+        setSlideSourceType('canva');
+        setGoogleSlidesUrl(url); // 같은 state 재사용 (embedUrl로)
+      } else {
+        setSlideSourceType('images');
+      }
     } else {
       setSlideSourceType('images');
     }
@@ -291,9 +300,10 @@ export default function HostView({
               /* Show slides */
               <Card className="overflow-hidden">
                 <div className="aspect-video bg-slate-100">
-                  {slideSourceType === 'google-slides' && googleSlidesUrl ? (
-                    <GoogleSlidesEmbed
+                  {(slideSourceType === 'google-slides' || slideSourceType === 'canva') && googleSlidesUrl ? (
+                    <EmbedViewer
                       embedUrl={googleSlidesUrl}
+                      sourceType={slideSourceType}
                       isHost={true}
                       slideIndex={activeScene.slideIndex || 0}
                       onSlideChange={goToSlide}

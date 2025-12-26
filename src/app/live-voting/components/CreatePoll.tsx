@@ -1,22 +1,115 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { nanoid } from 'nanoid';
 import { Plus, X, Cloud, Monitor } from 'lucide-react';
 import type { Poll, PollType } from '../types/poll';
+import type { Json } from '@/types/database';
+import type { PollElementConfig, PollOption } from '@/lib/elements/types';
 import { savePoll } from '../utils/storage';
-import { useSupabasePoll } from '../hooks/useSupabasePoll';
+import { useSupabase } from '@/hooks/useSupabase';
+
+// 옵션 색상 가져오기
+function getOptionColor(index: number): string {
+  const colors = [
+    '#3B82F6', // blue
+    '#8B5CF6', // purple
+    '#22C55E', // green
+    '#F97316', // orange
+    '#EC4899', // pink
+    '#06B6D4', // cyan
+    '#6366F1', // indigo
+    '#14B8A6', // teal
+  ];
+  return colors[index % colors.length];
+}
 
 export function CreatePoll() {
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabase = useSupabase() as any;
   const [title, setTitle] = useState('');
   const [type, setType] = useState<PollType>('single');
   const [options, setOptions] = useState(['', '']);
   const [isCloudMode, setIsCloudMode] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { createCloudPoll } = useSupabasePoll({ pollId: '', enabled: false });
+  /**
+   * 클라우드 세션 및 Poll Element 생성
+   * V2 아키텍처: session + session_elements 사용
+   */
+  const createCloudSession = useCallback(
+    async (poll: Poll): Promise<string | null> => {
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+
+        // 1. 세션 생성
+        const { data: sessionData, error: sessionError } = await supabase
+          .from('sessions')
+          .insert({
+            code: poll.id.toUpperCase(),
+            app_type: 'live-voting',
+            title: poll.title,
+            host_id: userData.user?.id || null,
+            config: {}, // V2: config는 element에서 관리
+            is_active: true,
+            is_public: true,
+            expires_at: poll.expiresAt?.toISOString() || null,
+          })
+          .select()
+          .single();
+
+        if (sessionError || !sessionData) {
+          console.error('[CreatePoll] Session creation failed:', sessionError);
+          return null;
+        }
+
+        // 2. Poll Element 생성 (V2 아키텍처)
+        const elementConfig: PollElementConfig = {
+          type: poll.type,
+          options: poll.options.map((text, index) => ({
+            id: `option-${index}`,
+            text,
+            color: getOptionColor(index),
+          })),
+          allowAnonymous: poll.allowAnonymous,
+          showResultsLive: true,
+        };
+
+        const { data: elementData, error: elementError } = await supabase
+          .from('session_elements')
+          .insert({
+            session_id: sessionData.id,
+            element_type: 'poll',
+            title: poll.title,
+            config: elementConfig as unknown as Json,
+            state: { status: 'active' } as unknown as Json,
+            order_index: 0,
+            is_active: true,
+          })
+          .select()
+          .single();
+
+        if (elementError) {
+          console.error('[CreatePoll] Element creation failed:', elementError);
+          // 세션은 생성되었으므로 계속 진행 (element 없이도 동작 가능)
+        } else {
+          // 3. Element를 active로 설정
+          await supabase
+            .from('sessions')
+            .update({ active_element_id: elementData.id })
+            .eq('id', sessionData.id);
+        }
+
+        return sessionData.id;
+      } catch (err) {
+        console.error('[CreatePoll] Cloud session creation failed:', err);
+        return null;
+      }
+    },
+    [supabase]
+  );
 
   const addOption = () => {
     if (options.length < 10) {
@@ -59,9 +152,9 @@ export function CreatePoll() {
     // 로컬에 항상 저장 (폴백용)
     savePoll(poll);
 
-    // 클라우드 모드일 때 Supabase에도 저장
+    // 클라우드 모드일 때 Supabase에 세션 및 Element 생성
     if (isCloudMode) {
-      const sessionId = await createCloudPoll(poll);
+      const sessionId = await createCloudSession(poll);
       if (!sessionId) {
         alert('클라우드 모드 생성에 실패했습니다. 로컬 모드로 계속합니다.');
         poll.isCloudMode = false;

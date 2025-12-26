@@ -67,6 +67,7 @@ export const ItemList: React.FC<ItemListProps> = ({
                   variant="ghost"
                   onClick={() => saveEdit(item.id)}
                   className="hover:bg-gray-200 text-green-600"
+                  aria-label="저장"
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -75,6 +76,7 @@ export const ItemList: React.FC<ItemListProps> = ({
                   variant="ghost"
                   onClick={cancelEdit}
                   className="hover:bg-gray-200 text-gray-600"
+                  aria-label="취소"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -90,6 +92,7 @@ export const ItemList: React.FC<ItemListProps> = ({
                   onClick={() => startEdit(item)}
                   disabled={disabled}
                   className="hover:bg-gray-200 text-gray-600"
+                  aria-label={`${item.label} 수정`}
                 >
                   <Edit2 className="h-4 w-4" />
                 </Button>
@@ -99,6 +102,7 @@ export const ItemList: React.FC<ItemListProps> = ({
                   onClick={() => onRemove(item.id)}
                   disabled={disabled}
                   className="hover:bg-gray-200 text-red-600"
+                  aria-label={`${item.label} 삭제`}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

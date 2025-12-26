@@ -57,7 +57,9 @@ test.describe('Ladder Game', () => {
 
   test('should reset game', async () => {
     const participants = ['김철수', '이영희'];
+    const results = ['A', 'B'];
     await ladderPage.enterParticipants(participants);
+    await ladderPage.enterResults(results);
     await ladderPage.generateLadder();
 
     await ladderPage.reset();

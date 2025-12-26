@@ -157,11 +157,13 @@ export function GamePlay() {
               disabled={showFeedback}
               className="flex-1 text-lg py-6"
               autoComplete="off"
+              aria-label="정답 입력"
             />
             <Button
               type="submit"
               disabled={!userAnswer.trim() || showFeedback}
               className="px-6 bg-blue-600 hover:bg-blue-700 text-white"
+              aria-label="제출"
             >
               <ArrowRight className="w-5 h-5" />
             </Button>

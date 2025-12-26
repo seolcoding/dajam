@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { nanoid } from 'nanoid';
 import Confetti from 'react-confetti';
-import { Check, ArrowUp, ArrowDown, Zap, Cloud } from 'lucide-react';
+import { Check, ArrowUp, ArrowDown, Zap, Cloud, AlertCircle, Lock } from 'lucide-react';
 import type { Poll, Vote } from '../types/poll';
 import { loadPoll, saveVote } from '../utils/storage';
 import { hasVoted, markAsVoted } from '../utils/voteValidator';
 import { useBroadcastChannel } from '../hooks/useBroadcastChannel';
-import { useSupabasePoll } from '../hooks/useSupabasePoll';
+import { useLiveVotingElement } from '../hooks/useLiveVotingElement';
+import { cn } from '@/lib/utils';
 
 interface VoteViewProps {
   pollId: string;
@@ -17,20 +18,32 @@ interface VoteViewProps {
 
 export function VoteView({ pollId }: VoteViewProps) {
   const router = useRouter();
-  const [poll, setPoll] = useState<Poll | null>(null);
+  const [localPoll, setLocalPoll] = useState<Poll | null>(null);
   const [selection, setSelection] = useState<number | number[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [rankingOrder, setRankingOrder] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { broadcast } = useBroadcastChannel(`poll:${pollId}`, () => {});
 
-  // Supabase cloud mode hook
+  // useLiveVotingElement 훅 사용 (V2 element_responses 기반)
   const {
     poll: cloudPoll,
-    submitVote: submitCloudVote,
-    isLoading: cloudLoading,
+    status,
+    hasVoted: cloudHasVoted,
+    isLoading,
+    error,
     sessionId,
-  } = useSupabasePoll({ pollId, enabled: true });
+    mode,
+    submitVote: submitCloudVote,
+    joinAsParticipant,
+  } = useLiveVotingElement({
+    sessionCode: pollId,
+    enabled: true,
+    isHost: false,
+  });
+
+  const isCloudMode = mode === 'cloud' && cloudPoll !== null;
+  const poll = cloudPoll || localPoll;
 
   useEffect(() => {
     if (!pollId) {
@@ -38,27 +51,33 @@ export function VoteView({ pollId }: VoteViewProps) {
       return;
     }
 
-    // 클라우드 poll이 있으면 사용, 없으면 로컬 poll 사용
+    // 클라우드 poll이 있으면 사용
     if (cloudPoll) {
-      setPoll(cloudPoll);
       if (cloudPoll.type === 'ranking') {
         setRankingOrder(cloudPoll.options.map((_, i) => i));
+      }
+      // 이미 투표했는지 확인
+      if (cloudHasVoted) {
+        setSubmitted(true);
       }
       return;
     }
 
     // 클라우드 로딩 중이면 대기
-    if (cloudLoading) return;
+    if (isLoading) return;
 
     // 클라우드에 없으면 로컬에서 로드
     const pollData = loadPoll(pollId);
     if (!pollData) {
-      alert('투표를 찾을 수 없습니다.');
+      // 에러가 있으면 에러 메시지 표시, 없으면 기본 메시지
+      if (!error) {
+        alert('투표를 찾을 수 없습니다.');
+      }
       router.push('/live-voting');
       return;
     }
 
-    setPoll(pollData);
+    setLocalPoll(pollData);
 
     // 순위 투표 초기화
     if (pollData.type === 'ranking') {
@@ -69,7 +88,7 @@ export function VoteView({ pollId }: VoteViewProps) {
     if (hasVoted(pollId)) {
       setSubmitted(true);
     }
-  }, [pollId, router, cloudPoll, cloudLoading]);
+  }, [pollId, router, cloudPoll, isLoading, cloudHasVoted, error]);
 
   const handleSingleSelect = (index: number) => {
     setSelection(index);
@@ -78,7 +97,7 @@ export function VoteView({ pollId }: VoteViewProps) {
   const handleMultipleSelect = (index: number) => {
     const sel = selection as number[];
     if (sel.includes(index)) {
-      setSelection(sel.filter(i => i !== index));
+      setSelection(sel.filter((i) => i !== index));
     } else {
       setSelection([...sel, index]);
     }
@@ -97,14 +116,28 @@ export function VoteView({ pollId }: VoteViewProps) {
   const handleSubmit = async () => {
     if (!poll || !pollId) return;
 
+    // 투표가 종료되었는지 확인
+    if (isCloudMode && status !== 'active') {
+      alert(status === 'closed' ? '투표가 종료되었습니다.' : '결과가 잠겨 있습니다.');
+      return;
+    }
+
+    // 이미 투표했는지 확인
+    if (isCloudMode && cloudHasVoted) {
+      alert('이미 투표하셨습니다.');
+      return;
+    }
+
     // 로컬 모드에서 중복 투표 체크
-    const isCloudMode = poll.isCloudMode || !!sessionId;
-    if (!isCloudMode && hasVoted(pollId)) return;
+    if (!isCloudMode && hasVoted(pollId)) {
+      alert('이미 투표하셨습니다.');
+      return;
+    }
 
     let finalSelection: number | number[];
 
     if (poll.type === 'single') {
-      if (selection === undefined || selection === null) {
+      if (selection === undefined || selection === null || (Array.isArray(selection) && selection.length === 0)) {
         alert('선택지를 선택해주세요.');
         return;
       }
@@ -121,18 +154,11 @@ export function VoteView({ pollId }: VoteViewProps) {
       finalSelection = rankingOrder;
     }
 
-    const vote: Vote = {
-      id: nanoid(),
-      pollId: poll.id,
-      selection: finalSelection,
-      timestamp: new Date(),
-    };
-
     setIsSubmitting(true);
 
-    // 클라우드 모드일 때 Supabase에 투표
+    // 클라우드 모드일 때 useLiveVoting 훅 사용
     if (isCloudMode) {
-      const success = await submitCloudVote(vote);
+      const success = await submitCloudVote(finalSelection);
       if (!success) {
         alert('투표 전송에 실패했습니다. 다시 시도해주세요.');
         setIsSubmitting(false);
@@ -140,25 +166,72 @@ export function VoteView({ pollId }: VoteViewProps) {
       }
     } else {
       // 로컬 모드: localStorage에 저장
+      const vote: Vote = {
+        id: nanoid(),
+        pollId: poll.id,
+        selection: finalSelection,
+        timestamp: new Date(),
+      };
       saveVote(vote);
 
       // BroadcastChannel로 호스트에게 알림
       broadcast({ type: 'NEW_VOTE', vote });
-    }
 
-    // 중복 투표 방지 마킹 (둘 다에서 사용)
-    markAsVoted(pollId);
+      // 중복 투표 방지 마킹
+      markAsVoted(pollId);
+    }
 
     setIsSubmitting(false);
     setSubmitted(true);
   };
 
-  if (!poll) {
+  if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!poll) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center bg-white rounded-2xl p-8 shadow-xl max-w-md">
+          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-2 text-gray-900">투표를 찾을 수 없습니다</h2>
+          <p className="text-gray-600 mb-6">{error || '투표 코드를 다시 확인해주세요.'}</p>
+          <button
+            onClick={() => router.push('/live-voting')}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all"
+          >
+            홈으로 돌아가기
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 투표 종료 또는 결과 잠금 상태 표시
+  if (isCloudMode && status !== 'active' && !submitted) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center bg-white rounded-2xl p-12 shadow-2xl max-w-md border border-gray-200">
+          <div className="w-20 h-20 mx-auto mb-6 bg-yellow-100 rounded-full flex items-center justify-center">
+            <Lock size={40} className="text-yellow-600" />
+          </div>
+          <h2 className="text-3xl font-bold mb-4 text-gray-900">
+            {status === 'closed' ? '투표가 종료되었습니다' : '결과가 잠겨 있습니다'}
+          </h2>
+          <p className="text-gray-600 text-lg mb-8">더 이상 투표를 받지 않습니다.</p>
+          <button
+            onClick={() => router.push('/live-voting')}
+            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold text-lg transition-all hover:scale-105 shadow-lg"
+          >
+            홈으로 돌아가기
+          </button>
         </div>
       </div>
     );
@@ -172,13 +245,20 @@ export function VoteView({ pollId }: VoteViewProps) {
           <div className="relative w-24 h-24 mx-auto mb-6">
             <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-20"></div>
             <div className="relative w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-              <Check size={48} className="text-white animate-in zoom-in duration-300" strokeWidth={3} />
+              <Check
+                size={48}
+                className="text-white animate-in zoom-in duration-300"
+                strokeWidth={3}
+              />
             </div>
           </div>
           <h2 className="text-4xl font-bold mb-4 text-gray-900">투표 완료!</h2>
           <p className="text-gray-600 text-lg mb-8 leading-relaxed">
-            참여해 주셔서 감사합니다.<br />
-            <span className="text-sm text-gray-500 mt-2 inline-block">실시간 결과는 호스트 화면에서 확인하세요</span>
+            참여해 주셔서 감사합니다.
+            <br />
+            <span className="text-sm text-gray-500 mt-2 inline-block">
+              실시간 결과는 호스트 화면에서 확인하세요
+            </span>
           </p>
           <button
             onClick={() => router.push('/live-voting')}
@@ -212,26 +292,61 @@ export function VoteView({ pollId }: VoteViewProps) {
         {poll.type !== 'ranking' && (
           <div className="space-y-3 mb-8">
             {poll.options.map((option, index) => {
-              const isSelected = poll.type === 'single'
-                ? selection === index
-                : (selection as number[]).includes(index);
+              const isSelected =
+                poll.type === 'single'
+                  ? selection === index
+                  : (selection as number[]).includes(index);
 
               const colorClasses = [
-                { border: 'border-blue-500', bg: 'bg-blue-50', checkbox: 'border-blue-500 bg-blue-500' },
-                { border: 'border-purple-500', bg: 'bg-purple-50', checkbox: 'border-purple-500 bg-purple-500' },
-                { border: 'border-green-500', bg: 'bg-green-50', checkbox: 'border-green-500 bg-green-500' },
-                { border: 'border-orange-500', bg: 'bg-orange-50', checkbox: 'border-orange-500 bg-orange-500' },
-                { border: 'border-pink-500', bg: 'bg-pink-50', checkbox: 'border-pink-500 bg-pink-500' },
-                { border: 'border-cyan-500', bg: 'bg-cyan-50', checkbox: 'border-cyan-500 bg-cyan-500' },
-                { border: 'border-indigo-500', bg: 'bg-indigo-50', checkbox: 'border-indigo-500 bg-indigo-500' },
-                { border: 'border-teal-500', bg: 'bg-teal-50', checkbox: 'border-teal-500 bg-teal-500' },
+                {
+                  border: 'border-blue-500',
+                  bg: 'bg-blue-50',
+                  checkbox: 'border-blue-500 bg-blue-500',
+                },
+                {
+                  border: 'border-purple-500',
+                  bg: 'bg-purple-50',
+                  checkbox: 'border-purple-500 bg-purple-500',
+                },
+                {
+                  border: 'border-green-500',
+                  bg: 'bg-green-50',
+                  checkbox: 'border-green-500 bg-green-500',
+                },
+                {
+                  border: 'border-orange-500',
+                  bg: 'bg-orange-50',
+                  checkbox: 'border-orange-500 bg-orange-500',
+                },
+                {
+                  border: 'border-pink-500',
+                  bg: 'bg-pink-50',
+                  checkbox: 'border-pink-500 bg-pink-500',
+                },
+                {
+                  border: 'border-cyan-500',
+                  bg: 'bg-cyan-50',
+                  checkbox: 'border-cyan-500 bg-cyan-500',
+                },
+                {
+                  border: 'border-indigo-500',
+                  bg: 'bg-indigo-50',
+                  checkbox: 'border-indigo-500 bg-indigo-500',
+                },
+                {
+                  border: 'border-teal-500',
+                  bg: 'bg-teal-50',
+                  checkbox: 'border-teal-500 bg-teal-500',
+                },
               ];
               const colorClass = colorClasses[index % colorClasses.length];
 
               return (
                 <button
                   key={index}
-                  onClick={() => poll.type === 'single' ? handleSingleSelect(index) : handleMultipleSelect(index)}
+                  onClick={() =>
+                    poll.type === 'single' ? handleSingleSelect(index) : handleMultipleSelect(index)
+                  }
                   className={`group w-full p-5 border-2 rounded-xl text-left transition-all duration-200 text-lg font-medium ${
                     isSelected
                       ? `${colorClass.border} ${colorClass.bg} shadow-lg scale-[1.02]`
@@ -239,11 +354,13 @@ export function VoteView({ pollId }: VoteViewProps) {
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
-                      isSelected
-                        ? `${colorClass.checkbox} shadow-md`
-                        : 'border-gray-400 group-hover:border-gray-500'
-                    }`}>
+                    <div
+                      className={`flex-shrink-0 w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? `${colorClass.checkbox} shadow-md`
+                          : 'border-gray-400 group-hover:border-gray-500'
+                      }`}
+                    >
                       {isSelected && <Check size={18} className="text-white" strokeWidth={3} />}
                     </div>
                     <span className="text-gray-900">{option}</span>
@@ -259,14 +376,22 @@ export function VoteView({ pollId }: VoteViewProps) {
           <div className="space-y-3 mb-8">
             {rankingOrder.map((optionIndex, position) => {
               const rankColors = [
-                'bg-yellow-500', 'bg-gray-400', 'bg-orange-600',
-                'bg-blue-500', 'bg-purple-500', 'bg-green-500',
-                'bg-pink-500', 'bg-cyan-500'
+                'bg-yellow-500',
+                'bg-gray-400',
+                'bg-orange-600',
+                'bg-blue-500',
+                'bg-purple-500',
+                'bg-green-500',
+                'bg-pink-500',
+                'bg-cyan-500',
               ];
               const rankColor = rankColors[position] || 'bg-gray-500';
 
               return (
-                <div key={optionIndex} className="flex items-center gap-3 animate-in fade-in duration-300">
+                <div
+                  key={optionIndex}
+                  className="flex items-center gap-3 animate-in fade-in duration-300"
+                >
                   <div className="flex flex-col gap-1">
                     <button
                       onClick={() => moveRankingItem(position, 'up')}
@@ -285,10 +410,14 @@ export function VoteView({ pollId }: VoteViewProps) {
                   </div>
                   <div className="flex-1 p-5 border-2 border-gray-300 rounded-xl bg-white shadow-md hover:shadow-lg transition-all">
                     <div className="flex items-center gap-4">
-                      <div className={`flex-shrink-0 w-10 h-10 ${rankColor} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md`}>
+                      <div
+                        className={`flex-shrink-0 w-10 h-10 ${rankColor} text-white rounded-full flex items-center justify-center font-bold text-lg shadow-md`}
+                      >
                         {position + 1}
                       </div>
-                      <span className="text-lg font-medium text-gray-900">{poll.options[optionIndex]}</span>
+                      <span className="text-lg font-medium text-gray-900">
+                        {poll.options[optionIndex]}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -298,7 +427,7 @@ export function VoteView({ pollId }: VoteViewProps) {
         )}
 
         {/* 클라우드 모드 표시 */}
-        {(poll.isCloudMode || sessionId) && (
+        {isCloudMode && (
           <div className="mb-4 flex items-center justify-center gap-2 text-blue-600 bg-blue-50 py-2 px-4 rounded-lg">
             <Cloud size={16} />
             <span className="text-sm font-medium">크로스 디바이스 투표</span>

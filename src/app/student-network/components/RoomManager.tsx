@@ -84,6 +84,7 @@ export const RoomManager: React.FC<RoomManagerProps> = ({
             onChange={(e) => setNewRoomName(e.target.value)}
             placeholder="교실 이름 (예: React 부트캠프 2기)"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all"
+            aria-label="교실 이름"
           />
           <div className="flex gap-3">
             <Button
@@ -126,6 +127,7 @@ export const RoomManager: React.FC<RoomManagerProps> = ({
             placeholder="코드 입력 (로컬 6자리 / 클라우드 6자리 이상)"
             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none transition-all
                        font-mono text-xl tracking-widest uppercase"
+            aria-label="참여 코드"
           />
           <Button
             onClick={handleJoinRoom}

@@ -1,6 +1,11 @@
 import type { Poll, Vote } from '../types/poll';
 
 /**
+ * 브라우저 환경인지 확인
+ */
+const isBrowser = typeof window !== 'undefined';
+
+/**
  * LocalStorage 키 관리
  */
 export const STORAGE_KEYS = {
@@ -14,6 +19,7 @@ export const STORAGE_KEYS = {
  * Poll 저장
  */
 export function savePoll(poll: Poll): void {
+  if (!isBrowser) return;
   localStorage.setItem(STORAGE_KEYS.poll(poll.id), JSON.stringify(poll));
 
   // 내 투표 목록에 추가
@@ -26,6 +32,7 @@ export function savePoll(poll: Poll): void {
  * Poll 로드
  */
 export function loadPoll(pollId: string): Poll | null {
+  if (!isBrowser) return null;
   const data = localStorage.getItem(STORAGE_KEYS.poll(pollId));
   if (!data) return null;
 
@@ -41,6 +48,7 @@ export function loadPoll(pollId: string): Poll | null {
  * Vote 저장
  */
 export function saveVote(vote: Vote): void {
+  if (!isBrowser) return;
   const votesKey = STORAGE_KEYS.votes(vote.pollId);
   const votes = JSON.parse(localStorage.getItem(votesKey) || '[]');
   votes.push(vote);
@@ -51,6 +59,7 @@ export function saveVote(vote: Vote): void {
  * Votes 로드
  */
 export function loadVotes(pollId: string): Vote[] {
+  if (!isBrowser) return [];
   const data = localStorage.getItem(STORAGE_KEYS.votes(pollId));
   if (!data) return [];
 
@@ -65,5 +74,6 @@ export function loadVotes(pollId: string): Vote[] {
  * 내가 생성한 투표 목록
  */
 export function getMyPolls(): string[] {
+  if (!isBrowser) return [];
   return JSON.parse(localStorage.getItem(STORAGE_KEYS.myPolls) || '[]');
 }

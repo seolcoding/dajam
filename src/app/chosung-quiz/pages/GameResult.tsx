@@ -26,20 +26,24 @@ export function GameResult() {
   const handleShare = async () => {
     const text = `초성 퀴즈 결과\n카테고리: ${categoryLabels[gameConfig?.category || 'movie']}\n최종 점수: ${score}점\n정답: ${correctCount}/${totalQuestions}\n정답률: ${accuracy}%`;
 
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: '초성 퀴즈 결과',
           text: text,
-          url: window.location.href
+          url: typeof window !== 'undefined' ? window.location.href : ''
         });
-      } catch (err) {
+      } catch {
         // User cancelled share
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(text);
-      alert('결과가 클립보드에 복사되었습니다!');
+      try {
+        await navigator.clipboard.writeText(text);
+        alert('결과가 클립보드에 복사되었습니다!');
+      } catch {
+        // 클립보드 API 실패 시 무시
+      }
     }
   };
 

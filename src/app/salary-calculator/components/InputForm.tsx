@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { NumberInput } from '@/components/ui/number-input';
 import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Tooltip,
   TooltipContent,
@@ -66,58 +66,56 @@ export function InputForm() {
               <TabsTrigger value="annual">연봉</TabsTrigger>
               <TabsTrigger value="monthly">월급</TabsTrigger>
             </TabsList>
+
+            {/* 연봉 입력 */}
+            <TabsContent value="annual" className="space-y-6 mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="annualSalary">연봉 (원)</Label>
+                <NumberInput
+                  id="annualSalary"
+                  value={annualSalary ? Number(annualSalary.replace(/,/g, '')) : undefined}
+                  onChange={(v) => setAnnualSalary(v?.toString() || '')}
+                  placeholder="예: 50,000,000"
+                />
+              </div>
+
+              {/* 퇴직금 포함 여부 */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="includeRetirement">퇴직금 포함</Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>연봉에 퇴직금이 포함된 경우 13개월로 나눕니다</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Switch
+                  id="includeRetirement"
+                  checked={includeRetirement}
+                  onCheckedChange={setIncludeRetirement}
+                />
+              </div>
+            </TabsContent>
+
+            {/* 월급 입력 */}
+            <TabsContent value="monthly" className="mt-6">
+              <div className="space-y-2">
+                <Label htmlFor="monthlyGross">월 급여 (원)</Label>
+                <NumberInput
+                  id="monthlyGross"
+                  value={monthlyGross ? Number(monthlyGross.replace(/,/g, '')) : undefined}
+                  onChange={(v) => setMonthlyGross(v?.toString() || '')}
+                  placeholder="예: 4,000,000"
+                />
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
-
-        {/* 연봉 입력 */}
-        {inputMode === 'annual' && (
-          <div className="space-y-2">
-            <Label htmlFor="annualSalary">연봉 (원)</Label>
-            <NumberInput
-              id="annualSalary"
-              value={annualSalary ? Number(annualSalary.replace(/,/g, '')) : undefined}
-              onChange={(v) => setAnnualSalary(v?.toString() || '')}
-              placeholder="예: 50,000,000"
-            />
-          </div>
-        )}
-
-        {/* 월급 입력 */}
-        {inputMode === 'monthly' && (
-          <div className="space-y-2">
-            <Label htmlFor="monthlyGross">월 급여 (원)</Label>
-            <NumberInput
-              id="monthlyGross"
-              value={monthlyGross ? Number(monthlyGross.replace(/,/g, '')) : undefined}
-              onChange={(v) => setMonthlyGross(v?.toString() || '')}
-              placeholder="예: 4,000,000"
-            />
-          </div>
-        )}
-
-        {/* 퇴직금 포함 여부 */}
-        {inputMode === 'annual' && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="includeRetirement">퇴직금 포함</Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>연봉에 퇴직금이 포함된 경우 13개월로 나눕니다</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-            <Switch
-              id="includeRetirement"
-              checked={includeRetirement}
-              onCheckedChange={setIncludeRetirement}
-            />
-          </div>
-        )}
 
         {/* 비과세액 */}
         <div className="space-y-2">
