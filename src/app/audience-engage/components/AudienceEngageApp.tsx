@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Monitor, Smartphone, Presentation, MessageCircle, BarChart3, Zap } from 'lucide-react';
+import { Monitor, Smartphone, Presentation, MessageCircle, BarChart3, Zap, Loader2 } from 'lucide-react';
 import { useRealtimeSession } from '@/lib/realtime';
 import HostView from './HostView';
 import ParticipantView from './ParticipantView';
@@ -34,6 +34,10 @@ export default function AudienceEngageApp() {
 
   // Session title for creation
   const [sessionTitle, setSessionTitle] = useState('');
+
+  // Loading states for buttons
+  const [isCreating, setIsCreating] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   // E2E 테스트를 위한 전역 API 노출 (테스트 환경에서만)
   useEffect(() => {
@@ -80,53 +84,65 @@ export default function AudienceEngageApp() {
       return;
     }
 
-    const initialConfig: AudienceEngageConfig = {
-      title: sessionTitle.trim(),
-      slideItems: [],
-      settings: {
-        chatEnabled: true,
-        reactionsEnabled: true,
-        qaEnabled: true,
-        anonymousAllowed: true,
-      },
-    };
+    setIsCreating(true);
 
-    const code = await createSession({
-      appType: 'audience-engage',
-      title: sessionTitle.trim(),
-      config: initialConfig,
-    });
+    try {
+      const initialConfig: AudienceEngageConfig = {
+        title: sessionTitle.trim(),
+        slideItems: [],
+        settings: {
+          chatEnabled: true,
+          reactionsEnabled: true,
+          qaEnabled: true,
+          anonymousAllowed: true,
+        },
+      };
 
-    if (code) {
-      setSessionCode(code);
-      setViewMode('host');
-    } else {
-      alert('세션을 생성할 수 없어요. 네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.');
+      const code = await createSession({
+        appType: 'audience-engage',
+        title: sessionTitle.trim(),
+        config: initialConfig,
+      });
+
+      if (code) {
+        setSessionCode(code);
+        setViewMode('host');
+      } else {
+        alert('세션을 생성할 수 없어요. 네트워크 연결을 확인하거나 잠시 후 다시 시도해 주세요.');
+      }
+    } finally {
+      setIsCreating(false);
     }
-  };;
+  };
 
   // 세션 참여
   const handleJoinSession = async () => {
     if (!joinCodeInput.trim() || !participantName.trim()) return;
 
-    // 세션이 아직 로드되지 않았으면 직접 로드 시도
-    if (!session) {
-      // 세션 코드를 설정하고 participant 모드로 전환
-      setSessionCode(joinCodeInput);
-      setViewMode('participant');
-      return;
-    }
+    setIsJoining(true);
 
-    const participant = await joinSession({
-      displayName: participantName.trim(),
-      metadata: {},
-    });
-    if (participant) {
-      setSessionCode(joinCodeInput);
-      setMyParticipantId(participant.id);
-      setViewMode('participant');
-    } else {
-      alert('세션에 참여할 수 없어요. 코드를 확인해 주세요.');
+    try {
+      // 세션이 아직 로드되지 않았으면 직접 로드 시도
+      if (!session) {
+        // 세션 코드를 설정하고 participant 모드로 전환
+        setSessionCode(joinCodeInput);
+        setViewMode('participant');
+        return;
+      }
+
+      const participant = await joinSession({
+        displayName: participantName.trim(),
+        metadata: {},
+      });
+      if (participant) {
+        setSessionCode(joinCodeInput);
+        setMyParticipantId(participant.id);
+        setViewMode('participant');
+      } else {
+        alert('세션에 참여할 수 없어요. 코드를 확인해 주세요.');
+      }
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -281,11 +297,18 @@ export default function AudienceEngageApp() {
 
                 <Button
                   onClick={handleCreateSession}
-                  disabled={!sessionTitle.trim() || isLoading}
+                  disabled={!sessionTitle.trim() || isLoading || isCreating}
                   size="lg"
                   className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
                 >
-                  {isLoading ? '생성 중이에요...' : '세션 시작하기'}
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      세션 생성 중...
+                    </>
+                  ) : (
+                    '세션 시작하기'
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -337,11 +360,18 @@ export default function AudienceEngageApp() {
 
                 <Button
                   onClick={handleJoinSession}
-                  disabled={joinCodeInput.length !== 6 || !participantName.trim() || isLoading}
+                  disabled={joinCodeInput.length !== 6 || !participantName.trim() || isLoading || isJoining}
                   size="lg"
                   className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
                 >
-                  {isLoading ? '참여 중이에요...' : '참여하기'}
+                  {isJoining ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      참여 중...
+                    </>
+                  ) : (
+                    '참여하기'
+                  )}
                 </Button>
               </CardContent>
             </Card>
