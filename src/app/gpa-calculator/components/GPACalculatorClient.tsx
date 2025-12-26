@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 import type { GPAScale, Semester, Course, Term } from '../types';
 import { db, addSemester, deleteSemester, addCourseToSemester, deleteCourseFromSemester, clearAllData, importDatabase } from '../lib/db';
@@ -107,40 +108,31 @@ export function GPACalculatorClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <GraduationCap className="w-8 h-8 text-blue-600" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">학점 계산기</h1>
-                <p className="text-sm text-gray-600 mt-0.5">학기별 성적 관리 및 GPA 계산</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Label htmlFor="scale-select" className="text-sm font-medium text-gray-700">학점 체계</Label>
-              <Select value={scale} onValueChange={(v) => setScale(v as GPAScale)}>
-                <SelectTrigger id="scale-select" className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="4.5">4.5 만점</SelectItem>
-                  <SelectItem value="4.3">4.3 만점</SelectItem>
-                  <SelectItem value="4.0">4.0 만점</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AppHeader
+        title="학점 계산기"
+        description="학기별 성적 관리 및 GPA 계산"
+        icon={GraduationCap}
+        iconGradient="from-blue-500 to-indigo-600"
+        actions={
+          <div className="flex items-center gap-2">
+            <Label htmlFor="scale-select" className="text-sm font-medium text-gray-700 hidden sm:block">학점 체계</Label>
+            <Select value={scale} onValueChange={(v) => setScale(v as GPAScale)}>
+              <SelectTrigger id="scale-select" className="w-28">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="4.5">4.5 만점</SelectItem>
+                <SelectItem value="4.3">4.3 만점</SelectItem>
+                <SelectItem value="4.0">4.0 만점</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 flex-1">
         <div className="space-y-8">
           {/* GPA Display */}
           <GPADisplay
@@ -243,13 +235,9 @@ export function GPACalculatorClient() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="mt-16 py-8 border-t border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          <p className="text-sm font-semibold text-gray-900">학점 계산기 by 다잼</p>
-          <p className="mt-2 text-xs text-gray-600">데이터는 브라우저에만 저장됩니다. 정기적으로 백업하세요.</p>
-        </div>
-      </footer>
+      <AppFooter
+        disclaimer="데이터는 브라우저에만 저장됩니다. 정기적으로 백업하세요."
+      />
     </div>
   );
 }

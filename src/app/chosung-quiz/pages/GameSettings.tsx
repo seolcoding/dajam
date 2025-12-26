@@ -7,6 +7,7 @@ import { useGameStore } from '../store/gameStore';
 import type { Category } from '../types';
 import { categoryLabels } from '../data';
 import { Film, UtensilsCrossed, Music, BookText } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 const categoryIcons = {
   movie: Film,
@@ -30,7 +31,13 @@ export function GameSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex flex-col relative overflow-hidden">
+      <AppHeader
+        title="초성 퀴즈"
+        description="초성을 보고 단어를 맞춰보세요!"
+        emoji="ㅎㄱ"
+        iconGradient="from-purple-600 to-pink-600"
+      />
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-40 h-40 bg-purple-300/20 rounded-full blur-3xl animate-float" />
@@ -38,15 +45,8 @@ export function GameSettings() {
         <div className="absolute top-1/3 right-1/4 w-36 h-36 bg-blue-300/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '0.5s' }} />
       </div>
 
+      <div className="flex-1 flex items-center justify-center p-4">
       <Card className="relative w-full max-w-2xl p-8 md:p-10 bg-white/95 backdrop-blur-sm shadow-2xl border-2 border-white">
-        <div className="text-center mb-10">
-          <div className="inline-block mb-4">
-            <h1 className="text-6xl md:text-7xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent drop-shadow-sm">
-              초성 퀴즈
-            </h1>
-          </div>
-          <p className="text-lg text-gray-600 font-medium">초성을 보고 단어를 맞춰보세요!</p>
-        </div>
 
         <div className="space-y-8">
           {/* Category Selection */}
@@ -144,6 +144,8 @@ export function GameSettings() {
           </Button>
         </div>
       </Card>
+      </div>
+      <AppFooter />
     </div>
   );
 }

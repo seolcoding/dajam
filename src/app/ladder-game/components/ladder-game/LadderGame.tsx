@@ -14,6 +14,7 @@ import { LadderCanvas } from './LadderCanvas';
 import { ControlPanel } from './ControlPanel';
 import { ResultModal } from './ResultModal';
 import { Card, CardContent } from '@/components/ui/card';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 export function LadderGame() {
   const {
@@ -100,22 +101,14 @@ export function LadderGame() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Hero Header */}
-        <div className="mb-8 text-center space-y-4">
-          <div className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-white rounded-full shadow-lg border-2 border-purple-200">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <span className="text-2xl">🪜</span>
-            </div>
-            <h1 className="text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
-              사다리 타기
-            </h1>
-          </div>
-          <p className="text-lg text-gray-600 font-medium">
-            공정한 랜덤 추첨을 위한 사다리 타기 게임 🎲
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex flex-col">
+      <AppHeader
+        title="사다리 타기"
+        description="공정한 랜덤 추첨을 위한 사다리 타기 게임"
+        emoji="🪜"
+        iconGradient="from-purple-500 to-pink-500"
+      />
+      <div className="flex-1 container mx-auto px-4 py-8 max-w-7xl">
 
         <div className="grid lg:grid-cols-[380px_1fr] gap-6">
           {/* Left Panel */}
@@ -161,6 +154,7 @@ export function LadderGame() {
           onClose={() => setShowResult(false)}
         />
       </div>
+      <AppFooter />
     </div>
   );
 }

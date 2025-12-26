@@ -7,8 +7,9 @@ import { ProfileForm } from './ProfileForm';
 import { RoomManager } from './RoomManager';
 import { RoomView } from './RoomView';
 import { Button } from '@/components/ui/button';
-import { Settings, Download, Trash2 } from 'lucide-react';
+import { Settings, Download, Trash2, Users } from 'lucide-react';
 import { clearAllData, exportData } from '../lib/privacy';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 type View = 'profile-form' | 'room-manager' | 'room-view';
 
@@ -53,17 +54,15 @@ export function StudentNetworkApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              수강생 네트워킹
-            </h1>
-            <p className="text-sm text-gray-600">학력이 아닌 관심사로 연결되는</p>
-          </div>
-          {profile && (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AppHeader
+        title="수강생 네트워킹"
+        description="학력이 아닌 관심사로 연결되는"
+        icon={Users}
+        iconGradient="from-purple-500 to-pink-500"
+        variant="compact"
+        actions={
+          profile && (
             <Button
               onClick={() => setShowSettings(!showSettings)}
               variant="outline"
@@ -71,9 +70,9 @@ export function StudentNetworkApp() {
             >
               <Settings className="w-4 h-4" />
             </Button>
-          )}
-        </div>
-      </header>
+          )
+        }
+      />
 
       {/* 설정 패널 */}
       {showSettings && (
@@ -95,7 +94,7 @@ export function StudentNetworkApp() {
       )}
 
       {/* 메인 컨텐츠 */}
-      <main className="py-8">
+      <main className="flex-1 py-8">
         {currentView === 'profile-form' && (
           <ProfileForm onComplete={() => setCurrentView('room-manager')} />
         )}
@@ -114,15 +113,10 @@ export function StudentNetworkApp() {
         )}
       </main>
 
-      {/* 푸터 */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="text-center text-sm text-gray-600">
-            <p className="mb-2">개인정보 보호: 모든 데이터는 브라우저에만 저장됩니다</p>
-            <p>서버로 전송되지 않으며, 브라우저 데이터 삭제 시 모든 정보가 사라집니다</p>
-          </div>
-        </div>
-      </footer>
+      <AppFooter
+        variant="compact"
+        disclaimer="모든 데이터는 브라우저에만 저장됩니다. 서버로 전송되지 않으며, 브라우저 데이터 삭제 시 모든 정보가 사라집니다."
+      />
     </div>
   );
 }

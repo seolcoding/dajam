@@ -1,13 +1,14 @@
 'use client';
 
 import { useTeamStore } from '@/app/team-divider/store/useTeamStore';
+import { AppHeader, AppFooter } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { ParticipantInput } from './ParticipantInput';
 import { TeamSettings } from './TeamSettings';
 import { TeamResult } from './TeamResult';
 import { QRCodeDisplay } from './QRCodeDisplay';
 import { ExportButtons } from './ExportButtons';
-import { Shuffle, RotateCcw } from 'lucide-react';
+import { Shuffle, RotateCcw, Users } from 'lucide-react';
 
 export function TeamDivider() {
   const { participants, isShuffled, teams, divideTeams, reset } = useTeamStore();
@@ -15,18 +16,15 @@ export function TeamDivider() {
   const canShuffle = participants.length >= 2;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
-        {/* Header */}
-        <header className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4 tracking-tight">
-            팀 나누기
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            공정한 랜덤 알고리즘으로 팀을 자동 분배하고, QR 코드로 결과를 공유하세요
-          </p>
-        </header>
+    <div className="min-h-screen bg-white flex flex-col">
+      <AppHeader
+        title="팀 나누기"
+        description="공정한 랜덤 알고리즘으로 팀을 자동 분배하고, QR 코드로 결과를 공유하세요"
+        icon={Users}
+        iconGradient="from-blue-500 to-indigo-500"
+      />
 
+      <div className="container mx-auto px-4 py-12 max-w-7xl flex-1">
         {!isShuffled ? (
           /* Input Phase */
           <div className="space-y-8">
@@ -77,17 +75,9 @@ export function TeamDivider() {
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <footer className="mt-20 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p className="mb-2">
-            Fisher-Yates 알고리즘을 사용하여 공정한 랜덤 분배를 보장합니다
-          </p>
-          <p>
-            Made by 다잼
-          </p>
-        </footer>
       </div>
+
+      <AppFooter disclaimer="Fisher-Yates 알고리즘을 사용하여 공정한 랜덤 분배를 보장합니다." />
     </div>
   );
 }

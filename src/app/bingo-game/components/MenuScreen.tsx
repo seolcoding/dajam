@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Users, Gamepad2, Play } from 'lucide-react';
 import { useBingoStore } from '../stores/useBingoStore';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 export function MenuScreen() {
   const { setGameMode } = useBingoStore();
@@ -27,32 +28,15 @@ export function MenuScreen() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="max-w-4xl w-full">
-        <motion.div
-          initial={{ y: -50, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="text-center mb-12"
-        >
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-            }}
-            transition={{
-              repeat: Infinity,
-              duration: 2,
-            }}
-            className="mb-4 flex justify-center"
-          >
-            <Gamepad2 className="w-20 h-20 text-blue-600" />
-          </motion.div>
-          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            빙고 게임
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400">
-            친구들과 함께 즐기는 빙고!
-          </p>
-        </motion.div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <AppHeader
+        title="빙고 게임"
+        description="친구들과 함께 즐기는 빙고!"
+        emoji="🎰"
+        iconGradient="from-blue-500 to-indigo-600"
+      />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-4xl w-full">
 
         <div className="grid md:grid-cols-2 gap-6">
           {menuItems.map((item, index) => (
@@ -97,7 +81,9 @@ export function MenuScreen() {
         >
           <p>숫자, 단어, 테마 빙고 지원 | 3x3, 4x4, 5x5 크기 선택</p>
         </motion.div>
+        </div>
       </div>
+      <AppFooter />
     </div>
   );
 }

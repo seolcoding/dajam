@@ -16,7 +16,8 @@ import TestQuestion from './TestQuestion';
 import ResultCard from './ResultCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, RotateCcw, Play, Users } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Play, Users, Brain } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 type ViewMode = 'home' | 'testing' | 'result';
 
@@ -98,20 +99,14 @@ export default function PersonalityTestApp() {
     const savedResult = result ? getPersonalityType(result.code) : null;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-black mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              성격 유형 테스트
-            </h1>
-            <p className="text-xl text-gray-600 mb-2">
-              나는 어떤 유형일까?
-            </p>
-            <p className="text-gray-500">
-              16문항 • 5분 소요 • MBTI 스타일
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 flex flex-col">
+        <AppHeader
+          title="성격 유형 테스트"
+          description="16문항으로 알아보는 나의 MBTI 유형"
+          icon={Brain}
+          iconGradient="from-purple-600 to-pink-600"
+        />
+        <div className="flex-1 max-w-4xl mx-auto px-4 py-12 w-full">
 
           {/* Previous Result */}
           {savedResult && (
@@ -217,6 +212,7 @@ export default function PersonalityTestApp() {
             </div>
           </Card>
         </div>
+        <AppFooter disclaimer="본 테스트는 재미를 위한 것으로, 전문적인 심리 검사를 대체하지 않습니다." />
       </div>
     );
   }

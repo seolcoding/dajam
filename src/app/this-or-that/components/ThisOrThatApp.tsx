@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Monitor, Smartphone, Plus, Play } from 'lucide-react';
+import { Monitor, Smartphone, Plus, Play, ArrowLeftRight } from 'lucide-react';
 import { useRealtimeSession } from '@/lib/realtime';
 import { useSupabase } from '@/hooks/useSupabase';
 import { HostView } from './HostView';
@@ -16,6 +16,7 @@ import { ParticipantView } from './ParticipantView';
 import { questionTemplates, categoryMetadata, type QuestionCategory } from '../data/questions';
 import type { ThisOrThatConfig, ThisOrThatQuestion, VoteCount, QuestionStatus } from '../types';
 import type { Json } from '@/types/database';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 type ViewMode = 'home' | 'host' | 'participant';
 
@@ -202,14 +203,15 @@ export default function ThisOrThatApp() {
   // Home View
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-12 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+        <AppHeader
+          title="This or That"
+          description="실시간 그룹 투표 게임"
+          icon={ArrowLeftRight}
+          iconGradient="from-indigo-500 to-purple-600"
+        />
+        <div className="flex-1 py-12 px-4">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4">This or That</h1>
-            <p className="text-xl text-muted-foreground">
-              실시간 그룹 투표 게임
-            </p>
-          </div>
 
           <Tabs defaultValue="host" className="max-w-2xl mx-auto">
             <TabsList className="grid w-full grid-cols-2">
@@ -346,6 +348,8 @@ export default function ThisOrThatApp() {
             </TabsContent>
           </Tabs>
         </div>
+        </div>
+        <AppFooter />
       </div>
     );
   }

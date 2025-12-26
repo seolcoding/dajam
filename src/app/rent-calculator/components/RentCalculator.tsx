@@ -9,27 +9,22 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { JeonseToWolseConverter } from './JeonseToWolseConverter';
 import { WolseToJeonseConverter } from './WolseToJeonseConverter';
 import { CostComparisonChart } from './CostComparisonChart';
-import { Calculator, TrendingUp } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
+import { Home, TrendingUp } from 'lucide-react';
 
 export function RentCalculator() {
   const [activeTab, setActiveTab] = useState<'jeonse-to-wolse' | 'wolse-to-jeonse'>('jeonse-to-wolse');
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* 헤더 */}
-        <header className="text-center space-y-4 py-8">
-          <div className="flex items-center justify-center gap-3">
-            <div className="p-3 bg-blue-600 rounded-lg">
-              <Calculator className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900">전세/월세 계산기</h1>
-          <p className="text-base text-gray-600 max-w-2xl mx-auto">
-            전세와 월세를 비교하고, 실제 부담액을 계산하세요.
-            법정 전월세 전환율을 적용한 정확한 계산을 제공합니다.
-          </p>
-        </header>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AppHeader
+        title="전세/월세 계산기"
+        description="전세와 월세를 비교하고, 실제 부담액을 계산하세요"
+        icon={Home}
+        iconGradient="from-emerald-500 to-teal-600"
+      />
+
+      <div className="max-w-7xl mx-auto p-6 space-y-8 flex-1">
 
         {/* 변환 탭 */}
         <section>
@@ -60,14 +55,11 @@ export function RentCalculator() {
           <CostComparisonChart />
         </section>
 
-        {/* 안내 문구 */}
-        <footer className="text-center text-sm text-gray-500 pt-12 pb-8 border-t border-gray-200">
-          <p>
-            본 계산기는 참고용 도구이며, 법적 구속력이 없습니다.
-            실제 계약 시에는 반드시 전문가(공인중개사, 변호사)와 상담하시기 바랍니다.
-          </p>
-        </footer>
       </div>
+
+      <AppFooter
+        disclaimer="본 계산기는 참고용 도구이며, 법적 구속력이 없습니다. 실제 계약 시에는 반드시 전문가(공인중개사, 변호사)와 상담하시기 바랍니다."
+      />
     </div>
   );
 }

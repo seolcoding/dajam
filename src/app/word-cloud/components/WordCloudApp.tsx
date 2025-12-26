@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { nanoid } from 'nanoid';
-import { Plus, Users, Sparkles, ArrowLeft } from 'lucide-react';
+import { Plus, Users, Sparkles, ArrowLeft, Cloud } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -227,19 +228,15 @@ export default function WordCloudApp() {
   // Home View
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Sparkles size={48} className="text-purple-600" fill="currentColor" />
-              <h1 className="text-5xl font-bold text-gray-900">워드 클라우드</h1>
-            </div>
-            <p className="text-xl text-gray-600">
-              실시간으로 참가자들의 의견을 수집하고 시각화하세요
-            </p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <AppHeader
+          title="워드 클라우드"
+          description="실시간으로 참가자들의 의견을 수집하고 시각화하세요"
+          icon={Cloud}
+          iconGradient="from-purple-500 to-pink-500"
+        />
 
+        <div className="max-w-4xl mx-auto px-4 py-12 flex-1">
           {/* Action Buttons */}
           <div className="grid md:grid-cols-2 gap-6 mb-12">
             <button
@@ -303,6 +300,8 @@ export default function WordCloudApp() {
             </div>
           </div>
         </div>
+
+        <AppFooter />
       </div>
     );
   }
@@ -310,8 +309,15 @@ export default function WordCloudApp() {
   // Create View
   if (viewMode === 'create') {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <AppHeader
+          title="워드 클라우드"
+          description="새 워드 클라우드 생성"
+          icon={Cloud}
+          iconGradient="from-purple-500 to-pink-500"
+        />
+
+        <div className="max-w-2xl mx-auto px-4 py-12 flex-1">
           <Button
             variant="ghost"
             onClick={() => navigateTo('home')}
@@ -357,6 +363,8 @@ export default function WordCloudApp() {
             </form>
           </div>
         </div>
+
+        <AppFooter />
       </div>
     );
   }
@@ -364,8 +372,15 @@ export default function WordCloudApp() {
   // Join View
   if (viewMode === 'join') {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <AppHeader
+          title="워드 클라우드"
+          description="세션에 참여하기"
+          icon={Cloud}
+          iconGradient="from-purple-500 to-pink-500"
+        />
+
+        <div className="max-w-2xl mx-auto px-4 py-12 flex-1">
           <Button
             variant="ghost"
             onClick={() => navigateTo('home')}
@@ -426,6 +441,8 @@ export default function WordCloudApp() {
             </form>
           </div>
         </div>
+
+        <AppFooter />
       </div>
     );
   }

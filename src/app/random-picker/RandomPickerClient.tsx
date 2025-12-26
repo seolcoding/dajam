@@ -11,9 +11,10 @@ import { BulkInput } from "./components/BulkInput";
 import { ResultModal } from "./components/ResultModal";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { AppHeader, AppFooter } from "@/components/layout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trash2 } from "lucide-react";
+import { Trash2, Disc } from "lucide-react";
 import type { SpinResult } from "./types";
 
 export default function RandomPickerClient() {
@@ -91,25 +92,21 @@ export default function RandomPickerClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-extrabold text-gray-900">랜덤 뽑기 룰렛</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                공정하고 재미있는 랜덤 선택 도구
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <HistoryPanel history={history} onClear={clearHistory} />
-              <SettingsPanel settings={settings} onUpdate={updateSettings} />
-            </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AppHeader
+        title="랜덤 뽑기 룰렛"
+        description="공정하고 재미있는 랜덤 선택 도구"
+        icon={Disc}
+        iconGradient="from-purple-500 to-pink-500"
+        actions={
+          <div className="flex gap-2">
+            <HistoryPanel history={history} onClear={clearHistory} />
+            <SettingsPanel settings={settings} onUpdate={updateSettings} />
           </div>
-        </div>
-      </header>
+        }
+      />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-[350px,1fr] gap-6">
           {/* Left Panel: Items */}
           <div className="space-y-4">
@@ -186,6 +183,8 @@ export default function RandomPickerClient() {
           </Card>
         </div>
       </main>
+
+      <AppFooter />
 
       <ResultModal
         result={selectedResult}

@@ -1,21 +1,23 @@
 'use client';
 
 import Link from 'next/link';
+import { AppHeader, AppFooter } from '@/components/layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Users, QrCode, Calculator, Share2 } from 'lucide-react';
+import { Users, QrCode, Calculator, Share2, ShoppingCart } from 'lucide-react';
 
 export function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-16">
+    <div className="min-h-screen bg-white flex flex-col">
+      <AppHeader
+        title="단체 주문 통합"
+        description="회식, 단체 주문을 간편하게! QR 코드로 주문하고 자동으로 집계하세요."
+        icon={ShoppingCart}
+        iconGradient="from-green-500 to-emerald-500"
+      />
+
+      <div className="container mx-auto px-4 py-16 flex-1">
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4 text-gray-900">
-            단체 주문 통합
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            회식, 단체 주문을 간편하게! QR 코드로 주문하고 자동으로 집계하세요.
-          </p>
           <Button
             size="lg"
             asChild
@@ -108,6 +110,8 @@ export function HomePage() {
           </div>
         </div>
       </div>
+
+      <AppFooter />
     </div>
   );
 }

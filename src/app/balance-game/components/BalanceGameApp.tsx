@@ -5,13 +5,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { categoryMetadata } from '../data/categories';
 import { questionTemplates } from '../data/templates';
 import type { Category, Question } from '../types';
-import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home, Users } from 'lucide-react';
+import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home, Users, Scale } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import ResultChart from './ResultChart';
 import ShareButton from './ShareButton';
 import CustomQuestionForm from './CustomQuestionForm';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { AppHeader, AppFooter } from '@/components/layout';
 import {
   getQuestionById,
   saveVote,
@@ -142,17 +143,14 @@ const BalanceGameApp: React.FC = () => {
   // Render Home Page
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 text-gray-900">
-              밸런스 게임
-            </h1>
-            <p className="text-xl text-gray-600">
-              A vs B, 당신의 선택은?
-            </p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <AppHeader
+          title="밸런스 게임"
+          description="A vs B, 당신의 선택은?"
+          icon={Scale}
+          iconGradient="from-blue-500 to-purple-600"
+        />
+        <div className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-4 justify-center mb-12">
@@ -203,6 +201,7 @@ const BalanceGameApp: React.FC = () => {
             })}
           </div>
         </div>
+        <AppFooter />
       </div>
     );
   }

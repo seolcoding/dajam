@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Trophy, Plus, Sparkles, Users } from 'lucide-react'
 import type { Template } from '../data/templates'
 import { generateId } from '../utils/tournament'
+import { AppHeader, AppFooter } from '@/components/layout'
 
 type AppState = 'home' | 'templates' | 'create' | 'play' | 'result'
 
@@ -112,19 +113,15 @@ export default function IdealWorldcupApp() {
   // 홈 화면
   if (appState === 'home') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="min-h-screen bg-white flex flex-col">
+        <AppHeader
+          title="이상형 월드컵"
+          description="나만의 토너먼트를 만들고 최애를 선택하세요"
+          icon={Trophy}
+          iconGradient="from-yellow-500 to-orange-600"
+        />
+        <div className="flex-1 flex items-center justify-center p-4">
         <div className="text-center space-y-8 max-w-2xl">
-          <div className="space-y-4">
-            <div className="mx-auto w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
-              <Trophy className="h-12 w-12 text-blue-600" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900">
-              이상형 월드컵
-            </h1>
-            <p className="text-xl text-gray-600">
-              나만의 토너먼트를 만들고 최애를 선택하세요
-            </p>
-          </div>
 
           <div className="flex flex-col gap-4 justify-center max-w-md mx-auto">
             <Button
@@ -168,6 +165,8 @@ export default function IdealWorldcupApp() {
             <p>최종 우승자를 선택해보세요</p>
           </div>
         </div>
+        </div>
+        <AppFooter />
       </div>
     )
   }

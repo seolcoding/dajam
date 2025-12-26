@@ -14,6 +14,7 @@ import HostView from './HostView';
 import ParticipantView from './ParticipantView';
 import Leaderboard from './Leaderboard';
 import type { Quiz, ParticipantAnswer } from '../types';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 type ViewMode = 'home' | 'select-quiz' | 'waiting' | 'countdown' | 'playing' | 'leaderboard' | 'finished';
 type Role = 'host' | 'participant';
@@ -216,16 +217,15 @@ export default function RealtimeQuizApp() {
   // 홈 화면
   if (viewMode === 'home') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex flex-col">
+        <AppHeader
+          title="실시간 퀴즈쇼"
+          description="Kahoot 스타일 실시간 퀴즈 게임"
+          icon={Trophy}
+          iconGradient="from-yellow-500 to-orange-500"
+        />
+        <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-4xl w-full">
-          {/* 헤더 */}
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Trophy className="w-16 h-16 text-yellow-300" />
-              <h1 className="text-6xl font-black text-white">실시간 퀴즈쇼</h1>
-            </div>
-            <p className="text-2xl text-white/90">Kahoot 스타일 퀴즈 게임</p>
-          </div>
 
           {/* 액션 버튼 */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -254,18 +254,9 @@ export default function RealtimeQuizApp() {
             </Card>
           </div>
 
-          {/* 돌아가기 */}
-          <div className="mt-8 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="text-white hover:bg-white/10"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              홈으로 돌아가기
-            </Button>
-          </div>
         </div>
+        </div>
+        <AppFooter variant="compact" />
       </div>
     );
   }

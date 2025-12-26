@@ -14,8 +14,9 @@ import { RestaurantRoulette } from './RestaurantRoulette';
 import { RestaurantCard } from './RestaurantCard';
 import { FilterPanel } from './FilterPanel';
 import { ShareButtons } from './ShareButtons';
+import { AppHeader, AppFooter } from '@/components/layout';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, MapPin, RefreshCw } from 'lucide-react';
+import { AlertCircle, MapPin, RefreshCw, UtensilsCrossed } from 'lucide-react';
 
 export default function LunchRouletteApp() {
   const { latitude, longitude, error: locationError, loading } = useGeolocation();
@@ -85,8 +86,15 @@ export default function LunchRouletteApp() {
   const currentLongitude = location.longitude || longitude || 126.9784147;
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+    <div className="min-h-screen bg-white flex flex-col">
+      <AppHeader
+        title="점심 룰렛"
+        description="오늘 점심 뭐 먹지? 위치 기반 맛집 추천"
+        icon={UtensilsCrossed}
+        iconGradient="from-orange-500 to-red-500"
+      />
+
+      <div className="container mx-auto px-4 py-12 max-w-4xl flex-1">
         {/* 위치 정보 표시 */}
         {location.error && (
           <div className="mb-8 p-5 bg-gray-50 border border-gray-200 rounded-xl flex items-start gap-4">
@@ -156,15 +164,9 @@ export default function LunchRouletteApp() {
             </div>
           </div>
         )}
-
-        {/* 푸터 */}
-        <footer className="mt-12 text-center text-sm text-gray-500">
-          <p>Made with ❤️ by 다잼</p>
-          <p className="mt-1">
-            위치 기반 맛집 추천 서비스 | Powered by Kakao Maps
-          </p>
-        </footer>
       </div>
+
+      <AppFooter disclaimer="위치 기반 맛집 정보는 Kakao Maps API를 통해 제공됩니다." />
     </div>
   );
 }

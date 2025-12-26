@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, Grid3X3 } from 'lucide-react';
 import type { ViewMode } from '../types';
 import { HostView } from './HostView';
 import { ParticipantView } from './ParticipantView';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 export function HumanBingoApp() {
   const [viewMode, setViewMode] = useState<ViewMode>('menu');
@@ -28,17 +29,16 @@ export function HumanBingoApp() {
   // 메뉴 화면
   if (viewMode === 'menu') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900">
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-5xl font-black mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Human Bingo
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              사람들과 대화하며 특성을 찾아 빙고를 완성하세요!
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900 flex flex-col">
+        <AppHeader
+          title="휴먼 빙고"
+          description="사람들과 대화하며 특성을 찾아 빙고를 완성하세요!"
+          icon={Grid3X3}
+          iconGradient="from-purple-500 to-pink-500"
+          variant="compact"
+        />
+
+        <div className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
 
           {/* Mode Selection */}
           <div className="grid md:grid-cols-2 gap-6">
@@ -104,6 +104,8 @@ export function HumanBingoApp() {
             </CardContent>
           </Card>
         </div>
+
+        <AppFooter variant="compact" />
       </div>
     );
   }

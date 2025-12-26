@@ -2,20 +2,22 @@
 
 import { useRouter } from 'next/navigation';
 import { Plus, Vote, Users, TrendingUp } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
 
 export function HomePage() {
   const router = useRouter();
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-6 py-12">
-        {/* 헤더 */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 text-gray-900">실시간 투표 플랫폼</h1>
-          <p className="text-xl text-gray-600">
-            QR 코드로 간편하게 투표를 만들고, 실시간으로 결과를 확인하세요
-          </p>
-        </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      <AppHeader
+        title="실시간 투표"
+        description="QR 코드로 간편하게 투표를 만들고, 실시간으로 결과를 확인하세요"
+        icon={Vote}
+        iconGradient="from-blue-500 to-indigo-600"
+        variant="compact"
+      />
+
+      <div className="flex-1 container mx-auto px-6 py-12">
 
         {/* CTA */}
         <div className="max-w-md mx-auto mb-16">
@@ -84,11 +86,9 @@ export function HomePage() {
           </ul>
         </div>
 
-        {/* Footer */}
-        <div className="text-center text-gray-500 mt-16">
-          <p>서버 없이 동작하는 완전 프론트엔드 솔루션 | 개인정보 수집 없음</p>
-        </div>
       </div>
+
+      <AppFooter variant="compact" />
     </div>
   );
 }

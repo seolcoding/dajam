@@ -7,7 +7,8 @@ import { BasicInfoForm } from './components/BasicInfoForm';
 import { ParticipantList } from './components/ParticipantList';
 import { ExpenseList } from './components/ExpenseList';
 import { SettlementResult } from './components/SettlementResult';
-import { Calculator, RotateCcw } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
+import { Receipt, RotateCcw } from 'lucide-react';
 
 export function DutchPayApp() {
   const { settlement, createSettlement, reset } = useSettlementStore();
@@ -33,29 +34,26 @@ export function DutchPayApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl mb-4 shadow-lg">
-            <Calculator className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-5xl font-black text-gray-900 mb-3 tracking-tight">
-            더치페이 정산
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-6">
-            모임 후 정산을 간편하게 처리하세요. 최소 송금 횟수로 최적화합니다.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 flex flex-col">
+      <AppHeader
+        title="더치페이 정산"
+        description="모임 후 정산을 간편하게 처리하세요. 최소 송금 횟수로 최적화합니다."
+        icon={Receipt}
+        iconGradient="from-blue-500 to-purple-500"
+        actions={
           <Button
             onClick={handleReset}
             variant="outline"
-            size="lg"
+            size="sm"
             className="shadow-sm hover:shadow-md transition-shadow"
           >
-            <RotateCcw className="w-5 h-5 mr-2" />
+            <RotateCcw className="w-4 h-4 mr-1.5" />
             초기화
           </Button>
-        </div>
+        }
+      />
+
+      <div className="container mx-auto px-4 py-8 max-w-5xl flex-1">
 
         {/* Main Content */}
         <div className="space-y-8">
@@ -73,24 +71,9 @@ export function DutchPayApp() {
             <SettlementResult />
           )}
         </div>
-
-        {/* Footer */}
-        <div className="mt-16 text-center">
-          <div className="inline-block px-6 py-3 bg-white rounded-full shadow-sm">
-            <p className="text-sm text-gray-600">
-              더치페이 정산 계산기 by{' '}
-              <a
-                href="https://dajam.seolcoding.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-bold text-blue-600 hover:text-purple-600 transition-colors"
-              >
-                SeolCoding
-              </a>
-            </p>
-          </div>
-        </div>
       </div>
+
+      <AppFooter />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Monitor, Smartphone, Presentation, MessageCircle, BarChart3, Zap, Loader2 } from 'lucide-react';
+import { AppHeader, AppFooter } from '@/components/layout';
 import { useRealtimeSession } from '@/lib/realtime';
 import HostView from './HostView';
 import ParticipantView from './ParticipantView';
@@ -239,20 +240,17 @@ export default function AudienceEngageApp() {
 
   // Home View
   return (
-    <div className="min-h-screen bg-gradient-to-b from-dajaem-grey to-white py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-dajaem-grey to-white flex flex-col">
+      <AppHeader
+        title="청중 참여"
+        description="슬라이드와 함께 실시간으로 청중과 소통해요"
+        icon={Presentation}
+        iconGradient="from-dajaem-green to-dajaem-teal"
+        variant="compact"
+      />
+
+      <div className="flex-1 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex justify-center mb-4">
-            <div className="p-4 bg-dajaem-green/10 rounded-full">
-              <Presentation className="w-12 h-12 text-dajaem-green" />
-            </div>
-          </div>
-          <h1 className="text-4xl font-bold mb-3">다잼 Audience Engage</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            슬라이드와 함께 실시간으로 청중과 소통해요
-          </p>
-        </div>
 
         {/* Features */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -397,6 +395,9 @@ export default function AudienceEngageApp() {
           </div>
         )}
       </div>
+      </div>
+
+      <AppFooter variant="compact" />
     </div>
   );
 }
