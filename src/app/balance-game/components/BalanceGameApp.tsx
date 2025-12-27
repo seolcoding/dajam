@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { categoryMetadata } from '../data/categories';
 import { questionTemplates } from '../data/templates';
 import type { Category, Question } from '../types';
-import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home, Users, Scale } from 'lucide-react';
+import { Plus, Shuffle, ArrowLeft, Sparkles, RefreshCw, Home, Users, Scale, Presentation } from 'lucide-react';
 import QuestionCard from './QuestionCard';
 import ResultChart from './ResultChart';
 import ShareButton from './ShareButton';
@@ -13,6 +13,8 @@ import CustomQuestionForm from './CustomQuestionForm';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { AppHeader, AppFooter } from '@/components/layout';
+import { MultiplayerEntry } from '@/components/entry';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   getQuestionById,
   saveVote,
@@ -23,11 +25,13 @@ import {
 } from '../utils/storage';
 
 type ViewMode = 'home' | 'game' | 'result' | 'create';
+type GameMode = 'solo' | 'session';
 
 const BalanceGameApp: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [viewMode, setViewMode] = useState<ViewMode>('home');
+  const [gameMode, setGameMode] = useState<GameMode>('solo');
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [stats, setStats] = useState<{ A: number; B: number } | null>(null);
   const [myChoice, setMyChoice] = useState<'A' | 'B' | undefined>(undefined);
@@ -140,6 +144,15 @@ const BalanceGameApp: React.FC = () => {
     navigateTo('home');
   };
 
+  // Session mode handlers
+  const handleHostStart = () => {
+    router.push('/balance-game/session/create');
+  };
+
+  const handleParticipantJoin = ({ code }: { code: string; name: string }) => {
+    router.push(`/balance-game/session/play/${code}`);
+  };
+
   // Render Home Page
   if (viewMode === 'home') {
     return (
@@ -149,59 +162,117 @@ const BalanceGameApp: React.FC = () => {
           description="A vs B, 당신의 선택은?"
           icon={Scale}
           iconGradient="from-blue-500 to-purple-600"
+          variant="compact"
         />
-        <div className="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
+        <div className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
 
-          {/* Action buttons */}
-          <div className="flex flex-wrap gap-4 justify-center mb-12">
-            <button
-              onClick={handleRandomQuestion}
-              className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg transition shadow-lg"
-            >
-              <Shuffle size={24} />
-              랜덤 질문
-            </button>
-            <button
-              onClick={() => router.push('/balance-game/session/create')}
-              className="flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-full font-bold text-lg transition shadow-lg"
-            >
-              <Users size={24} />
-              멀티플레이어
-            </button>
-            <button
-              onClick={() => navigateTo('create')}
-              className="flex items-center gap-2 px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold text-lg transition shadow-lg"
-            >
-              <Plus size={24} />
-              질문 만들기
-            </button>
-          </div>
-
-          {/* Category grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {(Object.keys(categoryMetadata) as Category[]).map((category) => {
-              const meta = categoryMetadata[category];
-              const questionCount = questionTemplates[category]?.length || 0;
-
-              return (
-                <button
-                  key={category}
-                  onClick={() => handleCategorySelect(category)}
-                  className={`
-                    ${meta.color} text-white p-8 rounded-2xl shadow-lg
-                    hover:scale-105 transition-transform cursor-pointer
-                    flex flex-col items-center gap-4
-                  `}
+          {/* Mode Selector Tabs */}
+          <div className="max-w-lg mx-auto mb-8">
+            <Tabs value={gameMode} onValueChange={(v) => setGameMode(v as GameMode)}>
+              <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+                <TabsTrigger
+                  value="solo"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white"
                 >
-                  <div className="text-6xl">{meta.emoji}</div>
-                  <div className="text-2xl font-bold">{meta.label}</div>
-                  <div className="text-sm opacity-90">{questionCount}개 질문</div>
-                </button>
-              );
-            })}
+                  <Scale className="w-4 h-4" />
+                  <span className="font-semibold">혼자 플레이</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="session"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white"
+                >
+                  <Users className="w-4 h-4" />
+                  <span className="font-semibold">세션 모드</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
+
+          {/* Solo Mode Content */}
+          {gameMode === 'solo' && (
+            <>
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-4 justify-center mb-8">
+                <button
+                  onClick={handleRandomQuestion}
+                  className="flex items-center gap-2 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-bold text-lg transition shadow-lg"
+                >
+                  <Shuffle size={24} />
+                  랜덤 질문
+                </button>
+                <button
+                  onClick={() => navigateTo('create')}
+                  className="flex items-center gap-2 px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white rounded-full font-bold text-lg transition shadow-lg"
+                >
+                  <Plus size={24} />
+                  질문 만들기
+                </button>
+              </div>
+
+              {/* Category grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {(Object.keys(categoryMetadata) as Category[]).map((category) => {
+                  const meta = categoryMetadata[category];
+                  const questionCount = questionTemplates[category]?.length || 0;
+
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => handleCategorySelect(category)}
+                      className={`
+                        ${meta.color} text-white p-8 rounded-2xl shadow-lg
+                        hover:scale-105 transition-transform cursor-pointer
+                        flex flex-col items-center gap-4
+                      `}
+                    >
+                      <div className="text-6xl">{meta.emoji}</div>
+                      <div className="text-2xl font-bold">{meta.label}</div>
+                      <div className="text-sm opacity-90">{questionCount}개 질문</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* Session Mode Content */}
+          {gameMode === 'session' && (
+            <>
+              <MultiplayerEntry
+                onHostStart={handleHostStart}
+                onParticipantJoin={handleParticipantJoin}
+                hostTitle="밸런스 게임 세션 시작"
+                hostDescription="호스트가 되어 질문을 컨트롤하세요"
+                participantTitle="세션 참여"
+                participantDescription="호스트가 공유한 6자리 코드로 참여하세요"
+                hostButtonText="세션 시작하기"
+                participantButtonText="참여하기"
+                requireName={false}
+                featureBadges={['실시간 투표', '결과 공유', '프레젠테이션 모드']}
+              />
+
+              {/* Feature Cards */}
+              <div className="max-w-lg mx-auto mt-12 grid gap-4">
+                <FeatureCard
+                  emoji="🎤"
+                  title="프레젠테이션 모드"
+                  description="발표자용 대화면에서 투표 현황을 실시간으로 확인"
+                />
+                <FeatureCard
+                  emoji="📱"
+                  title="모바일 최적화"
+                  description="참여자는 모바일에서 간편하게 투표"
+                />
+                <FeatureCard
+                  emoji="📊"
+                  title="실시간 결과"
+                  description="투표 결과를 즉시 시각화하여 공유"
+                />
+              </div>
+            </>
+          )}
         </div>
-        <AppFooter />
+        <AppFooter variant="compact" />
       </div>
     );
   }
@@ -396,5 +467,18 @@ const BalanceGameApp: React.FC = () => {
 
   return null;
 };
+
+// Simple Feature Card Component
+function FeatureCard({ emoji, title, description }: { emoji: string; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200">
+      <span className="text-2xl">{emoji}</span>
+      <div>
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <p className="text-sm text-gray-600">{description}</p>
+      </div>
+    </div>
+  );
+}
 
 export default BalanceGameApp;

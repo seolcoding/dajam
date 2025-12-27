@@ -2,25 +2,25 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Users, QrCode, Calculator, Share2, Monitor, Smartphone, Loader2 } from 'lucide-react';
+import { ShoppingCart, Users, QrCode, Calculator, Share2 } from 'lucide-react';
 import { AppHeader, AppFooter } from '@/components/layout';
-import { Button } from '@/components/ui/button';
+import { MultiplayerEntry } from '@/components/entry';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SessionCodeInput } from '@/components/entry';
 
 export function HomePage() {
   const router = useRouter();
-  const [orderCode, setOrderCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
 
-  const handleJoinOrder = async () => {
-    if (orderCode.length !== 6) return;
+  const handleHostStart = () => {
+    router.push('/group-order/create');
+  };
+
+  const handleParticipantJoin = async ({ code }: { code: string; name: string }) => {
+    if (code.length !== 6) return;
 
     setIsJoining(true);
     try {
-      // Navigate to the join page with the order code
-      router.push(`/group-order/join/${orderCode}`);
+      router.push(`/group-order/join/${code}`);
     } catch {
       setIsJoining(false);
     }
@@ -36,77 +36,20 @@ export function HomePage() {
         variant="compact"
       />
 
-      <div className="flex-1 container mx-auto px-6 py-12">
-        {/* Main Entry Tabs */}
-        <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="host" className="flex items-center gap-2">
-              <Monitor className="w-4 h-4" />
-              호스트 (주최자)
-            </TabsTrigger>
-            <TabsTrigger value="participant" className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4" />
-              참여하기
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Host Tab */}
-          <TabsContent value="host" className="mt-6">
-            <Card className="border-2 border-dajaem-green/20">
-              <CardHeader>
-                <CardTitle>새 주문방 만들기</CardTitle>
-                <CardDescription>
-                  주문방을 생성하고 참여자를 초대하세요
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => router.push('/group-order/create')}
-                  size="lg"
-                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                >
-                  주문방 만들기
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Participant Tab */}
-          <TabsContent value="participant" className="mt-6">
-            <Card className="border-2 border-dajaem-green/20">
-              <CardHeader>
-                <CardTitle>주문 참여</CardTitle>
-                <CardDescription>
-                  6자리 코드로 주문에 참여하세요
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SessionCodeInput
-                  value={orderCode}
-                  onChange={setOrderCode}
-                  label="주문 코드"
-                  placeholder="ABC123"
-                />
-
-                <Button
-                  onClick={handleJoinOrder}
-                  disabled={orderCode.length !== 6 || isJoining}
-                  size="lg"
-                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                >
-                  {isJoining ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      참여 중...
-                    </>
-                  ) : (
-                    '참여하기'
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <MultiplayerEntry
+          onHostStart={handleHostStart}
+          onParticipantJoin={handleParticipantJoin}
+          hostTabLabel="호스트 (주최자)"
+          hostTitle="새 주문방 만들기"
+          hostDescription="주문방을 생성하고 참여자를 초대하세요"
+          participantTitle="주문 참여"
+          participantDescription="6자리 코드로 주문에 참여하세요"
+          hostButtonText="주문방 만들기"
+          participantButtonText={isJoining ? "참여 중..." : "참여하기"}
+          featureBadges={['간편한 참여', '실시간 동기화', '자동 집계']}
+          requireName={false}
+        />
 
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto mb-12">

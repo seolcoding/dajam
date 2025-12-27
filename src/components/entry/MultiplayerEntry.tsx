@@ -45,6 +45,8 @@ export interface MultiplayerEntryProps {
   defaultTab?: 'host' | 'participant';
   /** 로딩 상태 */
   isLoading?: boolean;
+  /** 이름 입력 필요 여부 (기본값: true) */
+  requireName?: boolean;
   /** 추가 CSS 클래스 */
   className?: string;
 }
@@ -71,6 +73,7 @@ export function MultiplayerEntry({
   participantIcon: ParticipantIcon = Smartphone,
   defaultTab = 'host',
   isLoading = false,
+  requireName = true,
   className = '',
 }: MultiplayerEntryProps) {
   // Host form state
@@ -120,9 +123,8 @@ export function MultiplayerEntry({
 
   // 참여자 참여
   const handleParticipantJoin = async () => {
-    if (sessionCode.length !== 6 || !participantName.trim()) {
-      return;
-    }
+    if (sessionCode.length !== 6) return;
+    if (requireName && !participantName.trim()) return;
 
     setIsJoinLoading(true);
     try {
@@ -136,7 +138,7 @@ export function MultiplayerEntry({
   };
 
   const hostDisabled = isLoading || isHostLoading || (requireSessionTitle && !sessionTitle.trim());
-  const participantDisabled = isLoading || isJoinLoading || sessionCode.length !== 6 || !participantName.trim();
+  const participantDisabled = isLoading || isJoinLoading || sessionCode.length !== 6 || (requireName && !participantName.trim());
 
   return (
     <div className={`max-w-lg mx-auto ${className}`}>
@@ -207,17 +209,19 @@ export function MultiplayerEntry({
                 sessionTitle={validatedTitle}
               />
 
-              <div className="space-y-2">
-                <Label htmlFor="participant-name">이름 (닉네임)</Label>
-                <Input
-                  id="participant-name"
-                  type="text"
-                  placeholder="표시될 이름을 입력하세요"
-                  value={participantName}
-                  onChange={(e) => setParticipantName(e.target.value)}
-                  maxLength={20}
-                />
-              </div>
+              {requireName && (
+                <div className="space-y-2">
+                  <Label htmlFor="participant-name">이름 (닉네임)</Label>
+                  <Input
+                    id="participant-name"
+                    type="text"
+                    placeholder="표시될 이름을 입력하세요"
+                    value={participantName}
+                    onChange={(e) => setParticipantName(e.target.value)}
+                    maxLength={20}
+                  />
+                </div>
+              )}
 
               <Button
                 onClick={handleParticipantJoin}

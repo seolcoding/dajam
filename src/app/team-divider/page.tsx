@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { TeamDivider } from './components/TeamDivider';
+import TeamDividerApp from './TeamDividerApp';
 
 export const metadata: Metadata = {
   title: '팀 나누기 | 다잼',
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
 };
 
 export default function TeamDividerPage() {
-  return <TeamDivider />;
+  return <TeamDividerApp />;
 }

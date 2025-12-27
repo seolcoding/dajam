@@ -140,13 +140,15 @@ test.describe('슬라이드 임베드', () => {
     test.skip(!sessionCode, '세션 코드가 없어 스킵합니다. (이전 테스트 실패)');
 
     // 슬라이드 추가 버튼 찾기
-    const addSlideButton = page.getByRole('button', { name: /슬라이드|추가|임베드/i });
+    const addSlideButton = page.getByRole('button', { name: '슬라이드 업로드' });
 
     if (await addSlideButton.isVisible()) {
       await addSlideButton.click();
 
       // Google Slides 옵션 선택
-      const googleOption = page.getByText(/Google Slides|구글 슬라이드/i);
+      // 4개의 요소가 잡히는 문제 해결을 위해 정확한 텍스트나 역할로 선택
+      const googleOption = page.locator('button').filter({ hasText: /^Google Slides$/ }).first();
+      
       if (await googleOption.isVisible()) {
         await googleOption.click();
 
@@ -281,7 +283,6 @@ test.describe('멀티 브라우저 동시 접속', () => {
             : participant.device === 'tablet'
             ? 'Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) Tablet'
             : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Desktop',
-          isMobile: participant.device === 'mobile',
           hasTouch: participant.device !== 'desktop',
         });
 
@@ -352,7 +353,11 @@ test.describe('멀티 브라우저 동시 접속', () => {
     } finally {
       // 모든 컨텍스트 정리
       for (const ctx of allContexts) {
-        await ctx.close();
+        try {
+          await ctx.close();
+        } catch (e) {
+          console.log('컨텍스트 종료 중 에러 무시:', e);
+        }
       }
     }
   });
@@ -550,6 +555,85 @@ test.describe('실시간 인터랙션', () => {
       }
     }
   });
+
+  test('호스트가 실시간 투표 결과를 대시보드에서 확인', async ({ browser }) => {
+    const allContexts: BrowserContext[] = [];
+
+    try {
+      // 1. Host Setup
+      const hostContext = await browser.newContext();
+      allContexts.push(hostContext);
+      const hostPage = await hostContext.newPage();
+
+      await hostPage.goto('/audience-engage');
+      await hostPage.getByLabel('세션 제목').fill('Live Dashboard Test');
+      const startBtn = hostPage.getByRole('button', { name: /세션 시작하기|생성 중/i });
+      await expect(startBtn).toBeEnabled({ timeout: 15000 });
+      await startBtn.click();
+      await hostPage.waitForTimeout(2000);
+
+      // Get Session Code
+      const code = await hostPage.locator('.font-mono').first().textContent();
+      if (!code) { test.skip(); return; }
+
+      // 2. Start Poll (V2)
+      // Supabase 연결 대기
+      const statusMonitor = hostPage.getByTestId('elements-status');
+      await expect(statusMonitor).toContainText('Connected: true', { timeout: 20000 });
+
+      // "투표 시작" 버튼 클릭
+      const startPollBtn = hostPage.getByLabel('V2 즉석 투표 시작');
+      await expect(startPollBtn).toBeEnabled({ timeout: 15000 });
+      await startPollBtn.click();
+
+      // 상태 모니터링 대기
+      await expect(statusMonitor).not.toContainText('ActiveID: none', { timeout: 15000 });
+
+      // 호스트 화면에 대시보드 컨테이너가 뜨는지 확인
+      const dashboardContainer = hostPage.getByTestId('host-active-element');
+      await expect(dashboardContainer).toBeVisible({ timeout: 10000 });
+
+      // 디버그 마커 확인 (상태 업데이트 검증)
+      // sr-only 지만 Playwright는 텍스트 내용을 읽을 수 있음
+      const debugMarker = hostPage.getByTestId('active-element-debug');
+      await expect(debugMarker).toContainText('Active: poll', { timeout: 10000 });
+
+      // 호스트 화면에 투표 제목이 뜨는지 확인
+      // heading 역할로 찾되, 텍스트가 정확히 '즉석 투표'를 포함하는지 확인
+      await expect(hostPage.locator('h2, h3').filter({ hasText: '즉석 투표' }).first()).toBeVisible({ timeout: 10000 });
+
+      // 3. Participant Votes
+      const pContext = await browser.newContext();
+      allContexts.push(pContext);
+      const pPage = await pContext.newPage();
+
+      await pPage.goto(`/audience-engage?code=${code}`);
+      await pPage.getByLabel('이름').fill('Voter');
+      await pPage.getByRole('button', { name: /참여/i }).click();
+      
+      // 참여자 화면에 투표 옵션이 떠야 함 (PollResponse)
+      await expect(pPage.getByText('옵션 1')).toBeVisible({ timeout: 5000 });
+      
+      // 투표 실행
+      await pPage.getByText('옵션 1').click();
+
+      // 4. Verify Host Dashboard Update
+      // 호스트 화면에 "1명 참여 중" 또는 "100%" 바가 표시되어야 함
+      // HostActiveElement uses useElementAggregates which updates via realtime
+      await expect(hostPage.getByText(/1명 참여 중|TOTAL 1 PARTICIPANTS/)).toBeVisible({ timeout: 10000 });
+      
+      // 옵션 1의 퍼센트가 100%인지 확인
+      const option1Bar = hostPage.locator('text=100%');
+      await expect(option1Bar).toBeVisible();
+
+      console.log('✅ 호스트 라이브 대시보드 검증 완료');
+
+    } finally {
+      for (const ctx of allContexts) {
+        try { await ctx.close(); } catch {}
+      }
+    }
+  });
 });
 
 // ============================================================
@@ -668,7 +752,7 @@ test.describe('디바이스 혼합 반응형', () => {
     for (const device of devices) {
       const context = await browser.newContext({
         viewport: { width: device.width, height: device.height },
-        isMobile: device.isMobile,
+        // isMobile removed for cross-browser compatibility
       });
 
       const page = await context.newPage();

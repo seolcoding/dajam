@@ -304,6 +304,7 @@ export interface CreateElementInput {
   description?: string;
   config: Json;
   order_index?: number;
+  is_active?: boolean;
   starts_at?: string;
   ends_at?: string;
 }
@@ -392,6 +393,24 @@ export const DEFAULT_WORD_CLOUD_STATE: WordCloudElementState = {
   isOpen: true,
   totalWords: 0,
   uniqueWords: 0,
+};
+
+export const DEFAULT_BALANCE_GAME_CONFIG: BalanceGameElementConfig = {
+  questions: [
+    {
+      id: '1',
+      optionA: { text: '평생 라면만 먹기', color: '#FF4D4D' },
+      optionB: { text: '평생 치킨만 먹기', color: '#FFA500' },
+    }
+  ],
+  showResultsAfterEach: true,
+  allowChange: false,
+};
+
+export const DEFAULT_BALANCE_GAME_STATE: BalanceGameElementState = {
+  currentQuestionIndex: 0,
+  isOpen: true,
+  results: {},
 };
 
 // ============================================

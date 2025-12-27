@@ -12,6 +12,8 @@ import { useQA } from '../hooks/useQA';
 import { useChat } from '../hooks/useChat';
 import { useReactions } from '../hooks/useReactions';
 import { useSlideSync } from '../hooks/useSlideSync';
+import { useSessionElements } from '@/lib/realtime/hooks/useSessionElements';
+import { ElementResponseFactory } from '@/components/elements/ResponseFactory';
 import type { AudienceEngageConfig, SceneType, EmojiType } from '../types';
 import type { ConnectionState } from '@/features/interactions';
 
@@ -46,6 +48,12 @@ export default function ParticipantView({
   const { currentScene: activeScene, isPresenting } = useSlideSync({
     sessionId,
     isHost: false,
+    enabled: true,
+  });
+
+  // V2 Session Elements
+  const { activeElement } = useSessionElements({
+    sessionId,
     enabled: true,
   });
 
@@ -109,34 +117,47 @@ export default function ParticipantView({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col max-w-2xl mx-auto w-full px-4 py-4">
-        {/* Scene View */}
+        {/* Scene View or Active Element */}
         <Card className="mb-4 overflow-hidden">
-          <div className="aspect-video bg-slate-100 relative">
-            <SceneManager
-              activeScene={activeScene}
-              slideItems={slideItems}
-              isHost={false}
-              participantId={participantId}
-              participantName={participantName}
-              sessionCode={sessionCode}
-              sessionId={sessionId}
-            />
-            {/* 프레젠테이션 대기 중 표시 */}
-            {!isPresenting && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                  <p className="text-sm">호스트를 기다리는 중...</p>
-                </div>
+          {activeElement ? (
+            <div className="p-6 bg-white min-h-[300px] flex items-center justify-center">
+              <ElementResponseFactory
+                element={activeElement}
+                participantId={participantId}
+                userId={participantId} // user_id fallback to participantId for now
+                className="w-full"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="aspect-video bg-slate-100 relative">
+                <SceneManager
+                  activeScene={activeScene}
+                  slideItems={slideItems}
+                  isHost={false}
+                  participantId={participantId}
+                  participantName={participantName}
+                  sessionCode={sessionCode}
+                  sessionId={sessionId}
+                />
+                {/* 프레젠테이션 대기 중 표시 */}
+                {!isPresenting && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="text-center text-white">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                      <p className="text-sm">호스트를 기다리는 중...</p>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className="p-2 border-t text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-            {isPresenting && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
-            {activeScene.type === 'slides'
-              ? `슬라이드 ${(activeScene.slideIndex || 0) + 1}`
-              : getSceneLabel(activeScene.type)}
-          </div>
+              <div className="p-2 border-t text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+                {isPresenting && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+                {activeScene.type === 'slides'
+                  ? `슬라이드 ${(activeScene.slideIndex || 0) + 1}`
+                  : getSceneLabel(activeScene.type)}
+              </div>
+            </>
+          )}
         </Card>
 
         {/* Reactions Bar */}

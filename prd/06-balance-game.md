@@ -1,5 +1,9 @@
 # 밸런스 게임 (Balance Game / This or That)
 
+> ✅ **통합 앱**: 다음 앱이 이 앱으로 통합됩니다.
+> - `this-or-that` → This or That 모드 (빠른 양자택일)
+> - 통합 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+
 ## 1. 개요
 
 ### 1.1 프로젝트 설명

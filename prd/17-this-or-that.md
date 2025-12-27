@@ -1,5 +1,9 @@
 # This or That - 실시간 그룹 투표 게임
 
+> ⚠️ **통합 예정**: 이 앱은 `balance-game`으로 통합될 예정입니다.
+> - 통합 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+> - This or That 모드로 밸런스 게임에 통합 (빠른 양자택일)
+
 ## 1. 개요
 
 ### 1.1 앱 설명

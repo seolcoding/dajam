@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useSupabase } from '@/hooks/useSupabase';
 import type { SessionElement, SessionElementInsert, Json } from '@/types/database';
 import type { ConnectionStatus } from '../types';
@@ -84,13 +84,19 @@ export function useSessionElements({
   const supabase = useSupabase() as any;
 
   const [elements, setElements] = useState<SessionElement[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(autoLoadOnMount);
   const [error, setError] = useState<string | null>(null);
 
-  // Ref for sessionId to avoid stale closures
+  // 데이터 무결성을 위한 Refs
   const sessionIdRef = useRef<string | null>(null);
+  const elementsRef = useRef<SessionElement[]>([]);
+  const lastUpdateRef = useRef<number>(0);
 
-  // Keep sessionId ref in sync
+  // Sync ref with state
+  useEffect(() => {
+    elementsRef.current = elements;
+  }, [elements]);
+
   useEffect(() => {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
@@ -99,33 +105,37 @@ export function useSessionElements({
   // Load Elements
   // ============================================
 
-  const loadElements = useCallback(async () => {
+  const loadElements = useCallback(async (isBackground = false) => {
     const currentSessionId = sessionIdRef.current;
     if (!currentSessionId || !enabled) {
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
       return;
     }
 
-    try {
-      setIsLoading(true);
-      setError(null);
+    const requestTime = Date.now();
 
+    try {
+      if (!isBackground) setIsLoading(true);
+      
       const { data, error: fetchError } = await supabase
         .from('session_elements')
         .select('*')
         .eq('session_id', currentSessionId)
         .order('order_index', { ascending: true });
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
+
+      // 더 최신 로컬 업데이트가 있었다면 이 데이터는 무시 (Race condition 방지)
+      if (requestTime < lastUpdateRef.current) return;
 
       setElements((data || []) as SessionElement[]);
     } catch (err) {
       console.error('[useSessionElements] Load failed:', err);
-      setError(err instanceof Error ? err.message : '요소를 불러오는데 실패했습니다.');
+      if (!isBackground) {
+        setError(err instanceof Error ? err.message : '요소를 불러오는데 실패했습니다.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!isBackground) setIsLoading(false);
     }
   }, [enabled, supabase]);
 
@@ -145,8 +155,8 @@ export function useSessionElements({
     ],
     onData: (_tableName, payload) => {
       console.log('[useSessionElements] Realtime event:', payload);
-      // Reload on any change - simple but reliable
-      loadElements();
+      // 실시간 이벤트는 백그라운드에서 조용히 업데이트 (로딩 바 표시 X)
+      loadElements(true);
     },
   });
 
@@ -167,7 +177,11 @@ export function useSessionElements({
   // Derived State
   // ============================================
 
-  const activeElement = elements.find((el) => el.is_active) || null;
+  const activeElement = useMemo(() => {
+    if (!Array.isArray(elements)) return null;
+    // 명시적으로 true인 요소를 찾음 (null/undefined 방어)
+    return elements.find((el) => el.is_active === true) || null;
+  }, [elements]);
 
   // ============================================
   // CRUD Operations
@@ -195,7 +209,7 @@ export function useSessionElements({
           config: input.config,
           state: {},
           order_index: input.order_index ?? maxOrderIndex + 1,
-          is_active: false,
+          is_active: input.is_active ?? false,
           is_visible: true,
           starts_at: input.starts_at || null,
           ends_at: input.ends_at || null,
@@ -336,6 +350,16 @@ export function useSessionElements({
       const currentSessionId = sessionIdRef.current;
       if (!currentSessionId) return false;
 
+      // Optimistic Update: Update local state immediately
+      lastUpdateRef.current = Date.now();
+      const previousElements = [...elements]; // Backup for rollback
+      setElements((prev) =>
+        prev.map((el) => ({
+          ...el,
+          is_active: el.id === id,
+        }))
+      );
+
       try {
         // 먼저 모든 요소 비활성화
         const { error: deactivateError } = await supabase
@@ -355,22 +379,17 @@ export function useSessionElements({
           if (activateError) throw activateError;
         }
 
-        // 로컬 상태 업데이트 (optimistic)
-        setElements((prev) =>
-          prev.map((el) => ({
-            ...el,
-            is_active: el.id === id,
-          }))
-        );
-
         return true;
       } catch (err) {
         console.error('[useSessionElements] SetActive failed:', err);
         setError(err instanceof Error ? err.message : '요소 활성화에 실패했습니다.');
+        
+        // Rollback on error
+        setElements(previousElements);
         return false;
       }
     },
-    [supabase]
+    [elements, supabase]
   );
 
   const updateElementState = useCallback(

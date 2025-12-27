@@ -16,17 +16,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **즉시 참여** - QR코드/6자리 코드로 회원가입 없이 참여
 4. **의견 통합** - 투표, 선택, 순위를 시각적으로 집계
 
-### 앱 우선순위 (핵심 가치 기준)
-| Tier | 앱 | 이유 |
-|------|-----|------|
-| **🔥 Core** | live-voting, group-order, bingo-game | 실시간 멀티유저 필수 |
-| **⚡ High** | balance-game, ideal-worldcup, student-network | 의견 통합 + 공유 |
-| **📊 Medium** | ladder-game, team-divider, chosung-quiz | 같이하기 (오프라인) |
-| **🔧 Utility** | 계산기류, dutch-pay, random-picker, lunch-roulette, id-validator | 개인 도구 |
+### 세션 모드 분류 (2024-12-26 업데이트)
+
+> 상세 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+
+| 세션 모드 | 앱 | 설명 |
+|----------|-----|------|
+| **🎯 마스터 플랫폼** | audience-engage, group-order | 통합 인터랙션, 화면 강제 리다이렉트 |
+| **🎮 세션 - 실시간** | bingo-game, realtime-quiz, human-bingo | Supabase 실시간 동기화 |
+| **🎤 세션 - 호스트 주도** | random-picker, team-divider, live-voting, word-cloud | 호스트 컨트롤 |
+| **🔀 싱글 + 세션** | balance-game, ideal-worldcup, personality-test, student-network | 혼자/함께 모두 가능 |
+| **🧮 싱글 전용** | 계산기류 (5개), id-validator | 개인 도구 |
+
+### 앱 통합 계획 (22개 → 18개)
+
+| 통합 대상 | 흡수 앱 |
+|----------|---------|
+| `balance-game` | ← this-or-that |
+| `realtime-quiz` | ← chosung-quiz |
+| `random-picker` | ← lunch-roulette, ladder-game |
 
 ## Project Overview
 
-A Next.js 15 App Router monorepo containing **22 Korean mini web apps**. The apps are designed for Korean users with Korean-optimized UX and Pretendard font.
+A Next.js 15 App Router monorepo containing **18 Korean mini web apps** (통합 후). The apps are designed for Korean users with Korean-optimized UX and Pretendard font.
 
 ## Commands
 
@@ -62,7 +74,7 @@ src/
 │   ├── page.tsx              # Home (app gallery)
 │   ├── layout.tsx            # Root layout with metadata
 │   ├── globals.css           # Global styles + animations
-│   └── [app-name]/           # 22 app routes
+│   └── [app-name]/           # 18 app routes (통합 후)
 │       ├── page.tsx          # Server component entry
 │       ├── components/       # App-specific components
 │       ├── store/            # Zustand stores (if needed)
@@ -161,22 +173,30 @@ When creating or modifying UI components, use the `frontend-for-opus-4.5` skill 
 /frontend-for-opus-4.5
 ```
 
-### App Routes (22개)
+### App Routes (18개 - 통합 후)
 
-All 22 apps are at root-level routes:
+All apps are at root-level routes:
 
-**계산기 (5개)**
+**싱글 전용 (5개)**
 - `/salary-calculator`, `/rent-calculator`, `/gpa-calculator`, `/dutch-pay`, `/id-validator`
 
-**게임 (8개)**
-- `/balance-game`, `/bingo-game`, `/chosung-quiz`, `/ideal-worldcup`, `/ladder-game`
-- `/personality-test`, `/realtime-quiz`, `/this-or-that`
+**싱글 + 세션 (4개)**
+- `/balance-game` (+ this-or-that 통합), `/ideal-worldcup`, `/personality-test`, `/student-network`
 
-**유틸리티 (5개)**
-- `/random-picker`, `/team-divider`, `/lunch-roulette`, `/group-order`, `/word-cloud`
+**세션 - 호스트 주도 (4개)**
+- `/random-picker` (+ lunch-roulette, ladder-game 통합), `/team-divider`, `/live-voting`, `/word-cloud`
 
-**실시간/소셜 (4개)**
-- `/live-voting`, `/audience-engage`, `/student-network`, `/human-bingo`
+**세션 - 실시간 게임 (3개)**
+- `/bingo-game`, `/realtime-quiz` (+ chosung-quiz 통합), `/human-bingo`
+
+**마스터 플랫폼 (2개)**
+- `/audience-engage`, `/group-order`
+
+**통합 예정 (deprecated)**
+- ~~`/this-or-that`~~ → balance-game
+- ~~`/chosung-quiz`~~ → realtime-quiz
+- ~~`/lunch-roulette`~~ → random-picker
+- ~~`/ladder-game`~~ → random-picker
 
 ## App-Code-Test Quick Reference
 
@@ -206,11 +226,12 @@ All 22 apps are at root-level routes:
 ### 기능으로 앱 찾기
 
 ```yaml
-실시간 동기화: live-voting, audience-engage, bingo-game
+실시간 동기화: live-voting, audience-engage, bingo-game, word-cloud, realtime-quiz
 계산/정산: salary-calculator, rent-calculator, dutch-pay, gpa-calculator
-랜덤 선택: random-picker, ladder-game, team-divider, lunch-roulette
+랜덤 선택: random-picker, team-divider  # ladder-game, lunch-roulette 통합됨
 QR 코드: live-voting, student-network, audience-engage
-Canvas 애니메이션: random-picker, ladder-game
+Canvas 애니메이션: random-picker  # ladder-game 통합됨
+아이스브레이킹: human-bingo, personality-test, word-cloud
 ```
 
 ## V2 Data Architecture (2024-12-25)
@@ -254,8 +275,9 @@ type ElementType =
 ## Related Docs
 
 - `README.md` - Quick start and app list
-- `APPS_DOCUMENTATION.md` - Full app catalog
+- `docs/APP_CONSOLIDATION_PLAN.md` - **앱 통합 및 세션 모드 계획** (22개 → 18개)
 - `APP_INDEX.yaml` - **앱-코드-테스트 매핑 인덱스** (AI 에이전트용)
+- `APPS_DOCUMENTATION.md` - Full app catalog
 - `E2E_TEST_PLAN.md` - Testing strategy
 - `prd/*.md` - Product requirements for each app
 - `docs/BRANDING_RESEARCH_DAJAM.md` - Dajam 브랜딩 가이드라인

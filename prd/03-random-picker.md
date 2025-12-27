@@ -1,5 +1,10 @@
 # 랜덤 뽑기 룰렛 (Random Picker Wheel)
 
+> ✅ **통합 앱**: 다음 앱들이 이 앱으로 통합됩니다.
+> - `lunch-roulette` → 점심 모드 (맛집 + 위치 기반 + 링크 추천)
+> - `ladder-game` → 사다리 모드 (1:1 매칭 시각화)
+> - 통합 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+
 ## 1. 개요
 
 ### 1.1 목적

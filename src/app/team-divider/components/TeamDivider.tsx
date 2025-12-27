@@ -1,17 +1,30 @@
 'use client';
 
 import { useTeamStore } from '@/app/team-divider/store/useTeamStore';
+import { useSessionStore } from '@/app/team-divider/store/session-store';
 import { AppHeader, AppFooter } from '@/components/layout';
+import { QRCodeShare } from '@/components/entry';
 import { Button } from '@/components/ui/button';
 import { ParticipantInput } from './ParticipantInput';
 import { TeamSettings } from './TeamSettings';
 import { TeamResult } from './TeamResult';
 import { QRCodeDisplay } from './QRCodeDisplay';
 import { ExportButtons } from './ExportButtons';
-import { Shuffle, RotateCcw, Users } from 'lucide-react';
+import { Shuffle, RotateCcw, Users, ArrowLeft } from 'lucide-react';
 
-export function TeamDivider() {
+interface TeamDividerProps {
+  isSessionMode?: boolean;
+  onBack?: () => void;
+}
+
+export function TeamDivider({ isSessionMode = false, onBack }: TeamDividerProps) {
   const { participants, isShuffled, teams, divideTeams, reset } = useTeamStore();
+  const { sessionCode } = useSessionStore();
+
+  // Generate session URL
+  const sessionUrl = typeof window !== 'undefined' && sessionCode
+    ? `${window.location.origin}/team-divider?session=${sessionCode}`
+    : null;
 
   const canShuffle = participants.length >= 2;
 
@@ -19,9 +32,17 @@ export function TeamDivider() {
     <div className="min-h-screen bg-white flex flex-col">
       <AppHeader
         title="팀 나누기"
-        description="공정한 랜덤 알고리즘으로 팀을 자동 분배하고, QR 코드로 결과를 공유하세요"
+        description={isSessionMode && sessionCode ? `세션: ${sessionCode}` : "공정한 랜덤 알고리즘으로 팀을 자동 분배하고, QR 코드로 결과를 공유하세요"}
         icon={Users}
         iconGradient="from-blue-500 to-indigo-500"
+        actions={
+          isSessionMode && onBack ? (
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              나가기
+            </Button>
+          ) : undefined
+        }
       />
 
       <div className="container mx-auto px-4 py-12 max-w-7xl flex-1">
@@ -30,6 +51,17 @@ export function TeamDivider() {
           <div className="space-y-8">
             <ParticipantInput />
             <TeamSettings />
+
+            {/* Session QR Code (Host Mode Only) */}
+            {isSessionMode && sessionCode && sessionUrl && (
+              <QRCodeShare
+                url={sessionUrl}
+                sessionCode={sessionCode}
+                size={160}
+                title="참여자 초대"
+                description="QR 코드를 스캔하거나 코드를 입력하세요"
+              />
+            )}
 
             <div className="flex flex-col items-center pt-8 gap-4">
               <Button

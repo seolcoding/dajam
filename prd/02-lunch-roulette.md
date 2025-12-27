@@ -1,5 +1,9 @@
 # 점심 메뉴 룰렛 (Lunch Menu Roulette)
 
+> ⚠️ **통합 예정**: 이 앱은 `random-picker`로 통합될 예정입니다.
+> - 통합 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+> - 점심 모드로 랜덤 뽑기에 통합 (맛집 + 위치 기반 + 링크 추천)
+
 ## 1. 개요
 
 ### 1.1 핵심 가치

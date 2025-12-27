@@ -1,5 +1,9 @@
 # 초성 퀴즈 (Chosung Quiz Game)
 
+> ⚠️ **통합 예정**: 이 앱은 `realtime-quiz`로 통합될 예정입니다.
+> - 통합 계획: `docs/APP_CONSOLIDATION_PLAN.md` 참조
+> - 초성 퀴즈 모드로 실시간 퀴즈에 통합
+
 ## 1. 개요
 
 ### 1.1 프로젝트 설명

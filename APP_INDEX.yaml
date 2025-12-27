@@ -2,13 +2,47 @@
 # 이 파일은 코드베이스 인덱싱을 위한 앱-코드-테스트 매핑 정보입니다.
 # AI 에이전트와 개발자 모두가 빠르게 코드를 찾을 수 있도록 설계되었습니다.
 
-version: "1.0"
+version: "2.0"
 project: dajam
-description: "16개 한국어 미니 웹앱 모노레포"
+description: "18개 한국어 미니 웹앱 모노레포 (22개 → 18개 통합 예정)"
 base_url: "https://dajam.seolcoding.com"
 
 # ============================================================================
-# TIER 분류 (핵심 가치 기준)
+# 앱 통합 계획 (docs/APP_CONSOLIDATION_PLAN.md 참조)
+# ============================================================================
+consolidation:
+  deprecated:
+    - this-or-that    # → balance-game으로 통합
+    - chosung-quiz    # → realtime-quiz로 통합
+    - lunch-roulette  # → random-picker로 통합
+    - ladder-game     # → random-picker로 통합
+
+# ============================================================================
+# 세션 모드 분류
+# ============================================================================
+session_modes:
+  single_only:
+    description: "싱글 플레이 전용"
+    apps: [salary-calculator, rent-calculator, gpa-calculator, dutch-pay, id-validator]
+
+  single_and_session:
+    description: "싱글 + 세션 모드"
+    apps: [balance-game, ideal-worldcup, personality-test, student-network]
+
+  session_host_driven:
+    description: "세션 전용 - 호스트 주도"
+    apps: [random-picker, team-divider, live-voting, word-cloud]
+
+  session_realtime:
+    description: "세션 전용 - 실시간 게임"
+    apps: [bingo-game, realtime-quiz, human-bingo]
+
+  master_platform:
+    description: "마스터 플랫폼"
+    apps: [group-order, audience-engage]
+
+# ============================================================================
+# TIER 분류 (핵심 가치 기준) - 레거시 호환
 # ============================================================================
 tiers:
   core:
@@ -21,11 +55,11 @@ tiers:
 
   medium:
     description: "같이하기 (오프라인 중심)"
-    apps: [ladder-game, team-divider, chosung-quiz]
+    apps: [team-divider, realtime-quiz, human-bingo]
 
   utility:
     description: "개인 도구"
-    apps: [salary-calculator, rent-calculator, gpa-calculator, dutch-pay, random-picker, lunch-roulette, id-validator]
+    apps: [salary-calculator, rent-calculator, gpa-calculator, dutch-pay, random-picker, id-validator]
 
 # ============================================================================
 # 앱별 상세 매핑
@@ -37,7 +71,8 @@ apps:
   live-voting:
     route: /live-voting
     category: realtime
-    description: "실시간 투표/설문"
+    description: "실시간 투표/설문 (의사결정용)"
+    session_mode: session_host_driven
     code:
       main: src/app/live-voting/page.tsx
       components: src/app/live-voting/components/
@@ -47,15 +82,18 @@ apps:
       page_object: e2e/pages/utility/live-voting.page.ts
       scenarios: e2e/scenarios/utility/live-voting.spec.ts
     features:
-      - 실시간 투표 생성/참여
+      - 투표 생성/시작/종료
       - QR 코드 공유
-      - 결과 실시간 집계
-    keywords: [voting, poll, realtime, QR]
+      - 익명 투표 옵션
+      - 투표 취소 기능
+      - 통합 리포트
+    keywords: [voting, poll, realtime, QR, decision]
 
   audience-engage:
     route: /audience-engage
     category: realtime
-    description: "청중 참여 프레젠테이션"
+    description: "통합 인터랙션 플랫폼 (마스터)"
+    session_mode: master_platform
     code:
       main: src/app/audience-engage/page.tsx
       components: src/app/audience-engage/components/
@@ -65,15 +103,16 @@ apps:
       scenarios: e2e/scenarios/multiuser/presentation-e2e.spec.ts
     features:
       - 슬라이드 동기화
-      - 실시간 퀴즈/투표
-      - 워드클라우드
-      - 빙고/사다리/밸런스게임 씬
-    keywords: [presentation, slides, realtime, host, participant]
+      - 화면 강제 리다이렉트
+      - 실시간 퀴즈/투표/워드클라우드
+      - 모든 인터랙션 통합 컨트롤
+    keywords: [presentation, slides, realtime, host, participant, master]
 
   bingo-game:
     route: /bingo-game
     category: game
-    description: "빙고 게임"
+    description: "빙고 게임 (호스트 호출)"
+    session_mode: session_realtime
     code:
       main: src/app/bingo-game/page.tsx
       components: src/app/bingo-game/components/
@@ -82,15 +121,16 @@ apps:
       page_object: e2e/pages/game/bingo.page.ts
       scenarios: e2e/scenarios/game/bingo-game.spec.ts
     features:
-      - 빙고 보드 생성
-      - 호스트/참여자 모드
-      - 실시간 동기화
-    keywords: [bingo, game, multiplayer]
+      - 빙고 보드 생성 (9가지 테마)
+      - 호스트 호출 → 참여자 자동 체크
+      - Supabase 실시간 동기화
+    keywords: [bingo, game, multiplayer, realtime]
 
   group-order:
     route: /group-order
     category: utility
     description: "단체 주문"
+    session_mode: master_platform
     code:
       main: src/app/group-order/page.tsx
       components: src/app/group-order/components/
@@ -106,7 +146,8 @@ apps:
   balance-game:
     route: /balance-game
     category: game
-    description: "밸런스 게임"
+    description: "밸런스 게임 (+ This or That 통합)"
+    session_mode: single_and_session
     code:
       main: src/app/balance-game/page.tsx
       components: src/app/balance-game/components/
@@ -115,15 +156,19 @@ apps:
       page_object: e2e/pages/game/balance-game.page.ts
       scenarios: e2e/scenarios/game/balance-game.spec.ts
     features:
-      - A vs B 선택
+      - A vs B 선택 (클래식 모드)
+      - This or That 모드 (빠른 양자택일)
       - 결과 통계
-      - 커스텀 질문
-    keywords: [balance, choice, versus, poll]
+      - 호스트 질문 컨트롤 (세션)
+      - 결과 실시간 공유 (세션)
+    keywords: [balance, choice, versus, poll, this-or-that]
+    integrates: [this-or-that]
 
   ideal-worldcup:
     route: /ideal-worldcup
     category: game
     description: "이상형 월드컵"
+    session_mode: single_and_session
     code:
       main: src/app/ideal-worldcup/page.tsx
       components: src/app/ideal-worldcup/components/
@@ -135,12 +180,14 @@ apps:
       - 토너먼트 형식
       - 이미지/텍스트 항목
       - 결과 공유
+      - 세션 참여자 점수 집계 (토너먼트 진출 점수)
     keywords: [worldcup, tournament, pick, favorite]
 
   student-network:
     route: /student-network
     category: social
     description: "학생 네트워크 (명함 교환)"
+    session_mode: single_and_session
     code:
       main: src/app/student-network/page.tsx
       components: src/app/student-network/components/
@@ -152,7 +199,8 @@ apps:
       - 프로필 생성
       - QR 명함
       - 연락처 교환
-    keywords: [network, profile, contact, QR, business-card]
+      - 지속적 네트워킹 (동의 기반 연락처 공유)
+    keywords: [network, profile, contact, QR, business-card, networking]
 
   # --------------------------------------------------------------------------
   # MEDIUM TIER - 오프라인 같이하기
@@ -161,6 +209,8 @@ apps:
     route: /ladder-game
     category: game
     description: "사다리 게임"
+    status: deprecated  # → random-picker로 통합 예정
+    merged_into: random-picker
     code:
       main: src/app/ladder-game/page.tsx
       client: src/app/ladder-game/LadderGameApp.tsx
@@ -178,6 +228,7 @@ apps:
     route: /team-divider
     category: utility
     description: "팀 나누기"
+    session_mode: session_host_driven
     code:
       main: src/app/team-divider/page.tsx
       components: src/app/team-divider/components/
@@ -189,12 +240,16 @@ apps:
       - 랜덤 팀 분배
       - 팀 수 조절
       - 결과 공유
-    keywords: [team, divide, random, group]
+      - 자동 등록 (세션)
+      - LLM 스마트 배분 (예정)
+    keywords: [team, divide, random, group, session]
 
   chosung-quiz:
     route: /chosung-quiz
     category: game
     description: "초성 퀴즈"
+    status: deprecated  # → realtime-quiz로 통합 예정
+    merged_into: realtime-quiz
     code:
       main: src/app/chosung-quiz/page.tsx
       client: src/app/chosung-quiz/ChosungQuizClient.tsx
@@ -217,6 +272,7 @@ apps:
     route: /salary-calculator
     category: calculator
     description: "연봉 계산기"
+    session_mode: single_only
     code:
       main: src/app/salary-calculator/page.tsx
       client: src/app/salary-calculator/SalaryCalculatorApp.tsx
@@ -235,6 +291,7 @@ apps:
     route: /rent-calculator
     category: calculator
     description: "전월세 계산기"
+    session_mode: single_only
     code:
       main: src/app/rent-calculator/page.tsx
       client: src/app/rent-calculator/RentCalculatorClient.tsx
@@ -254,6 +311,7 @@ apps:
     route: /gpa-calculator
     category: calculator
     description: "학점 계산기"
+    session_mode: single_only
     code:
       main: src/app/gpa-calculator/page.tsx
       components: src/app/gpa-calculator/components/
@@ -270,6 +328,7 @@ apps:
     route: /dutch-pay
     category: calculator
     description: "더치페이 계산기"
+    session_mode: single_only
     code:
       main: src/app/dutch-pay/page.tsx
       client: src/app/dutch-pay/DutchPayApp.tsx
@@ -289,7 +348,8 @@ apps:
   random-picker:
     route: /random-picker
     category: utility
-    description: "랜덤 뽑기 룰렛"
+    description: "랜덤 뽑기 (+ 점심/사다리 통합)"
+    session_mode: session_host_driven
     code:
       main: src/app/random-picker/page.tsx
       client: src/app/random-picker/RandomPickerClient.tsx
@@ -299,15 +359,21 @@ apps:
       page_object: e2e/pages/utility/random-picker.page.ts
       scenarios: e2e/scenarios/utility/random-picker.spec.ts
     features:
-      - 휠 회전 애니메이션
-      - 항목 추가/삭제
-      - 히스토리
-    keywords: [random, picker, wheel, roulette, 랜덤, 뽑기]
+      - 일반 모드 (범용 랜덤 선택)
+      - 점심 모드 (맛집 + 위치 + 링크 추천)
+      - 사다리 모드 (1:1 매칭 시각화)
+      - 다양한 애니메이션 (복권, 물리엔진, 3D, 핀볼, 깔대기)
+      - 마우스 클릭/드래그 섞기 인터랙션
+      - 경품 추첨 시 참여자 자동 등록
+    keywords: [random, picker, wheel, roulette, 랜덤, 뽑기, lunch, ladder]
+    integrates: [lunch-roulette, ladder-game]
 
   lunch-roulette:
     route: /lunch-roulette
     category: utility
     description: "점심 메뉴 룰렛"
+    status: deprecated  # → random-picker로 통합 예정
+    merged_into: random-picker
     code:
       main: src/app/lunch-roulette/page.tsx
       components: src/app/lunch-roulette/components/
@@ -325,6 +391,7 @@ apps:
     route: /id-validator
     category: utility
     description: "주민등록번호 검증기"
+    session_mode: single_only
     code:
       main: src/app/id-validator/page.tsx
       client: src/app/id-validator/IdValidatorClient.tsx
@@ -337,6 +404,83 @@ apps:
       - 테스트 번호 생성
       - 생년월일 추출
     keywords: [id, rrn, validator, 주민등록번호, 검증]
+
+  # --------------------------------------------------------------------------
+  # 추가 앱 (이전 버전에서 누락)
+  # --------------------------------------------------------------------------
+  word-cloud:
+    route: /word-cloud
+    category: realtime
+    description: "워드 클라우드"
+    session_mode: session_host_driven
+    code:
+      main: src/app/word-cloud/page.tsx
+      components: src/app/word-cloud/components/
+    features:
+      - 실시간 단어 수집
+      - 시각화 (크기/색상)
+      - 오타 수정 (예정)
+      - 유사어 묶기 (예정)
+    keywords: [word, cloud, realtime, visualization]
+
+  human-bingo:
+    route: /human-bingo
+    category: game
+    description: "휴먼 빙고 (아이스브레이킹)"
+    session_mode: session_realtime
+    code:
+      main: src/app/human-bingo/page.tsx
+      components: src/app/human-bingo/components/
+      data: src/app/human-bingo/data/
+    features:
+      - 특성 기반 빙고판
+      - 참여자 탐색 + 이름 입력
+      - 7개 카테고리 50+ 템플릿
+    keywords: [bingo, human, icebreaker, networking]
+
+  personality-test:
+    route: /personality-test
+    category: game
+    description: "성격 테스트"
+    session_mode: single_and_session
+    code:
+      main: src/app/personality-test/page.tsx
+      components: src/app/personality-test/components/
+    features:
+      - MBTI 스타일 테스트
+      - 팀 분포 통계 (세션)
+      - I/E 비율 등 시각화
+    keywords: [personality, MBTI, test, psychology]
+
+  realtime-quiz:
+    route: /realtime-quiz
+    category: game
+    description: "실시간 퀴즈 (+ 초성 퀴즈 통합)"
+    session_mode: session_realtime
+    code:
+      main: src/app/realtime-quiz/page.tsx
+      components: src/app/realtime-quiz/components/
+    features:
+      - 일반 퀴즈 (객관식/주관식)
+      - 초성 퀴즈 모드
+      - 이해도 테스트 모드
+      - AI 퀴즈 생성 (예정)
+    keywords: [quiz, realtime, kahoot, chosung, trivia]
+    integrates: [chosung-quiz]
+
+  this-or-that:
+    route: /this-or-that
+    category: game
+    description: "This or That (양자택일)"
+    status: deprecated  # → balance-game으로 통합 예정
+    merged_into: balance-game
+    code:
+      main: src/app/this-or-that/page.tsx
+      components: src/app/this-or-that/components/
+    features:
+      - 빠른 양자택일
+      - 실시간 통계
+    keywords: [this, that, choice, versus]
 
 # ============================================================================
 # 테스트 매핑
@@ -400,15 +544,29 @@ shared:
 # 검색 가이드
 # ============================================================================
 search_guide:
+  by_session_mode:
+    "싱글 전용": [salary-calculator, rent-calculator, gpa-calculator, dutch-pay, id-validator]
+    "싱글 + 세션": [balance-game, ideal-worldcup, personality-test, student-network]
+    "호스트 주도": [random-picker, team-divider, live-voting, word-cloud]
+    "실시간 게임": [bingo-game, realtime-quiz, human-bingo]
+    "마스터 플랫폼": [group-order, audience-engage]
+
   by_feature:
-    "실시간 동기화": [live-voting, audience-engage, bingo-game]
+    "실시간 동기화": [live-voting, audience-engage, bingo-game, word-cloud, realtime-quiz]
     "계산기": [salary-calculator, rent-calculator, gpa-calculator, dutch-pay]
-    "랜덤 선택": [random-picker, lunch-roulette, ladder-game, team-divider]
-    "게임": [balance-game, bingo-game, chosung-quiz, ladder-game, ideal-worldcup]
+    "랜덤 선택": [random-picker, team-divider]  # ladder-game, lunch-roulette 통합됨
+    "게임": [balance-game, bingo-game, ideal-worldcup, personality-test, realtime-quiz, human-bingo]
     "QR 코드": [live-voting, student-network, audience-engage]
+    "아이스브레이킹": [human-bingo, personality-test, word-cloud]
 
   by_tech:
-    "Zustand 상태관리": [chosung-quiz, dutch-pay, ideal-worldcup, live-voting, lunch-roulette, random-picker, rent-calculator, student-network, team-divider, audience-engage]
-    "Canvas 애니메이션": [random-picker, ladder-game]
-    "Kakao Maps API": [lunch-roulette]
-    "Supabase Realtime": [live-voting, audience-engage, bingo-game]
+    "Zustand 상태관리": [dutch-pay, ideal-worldcup, live-voting, random-picker, rent-calculator, student-network, team-divider, audience-engage]
+    "Canvas 애니메이션": [random-picker]  # ladder-game 통합됨
+    "Kakao Maps API": [random-picker]  # lunch-roulette 통합됨
+    "Supabase Realtime": [live-voting, audience-engage, bingo-game, word-cloud, realtime-quiz]
+
+  deprecated_apps:
+    - this-or-that    # → balance-game
+    - chosung-quiz    # → realtime-quiz
+    - lunch-roulette  # → random-picker
+    - ladder-game     # → random-picker

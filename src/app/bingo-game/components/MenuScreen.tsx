@@ -1,25 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Monitor, Smartphone, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useBingoStore } from '../stores/useBingoStore';
 import { AppHeader, AppFooter } from '@/components/layout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SessionCodeInput } from '@/components/entry';
+import { MultiplayerEntry } from '@/components/entry';
 
 export function MenuScreen() {
   const { setGameMode, joinGame } = useBingoStore();
-  const [gameCode, setGameCode] = useState('');
   const [isJoining, setIsJoining] = useState(false);
 
-  const handleJoinGame = async () => {
-    if (gameCode.length !== 6) return;
+  const handleHostStart = () => {
+    setGameMode('setup');
+  };
+
+  const handleParticipantJoin = async ({ code }: { code: string; name: string }) => {
+    if (code.length !== 6) return;
 
     setIsJoining(true);
     try {
-      joinGame(gameCode);
+      joinGame(code);
     } finally {
       setIsJoining(false);
     }
@@ -32,87 +32,57 @@ export function MenuScreen() {
         description="친구들과 함께 즐기는 빙고!"
         emoji="🎰"
         iconGradient="from-blue-500 to-indigo-600"
+        variant="compact"
       />
 
-      <div className="flex-1 container mx-auto px-6 py-12">
-        {/* Main Entry Tabs */}
-        <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="host" className="flex items-center gap-2">
-              <Monitor className="w-4 h-4" />
-              호스트 모드
-            </TabsTrigger>
-            <TabsTrigger value="participant" className="flex items-center gap-2">
-              <Smartphone className="w-4 h-4" />
-              참여하기
-            </TabsTrigger>
-          </TabsList>
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <MultiplayerEntry
+          onHostStart={handleHostStart}
+          onParticipantJoin={handleParticipantJoin}
+          hostTitle="새 게임 만들기"
+          hostDescription="빙고 게임을 생성하고 호출하세요"
+          participantTitle="게임 참여"
+          participantDescription="호스트가 공유한 6자리 코드로 참여하세요"
+          hostButtonText="게임 만들기"
+          participantButtonText={isJoining ? "참여 중..." : "참여하기"}
+          featureBadges={['숫자 빙고', '테마 빙고', '실시간 동기화']}
+          requireName={false}
+        />
 
-          {/* Host Tab */}
-          <TabsContent value="host" className="mt-6">
-            <Card className="border-2 border-dajaem-green/20">
-              <CardHeader>
-                <CardTitle>새 게임 만들기</CardTitle>
-                <CardDescription>
-                  빙고 게임을 생성하고 호출하세요
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button
-                  onClick={() => setGameMode('setup')}
-                  size="lg"
-                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                >
-                  게임 만들기
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Participant Tab */}
-          <TabsContent value="participant" className="mt-6">
-            <Card className="border-2 border-dajaem-green/20">
-              <CardHeader>
-                <CardTitle>게임 참여</CardTitle>
-                <CardDescription>
-                  6자리 코드로 게임에 참여하세요
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SessionCodeInput
-                  value={gameCode}
-                  onChange={setGameCode}
-                  label="게임 코드"
-                  placeholder="ABC123"
-                />
-
-                <Button
-                  onClick={handleJoinGame}
-                  disabled={gameCode.length !== 6 || isJoining}
-                  size="lg"
-                  className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                >
-                  {isJoining ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      참여 중...
-                    </>
-                  ) : (
-                    '참여하기'
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Feature description */}
-        <div className="max-w-lg mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>숫자, 단어, 테마 빙고 지원 | 3x3, 4x4, 5x5 크기 선택</p>
+        {/* Feature Cards */}
+        <div className="max-w-lg mx-auto mt-12 grid gap-4">
+          <FeatureCard
+            emoji="🔢"
+            title="다양한 빙고 타입"
+            description="숫자, 단어, 테마 빙고 지원"
+          />
+          <FeatureCard
+            emoji="📐"
+            title="크기 선택"
+            description="3x3, 4x4, 5x5 크기 선택 가능"
+          />
+          <FeatureCard
+            emoji="⚡"
+            title="실시간 동기화"
+            description="호스트 호출이 모든 참여자에게 즉시 반영"
+          />
         </div>
       </div>
 
-      <AppFooter />
+      <AppFooter variant="compact" />
+    </div>
+  );
+}
+
+// Simple Feature Card Component
+function FeatureCard({ emoji, title, description }: { emoji: string; title: string; description: string }) {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <span className="text-2xl">{emoji}</span>
+      <div>
+        <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+      </div>
     </div>
   );
 }

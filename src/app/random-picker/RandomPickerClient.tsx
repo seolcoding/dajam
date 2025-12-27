@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import { useWheelStore } from "./store/wheel-store";
+import { useSessionStore } from "./store/session-store";
 import { SpinAnimator } from "./lib/spin-animator";
 import { WheelCanvas } from "./components/WheelCanvas";
 import { ItemInput } from "./components/ItemInput";
@@ -12,12 +13,24 @@ import { ResultModal } from "./components/ResultModal";
 import { HistoryPanel } from "./components/HistoryPanel";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { AppHeader, AppFooter } from "@/components/layout";
+import { QRCodeShare } from "@/components/entry";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Trash2, Disc } from "lucide-react";
+import { Trash2, Disc, ArrowLeft, Users } from "lucide-react";
 import type { SpinResult } from "./types";
 
-export default function RandomPickerClient() {
+interface RandomPickerClientProps {
+  /** 세션 모드로 실행 중인지 여부 */
+  isSessionMode?: boolean;
+  /** 뒤로 가기 핸들러 */
+  onBack?: () => void;
+}
+
+export default function RandomPickerClient({
+  isSessionMode = false,
+  onBack,
+}: RandomPickerClientProps) {
+  const { mode, sessionCode } = useSessionStore();
   const {
     items,
     currentRotation,
@@ -91,15 +104,26 @@ export default function RandomPickerClient() {
     alert("이미지 다운로드 기능은 추후 구현 예정입니다.");
   };
 
+  // 세션 URL 생성 (클라이언트에서만)
+  const sessionUrl = typeof window !== 'undefined' && sessionCode
+    ? `${window.location.origin}/random-picker?join=${sessionCode}`
+    : '';
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <AppHeader
         title="랜덤 뽑기 룰렛"
-        description="공정하고 재미있는 랜덤 선택 도구"
+        description={isSessionMode && sessionCode ? `세션: ${sessionCode}` : "공정하고 재미있는 랜덤 선택 도구"}
         icon={Disc}
         iconGradient="from-purple-500 to-pink-500"
         actions={
           <div className="flex gap-2">
+            {isSessionMode && onBack && (
+              <Button variant="ghost" size="sm" onClick={onBack}>
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                나가기
+              </Button>
+            )}
             <HistoryPanel history={history} onClear={clearHistory} />
             <SettingsPanel settings={settings} onUpdate={updateSettings} />
           </div>
@@ -150,6 +174,17 @@ export default function RandomPickerClient() {
                 )}
               </div>
             </Card>
+
+            {/* Session QR Code (Host Mode Only) */}
+            {isSessionMode && sessionCode && sessionUrl && (
+              <QRCodeShare
+                url={sessionUrl}
+                sessionCode={sessionCode}
+                size={160}
+                title="참여자 초대"
+                description="QR 코드를 스캔하거나 코드를 입력하세요"
+              />
+            )}
           </div>
 
           {/* Right Panel: Wheel */}

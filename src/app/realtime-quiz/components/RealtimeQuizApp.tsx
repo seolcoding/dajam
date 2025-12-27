@@ -2,14 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Users, Sparkles, ArrowLeft, Trophy, Home, Monitor, Smartphone, Loader2 } from 'lucide-react';
+import { Play, Users, Sparkles, ArrowLeft, Trophy, Home } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SessionCodeInput } from '@/components/entry';
+import { MultiplayerEntry } from '@/components/entry';
 import { useQuizStore } from '../store/quizStore';
 import { defaultQuizzes, calculateScore } from '../data/quizzes';
 import HostView from './HostView';
@@ -224,6 +221,41 @@ export default function RealtimeQuizApp() {
 
   // 홈 화면
   if (viewMode === 'home') {
+    const handleHostStart = () => {
+      handleCreateSession();
+    };
+
+    const handleParticipantJoin = ({ code, name }: { code: string; name: string }) => {
+      setSessionCode(code);
+      setNickname(name);
+      // Call the existing join logic
+      setTimeout(() => {
+        if (!name.trim() || code.length !== 6) return;
+        setIsJoining(true);
+        const selectedQuiz = defaultQuizzes[0];
+        if (!selectedQuiz) {
+          setIsJoining(false);
+          return;
+        }
+        setQuiz(selectedQuiz);
+        setRole('participant');
+        const participantId = `participant-${Date.now()}`;
+        setMyParticipantId(participantId);
+        addParticipant({
+          id: participantId,
+          nickname: name.trim(),
+          totalScore: 0,
+          correctCount: 0,
+          currentStreak: 0,
+          answers: {},
+          isReady: true,
+          joinedAt: new Date().toISOString(),
+        });
+        setViewMode('waiting');
+        setIsJoining(false);
+      }, 0);
+    };
+
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <AppHeader
@@ -233,124 +265,42 @@ export default function RealtimeQuizApp() {
           iconGradient="from-yellow-500 to-orange-500"
           variant="compact"
         />
-        <div className="flex-1 container mx-auto px-6 py-12">
-          {/* Main Entry Tabs */}
-          <Tabs defaultValue="host" className="max-w-lg mx-auto mb-12">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="host" className="flex items-center gap-2">
-                <Monitor className="w-4 h-4" />
-                호스트 (발표자)
-              </TabsTrigger>
-              <TabsTrigger value="participant" className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                참여하기
-              </TabsTrigger>
-            </TabsList>
+        <div className="flex-1 container mx-auto px-4 py-8">
+          <MultiplayerEntry
+            onHostStart={handleHostStart}
+            onParticipantJoin={handleParticipantJoin}
+            hostTitle="퀴즈 세션 만들기"
+            hostDescription="퀴즈를 선택하고 게임을 진행하세요"
+            participantTitle="퀴즈 참여"
+            participantDescription="코드를 입력하고 닉네임을 설정하세요"
+            hostButtonText="퀴즈 선택하기"
+            participantButtonText={isJoining ? "참여 중..." : "참여하기"}
+            featureBadges={['실시간 경쟁', '다양한 퀴즈', 'QR 코드 참여']}
+          />
 
-            {/* Host Tab */}
-            <TabsContent value="host" className="mt-6">
-              <Card className="border-2 border-dajaem-green/20">
-                <CardHeader>
-                  <CardTitle>퀴즈 세션 만들기</CardTitle>
-                  <CardDescription>
-                    퀴즈를 선택하고 게임을 진행하세요
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    onClick={handleCreateSession}
-                    size="lg"
-                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                  >
-                    <Play className="w-5 h-5 mr-2" />
-                    퀴즈 선택하기
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Participant Tab */}
-            <TabsContent value="participant" className="mt-6">
-              <Card className="border-2 border-dajaem-green/20">
-                <CardHeader>
-                  <CardTitle>퀴즈 참여</CardTitle>
-                  <CardDescription>
-                    코드를 입력하고 닉네임을 설정하세요
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <SessionCodeInput
-                    value={sessionCode}
-                    onChange={setSessionCode}
-                    label="세션 코드"
-                    placeholder="ABC123"
-                  />
-
-                  <div className="space-y-2">
-                    <Label htmlFor="nickname">닉네임</Label>
-                    <Input
-                      id="nickname"
-                      placeholder="닉네임을 입력하세요"
-                      value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
-                      maxLength={20}
-                    />
-                  </div>
-
-                  <Button
-                    onClick={handleJoinSession}
-                    disabled={sessionCode.length !== 6 || !nickname.trim() || isJoining}
-                    size="lg"
-                    className="w-full bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                  >
-                    {isJoining ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        참여 중...
-                      </>
-                    ) : (
-                      <>
-                        <Users className="w-5 h-5 mr-2" />
-                        참여하기
-                      </>
-                    )}
-                  </Button>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-
-          {/* 기능 소개 */}
-          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                <Trophy size={32} className="text-yellow-600" />
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">실시간 경쟁</h3>
-              <p className="text-gray-600">
-                Kahoot 스타일로 실시간 퀴즈 대결을 즐기세요. 점수와 순위가 바로 업데이트됩니다.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                <Sparkles size={32} className="text-purple-600" />
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">다양한 퀴즈</h3>
-              <p className="text-gray-600">
-                일반 상식, IT, 역사 등 다양한 주제의 퀴즈를 제공합니다.
-              </p>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                <Users size={32} className="text-green-600" />
-              </div>
-              <h3 className="text-xl font-bold mb-2 text-gray-900">간편한 참여</h3>
-              <p className="text-gray-600">
-                6자리 코드만 입력하면 앱 설치 없이 바로 참여할 수 있습니다.
-              </p>
-            </div>
+          {/* Feature Cards */}
+          <div className="max-w-lg mx-auto mt-12 grid gap-4">
+            <FeatureCard
+              icon={Trophy}
+              iconBg="bg-yellow-100"
+              iconColor="text-yellow-600"
+              title="실시간 경쟁"
+              description="Kahoot 스타일로 실시간 퀴즈 대결을 즐기세요."
+            />
+            <FeatureCard
+              icon={Sparkles}
+              iconBg="bg-purple-100"
+              iconColor="text-purple-600"
+              title="다양한 퀴즈"
+              description="일반 상식, IT, 역사 등 다양한 주제의 퀴즈를 제공합니다."
+            />
+            <FeatureCard
+              icon={Users}
+              iconBg="bg-green-100"
+              iconColor="text-green-600"
+              title="간편한 참여"
+              description="6자리 코드만 입력하면 앱 설치 없이 바로 참여할 수 있습니다."
+            />
           </div>
         </div>
         <AppFooter variant="compact" />
@@ -552,4 +502,31 @@ function generateMockCode(): string {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;
+}
+
+// Feature Card Component
+function FeatureCard({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200">
+      <div className={`w-12 h-12 ${iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
+        <Icon size={24} className={iconColor} />
+      </div>
+      <div>
+        <h3 className="font-semibold text-gray-900">{title}</h3>
+        <p className="text-sm text-gray-600">{description}</p>
+      </div>
+    </div>
+  );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,9 @@ import {
   Smile,
   Upload,
   Presentation,
+  Zap,
+  Target,
+  Cloud,
 } from 'lucide-react';
 import SceneManager from './SceneManager';
 import SlideUploader, { type UploadedSlide } from './SlideUploader';
@@ -30,12 +33,16 @@ import EmbedViewer from './EmbedViewer';
 import PresenterNotes from './PresenterNotes';
 import SessionAnalytics from './SessionAnalytics';
 import TemplateManager from './TemplateManager';
+import { HostActiveElement } from './HostActiveElement';
 import { QAPanel } from '@/features/interactions/common/QAPanel';
 import { ChatPanel } from '@/features/interactions/common/ChatPanel';
 import { useQA } from '../hooks/useQA';
 import { useChat } from '../hooks/useChat';
 import { useSlideSync } from '../hooks/useSlideSync';
+import { useSessionElements } from '@/lib/realtime/hooks/useSessionElements';
+import { DEFAULT_POLL_CONFIG, DEFAULT_QUIZ_CONFIG, DEFAULT_WORD_CLOUD_CONFIG, DEFAULT_BALANCE_GAME_CONFIG } from '@/lib/elements/types';
 import type { AudienceEngageConfig, ActiveScene, SceneType, SlideSourceType, EmojiType } from '../types';
+import type { Json } from '@/types/database';
 import type { ConnectionState } from '@/features/interactions';
 import type { SessionParticipant } from '@/types/database';
 
@@ -78,23 +85,31 @@ export default function HostView({
     enabled: true,
   });
 
-  // Active scene은 useSlideSync에서 동기화된 상태 사용
-  // syncedScene을 activeScene으로 사용
+  // V2 Session Elements
+  const { 
+    elements,
+    activeElement, 
+    createElement, 
+    setActiveElement,
+    isLoading: isElementsLoading 
+  } = useSessionElements({
+    sessionId,
+    enabled: true,
+  });
+
   const activeScene = syncedScene;
 
-  // Settings state (local, will sync later)
+  // Settings state
   const [settings, setSettings] = useState({
     chatEnabled: config?.settings.chatEnabled ?? true,
     reactionsEnabled: config?.settings.reactionsEnabled ?? true,
     qaEnabled: config?.settings.qaEnabled ?? true,
   });
 
-  // Handle slide upload complete
+  // Handlers
   const handleSlidesReady = useCallback((slides: UploadedSlide[]) => {
     setUploadedSlides(slides);
     setShowUploader(false);
-
-    // Check if it's an embed URL (Google Slides or Canva)
     if (slides.length === 1) {
       const url = slides[0].imageUrl;
       if (url.includes('docs.google.com')) {
@@ -102,7 +117,7 @@ export default function HostView({
         setGoogleSlidesUrl(url);
       } else if (url.includes('canva.com')) {
         setSlideSourceType('canva');
-        setGoogleSlidesUrl(url); // 같은 state 재사용 (embedUrl로)
+        setGoogleSlidesUrl(url);
       } else {
         setSlideSourceType('images');
       }
@@ -111,45 +126,23 @@ export default function HostView({
     }
   }, []);
 
-  // Q&A hook
-  const {
-    questions,
-    toggleHighlight,
-    toggleAnswered,
-    deleteQuestion,
-  } = useQA({
+  const { questions, toggleHighlight, toggleAnswered, deleteQuestion } = useQA({
     sessionId,
     enabled: settings.qaEnabled,
   });
 
-  // Chat hook
-  const {
-    messages: chatMessages,
-    deleteMessage,
-  } = useChat({
+  const { messages: chatMessages, deleteMessage } = useChat({
     sessionId,
     enabled: settings.chatEnabled,
   });
 
-  // Presenter notes state
   const [presenterNotes, setPresenterNotes] = useState<Array<{ slideIndex: number; content: string }>>([]);
-
-  // Reaction counts for analytics (would be updated via realtime in production)
   const [reactionCounts] = useState<Record<EmojiType, number>>({
-    thumbsUp: 0,
-    heart: 0,
-    laugh: 0,
-    clap: 0,
-    party: 0,
+    thumbsUp: 0, heart: 0, laugh: 0, clap: 0, party: 0
   });
-
-  // Session start time for analytics
   const [sessionStartTime] = useState<string>(new Date().toISOString());
-
-  // Copy link state
   const [copied, setCopied] = useState(false);
 
-  // Share URL
   const shareUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/audience-engage?code=${sessionCode}`
     : '';
@@ -160,16 +153,12 @@ export default function HostView({
     setTimeout(() => setCopied(false), 2000);
   }, [shareUrl]);
 
-  // Navigation
   const slideItems = config?.slideItems || [];
-  const totalSlides = uploadedSlides.length || slideItems.length || 1;
-
+  
   const handlePrevSlide = useCallback(() => {
     if (activeScene.type === 'slides' && (activeScene.slideIndex || 0) > 0) {
-      // 슬라이드 내에서 이전으로 이동
       previousSlide();
     } else if (activeScene.itemIndex > 0) {
-      // 이전 Scene 아이템으로 이동
       const newItem = slideItems[activeScene.itemIndex - 1];
       changeScene({
         type: (newItem?.itemType as SceneType) || 'slides',
@@ -182,10 +171,8 @@ export default function HostView({
 
   const handleNextSlide = useCallback(() => {
     if (activeScene.type === 'slides') {
-      // 슬라이드 내에서 다음으로 이동
       nextSlide();
     } else if (activeScene.itemIndex < slideItems.length - 1) {
-      // 다음 Scene 아이템으로 이동
       const newItem = slideItems[activeScene.itemIndex + 1];
       changeScene({
         type: (newItem?.itemType as SceneType) || 'slides',
@@ -196,33 +183,12 @@ export default function HostView({
     }
   }, [activeScene, slideItems, nextSlide, changeScene]);
 
-  // Add scene
-  const handleAddScene = (type: SceneType) => {
-    // TODO: Add new scene to slideItems
-    console.log('Add scene:', type);
-  };
-
-  // Load template handler
-  const handleLoadTemplate = useCallback((templateConfig: AudienceEngageConfig) => {
-    // Update settings from template
-    setSettings({
-      chatEnabled: templateConfig.settings.chatEnabled,
-      reactionsEnabled: templateConfig.settings.reactionsEnabled,
-      qaEnabled: templateConfig.settings.qaEnabled,
-    });
-    // TODO: Apply other template config like slideItems, etc.
-  }, []);
-
-  // Get current config for template saving
   const currentConfig: AudienceEngageConfig = {
     title: config?.title || '새 세션',
     description: config?.description,
     presentationId: config?.presentationId,
-    slideItems: config?.slideItems || [],
-    settings: {
-      ...settings,
-      anonymousAllowed: config?.settings.anonymousAllowed ?? true,
-    },
+    slideItems: slideItems,
+    settings: { ...settings, anonymousAllowed: config?.settings.anonymousAllowed ?? true },
   };
 
   return (
@@ -244,25 +210,13 @@ export default function HostView({
           </div>
 
           <div className="flex items-center gap-4">
-            <TemplateManager
-              currentConfig={currentConfig}
-              onLoadTemplate={handleLoadTemplate}
-            />
+            <TemplateManager currentConfig={currentConfig} onLoadTemplate={() => {}} />
             <div className="flex items-center gap-2 text-sm">
               <Users className="w-4 h-4 text-dajaem-green" />
               <span className="font-medium">{participants.length}</span>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyLink}
-              className="border-dajaem-green/30 hover:bg-dajaem-green/10"
-            >
-              {copied ? (
-                <><Check className="w-4 h-4 mr-1 text-dajaem-green" /> 복사됨</>
-              ) : (
-                <><Share2 className="w-4 h-4 mr-1" /> 공유</>
-              )}
+            <Button variant="outline" size="sm" onClick={handleCopyLink} className="border-dajaem-green/30 hover:bg-dajaem-green/10">
+              {copied ? <><Check className="w-4 h-4 mr-1 text-dajaem-green" /> 복사됨</> : <><Share2 className="w-4 h-4 mr-1" /> 공유</>}
             </Button>
           </div>
         </div>
@@ -270,206 +224,142 @@ export default function HostView({
 
       <div className="max-w-7xl mx-auto p-4">
         <div className="grid grid-cols-12 gap-4">
-          {/* Main Content - Scene View */}
-          <div className="col-span-12 lg:col-span-8">
-            {/* Show uploader when no slides yet or when explicitly opened */}
-            {showUploader ? (
-              <SlideUploader
-                sessionId={sessionId}
-                onSlidesReady={handleSlidesReady}
-                onCancel={() => setShowUploader(false)}
-              />
-            ) : !slideSourceType && uploadedSlides.length === 0 ? (
-              /* Empty state - prompt to upload slides */
-              <Card className="overflow-hidden">
-                <div className="aspect-video bg-gradient-to-br from-dajaem-grey to-white flex flex-col items-center justify-center">
-                  <Presentation className="w-16 h-16 text-dajaem-green mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">슬라이드를 추가해 주세요</h3>
-                  <p className="text-sm text-muted-foreground mb-6 max-w-md text-center">
-                    Google Slides URL을 입력하거나 PDF/이미지를 업로드하면 바로 시작할 수 있어요
-                  </p>
-                  <Button
-                    onClick={() => setShowUploader(true)}
-                    className="bg-dajaem-green hover:bg-dajaem-green/90 text-white"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    슬라이드 업로드
-                  </Button>
-                </div>
-              </Card>
-            ) : (
-              /* Show slides */
-              <Card className="overflow-hidden">
-                <div className="aspect-video bg-slate-100">
-                  {(slideSourceType === 'google-slides' || slideSourceType === 'canva') && googleSlidesUrl ? (
-                    <EmbedViewer
-                      embedUrl={googleSlidesUrl}
-                      sourceType={slideSourceType}
-                      isHost={true}
-                      slideIndex={activeScene.slideIndex || 0}
-                      totalSlides={embedTotalSlides}
-                      onSlideChange={goToSlide}
-                      className="h-full"
-                    />
-                  ) : uploadedSlides.length > 0 ? (
-                    <SlideViewer
-                      slides={uploadedSlides}
-                      isHost={true}
-                      slideIndex={activeScene.slideIndex || 0}
-                      onSlideChange={goToSlide}
-                      className="h-full"
-                    />
-                  ) : (
-                    <SceneManager
-                      activeScene={activeScene}
-                      slideItems={slideItems}
-                      isHost={true}
-                      sessionCode={sessionCode}
-                      sessionId={sessionId}
-                      participants={participants}
-                    />
-                  )}
-                </div>
-
-                {/* Navigation Controls */}
-                <div className="p-4 border-t flex items-center justify-between">
-                  <Button variant="outline" onClick={handlePrevSlide}>
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    이전
-                  </Button>
-
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-muted-foreground flex items-center gap-2">
-                      {activeScene.type === 'slides' ? (
-                        <>
-                          슬라이드 {(activeScene.slideIndex || 0) + 1}
-                          {/* 이미지 업로드의 경우 자동으로 슬라이드 수 표시 */}
-                          {slideSourceType === 'images' && uploadedSlides.length > 0 && (
-                            ` / ${uploadedSlides.length}`
-                          )}
-                          {/* Google Slides/Canva 임베드의 경우 사용자가 총 슬라이드 수 입력 가능 */}
-                          {(slideSourceType === 'google-slides' || slideSourceType === 'canva') && (
-                            <>
-                              {' / '}
-                              <input
-                                type="number"
-                                min="1"
-                                value={embedTotalSlides || ''}
-                                onChange={(e) => setEmbedTotalSlides(e.target.value ? parseInt(e.target.value, 10) : undefined)}
-                                placeholder="?"
-                                className="w-10 h-6 text-center text-sm border rounded px-1 bg-white"
-                                title="총 슬라이드 수 입력"
-                              />
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        activeScene.type
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowUploader(true)}
-                      title="슬라이드 변경"
-                    >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                  </div>
-
-                  <Button variant="outline" onClick={handleNextSlide}>
-                    다음
-                    <ChevronRight className="w-4 h-4 ml-1" />
-                  </Button>
-                </div>
-              </Card>
+          <div className="col-span-12 lg:col-span-8 space-y-4">
+            
+            {/* V2 Interaction Stage - TOP PRIORITY */}
+            {activeElement && (
+              <div className="flex flex-col min-h-[500px] w-full" data-testid="host-active-element">
+                <span className="sr-only" data-testid="active-element-debug">
+                  Active: {activeElement.element_type}
+                </span>
+                <HostActiveElement element={activeElement} onClose={() => setActiveElement(null)} />
+              </div>
             )}
 
-            {/* Timeline - Slide Items */}
+            {/* Debug Monitor for Tests */}
+            <div className="sr-only" data-testid="elements-status">
+              Count: {elements.length}, ActiveID: {activeElement?.id || 'none'}, Loading: {String(isElementsLoading)}, Connected: {String(connectionStatus === 'connected')}
+            </div>
+
+            {/* Test Helper Button - Only visible in test mode if needed */}
+            {process.env.NODE_ENV === 'development' && elements.length > 0 && !activeElement && (
+              <Button 
+                data-testid="force-activate-first"
+                className="hidden"
+                onClick={() => setActiveElement(elements[0].id)}
+              >
+                Force Activate
+              </Button>
+            )}
+
+            {/* Slide Stage */}
+            {!activeElement && (
+              <>
+                {showUploader ? (
+                  <SlideUploader sessionId={sessionId} onSlidesReady={handleSlidesReady} onCancel={() => setShowUploader(false)} />
+                ) : !slideSourceType && uploadedSlides.length === 0 ? (
+                  <Card className="overflow-hidden">
+                    <div className="aspect-video bg-gradient-to-br from-dajaem-grey to-white flex flex-col items-center justify-center">
+                      <Presentation className="w-16 h-16 text-dajaem-green mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">슬라이드를 추가해 주세요</h3>
+                      <Button onClick={() => setShowUploader(true)} className="bg-dajaem-green hover:bg-dajaem-green/90 text-white">
+                        <Upload className="w-4 h-4 mr-2" /> 슬라이드 업로드
+                      </Button>
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="overflow-hidden">
+                    <div className="aspect-video bg-slate-100">
+                      {(slideSourceType === 'google-slides' || slideSourceType === 'canva') && googleSlidesUrl ? (
+                        <EmbedViewer embedUrl={googleSlidesUrl} sourceType={slideSourceType} isHost={true} slideIndex={activeScene.slideIndex || 0} totalSlides={embedTotalSlides} onSlideChange={goToSlide} className="h-full" />
+                      ) : uploadedSlides.length > 0 ? (
+                        <SlideViewer slides={uploadedSlides} isHost={true} slideIndex={activeScene.slideIndex || 0} onSlideChange={goToSlide} className="h-full" />
+                      ) : (
+                        <SceneManager activeScene={activeScene} slideItems={slideItems} isHost={true} sessionCode={sessionCode} sessionId={sessionId} participants={participants} />
+                      )}
+                    </div>
+                    <div className="p-4 border-t flex items-center justify-between">
+                      <Button variant="outline" onClick={handlePrevSlide}><ChevronLeft className="w-4 h-4 mr-1" /> 이전</Button>
+                      <div className="flex items-center gap-4">
+                        <div className="text-sm text-muted-foreground">{activeScene.type === 'slides' ? `슬라이드 ${(activeScene.slideIndex || 0) + 1}` : activeScene.type}</div>
+                        <Button variant="ghost" size="sm" onClick={() => setShowUploader(true)}><Upload className="w-4 h-4" /></Button>
+                      </div>
+                      <Button variant="outline" onClick={handleNextSlide}>다음 <ChevronRight className="w-4 h-4 ml-1" /></Button>
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
+
+            {/* Timeline */}
             <Card className="mt-4">
               <CardHeader className="py-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium">타임라인</CardTitle>
-                  <Button variant="ghost" size="sm">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Scene 추가
-                  </Button>
+                  <Button variant="ghost" size="sm"><Plus className="w-4 h-4 mr-1" /> Scene 추가</Button>
                 </div>
               </CardHeader>
               <CardContent className="pb-4">
                 <div className="flex gap-2 overflow-x-auto pb-2">
-                  {/* Default slides item */}
-                  <TimelineItem
-                    type="slides"
-                    index={0}
-                    isActive={activeScene.type === 'slides'}
-                    onClick={() => changeScene({ type: 'slides', itemIndex: 0, slideIndex: 0 })}
-                  />
-                  {/* Additional items from config */}
+                  <TimelineItem type="slides" index={0} isActive={activeScene.type === 'slides'} onClick={() => changeScene({ type: 'slides', itemIndex: 0, slideIndex: 0 })} />
                   {slideItems.map((item, index) => (
-                    <TimelineItem
-                      key={item.id}
-                      type={item.itemType as SceneType}
-                      index={index + 1}
-                      isActive={activeScene.itemIndex === index && activeScene.type !== 'slides'}
-                      onClick={() => changeScene({
-                        type: item.itemType as SceneType,
-                        itemIndex: index,
-                        linkedSessionCode: item.linkedSessionCode,
-                      })}
-                    />
+                    <TimelineItem key={item.id} type={item.itemType as SceneType} index={index + 1} isActive={activeScene.itemIndex === index && activeScene.type !== 'slides'} onClick={() => changeScene({ type: item.itemType as SceneType, itemIndex: index, linkedSessionCode: item.linkedSessionCode })} />
                   ))}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Presenter Notes */}
-            <PresenterNotes
-              currentSlideIndex={activeScene.slideIndex || 0}
-              notes={presenterNotes}
-              onNotesChange={setPresenterNotes}
-              isEditable={true}
-              className="mt-4"
-            />
+            {/* Notes */}
+            <PresenterNotes currentSlideIndex={activeScene.slideIndex || 0} notes={presenterNotes} onNotesChange={setPresenterNotes} isEditable={true} className="mt-4" />
           </div>
 
-          {/* Sidebar - Controls & Interactions */}
+          {/* Sidebar */}
           <div className="col-span-12 lg:col-span-4 space-y-4">
-            {/* Settings */}
-            <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  설정
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <SettingToggle
-                  label="채팅"
-                  icon={MessageSquare}
-                  checked={settings.chatEnabled}
-                  onCheckedChange={(v) => setSettings(s => ({ ...s, chatEnabled: v }))}
-                />
-                <SettingToggle
-                  label="Q&A"
-                  icon={HelpCircle}
-                  checked={settings.qaEnabled}
-                  onCheckedChange={(v) => setSettings(s => ({ ...s, qaEnabled: v }))}
-                />
-                <SettingToggle
-                  label="리액션"
-                  icon={Smile}
-                  checked={settings.reactionsEnabled}
-                  onCheckedChange={(v) => setSettings(s => ({ ...s, reactionsEnabled: v }))}
-                />
+            <Card className="border-dajaem-green/50 bg-dajaem-green/5 shadow-glow-green/10">
+              <CardHeader className="py-3"><CardTitle className="text-sm font-bold flex items-center gap-2 text-dajaem-green uppercase tracking-wider"><Zap className="w-4 h-4 fill-dajaem-green" /> Quick Action (V2)</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                {activeElement ? (
+                  <div className="space-y-2">
+                    <div className="p-3 bg-white rounded-lg border-2 border-dajaem-green/30 animate-pulse-glow">
+                      <p className="text-[10px] text-dajaem-green font-bold mb-1 uppercase tracking-tighter">Live Now</p>
+                      <p className="text-sm font-semibold truncate text-slate-800">{activeElement.title}</p>
+                    </div>
+                    <Button variant="destructive" size="sm" className="w-full font-bold shadow-glow-red/20 active:animate-press" onClick={() => setActiveElement(null)} aria-label="인터랙션 종료">인터랙션 종료</Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" className="bg-white hover:border-dajaem-green/50 hover:text-dajaem-green font-semibold transition-all duration-fast" onClick={async () => {
+                      const el = await createElement({ session_id: sessionId, element_type: 'poll', title: '즉석 투표', config: DEFAULT_POLL_CONFIG as unknown as Json, is_active: true });
+                      if (el) setActiveElement(el.id);
+                    }} disabled={isElementsLoading} aria-label="V2 즉석 투표 시작">📊 투표 시작</Button>
+                    <Button variant="outline" size="sm" className="bg-white hover:border-dajaem-green/50 hover:text-dajaem-green font-semibold transition-all duration-fast" onClick={async () => {
+                      const el = await createElement({ session_id: sessionId, element_type: 'quiz', title: '즉석 퀴즈', config: DEFAULT_QUIZ_CONFIG as unknown as Json, is_active: true });
+                      if (el) setActiveElement(el.id);
+                    }} disabled={isElementsLoading} aria-label="V2 즉석 퀴즈 시작"><Target className="w-4 h-4 mr-1" /> 퀴즈 시작</Button>
+                    <Button variant="outline" size="sm" className="bg-white hover:border-dajaem-green/50 hover:text-dajaem-green font-semibold transition-all duration-fast" onClick={async () => {
+                      const el = await createElement({ session_id: sessionId, element_type: 'word_cloud', title: '워드 클라우드', config: DEFAULT_WORD_CLOUD_CONFIG as unknown as Json, is_active: true });
+                      if (el) setActiveElement(el.id);
+                    }} disabled={isElementsLoading} aria-label="V2 워드클라우드 시작"><Cloud className="w-4 h-4 mr-1" /> 워드 클라우드</Button>
+                    <Button variant="outline" size="sm" className="bg-white hover:border-dajaem-green/50 hover:text-dajaem-green font-semibold transition-all duration-fast col-span-2" onClick={async () => {
+                      const el = await createElement({ session_id: sessionId, element_type: 'balance_game', title: '밸런스 게임', config: DEFAULT_BALANCE_GAME_CONFIG as unknown as Json, is_active: true });
+                      if (el) setActiveElement(el.id);
+                    }} disabled={isElementsLoading} aria-label="V2 밸런스게임 시작">⚖️ 밸런스 게임 시작</Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Interactions Panel */}
             <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm font-medium">인터랙션</CardTitle>
-              </CardHeader>
+              <CardHeader className="py-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><Settings className="w-4 h-4" /> 설정</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <SettingToggle label="채팅" icon={MessageSquare} checked={settings.chatEnabled} onCheckedChange={(v) => setSettings(s => ({ ...s, chatEnabled: v }))} />
+                <SettingToggle label="Q&A" icon={HelpCircle} checked={settings.qaEnabled} onCheckedChange={(v) => setSettings(s => ({ ...s, qaEnabled: v }))} />
+                <SettingToggle label="리액션" icon={Smile} checked={settings.reactionsEnabled} onCheckedChange={(v) => setSettings(s => ({ ...s, reactionsEnabled: v }))} />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="py-3"><CardTitle className="text-sm font-medium">인터랙션</CardTitle></CardHeader>
               <CardContent className="p-0">
                 <Tabs defaultValue="qa">
                   <TabsList className="w-full rounded-none border-b">
@@ -477,63 +367,23 @@ export default function HostView({
                     <TabsTrigger value="chat" className="flex-1">채팅 ({chatMessages.length})</TabsTrigger>
                   </TabsList>
                   <TabsContent value="qa" className="mt-0 p-4 h-[300px]">
-                    <QAPanel
-                      questions={questions}
-                      isHost={true}
-                      onHighlightQuestion={(id, h) => toggleHighlight(id, h)}
-                      onMarkAnswered={(id, a) => toggleAnswered(id, a)}
-                      onDeleteQuestion={deleteQuestion}
-                    />
+                    <QAPanel questions={questions} isHost={true} onHighlightQuestion={(id, h) => toggleHighlight(id, h)} onMarkAnswered={(id, a) => toggleAnswered(id, a)} onDeleteQuestion={deleteQuestion} />
                   </TabsContent>
                   <TabsContent value="chat" className="mt-0 p-4 h-[300px]">
-                    <ChatPanel
-                      messages={chatMessages}
-                      isHost={true}
-                      onDeleteMessage={deleteMessage}
-                    />
+                    <ChatPanel messages={chatMessages} isHost={true} onDeleteMessage={deleteMessage} />
                   </TabsContent>
                 </Tabs>
               </CardContent>
             </Card>
 
-            {/* Participants */}
             <Card>
-              <CardHeader className="py-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  참여자 ({participants.length})
-                </CardTitle>
-              </CardHeader>
+              <CardHeader className="py-3"><CardTitle className="text-sm font-medium flex items-center gap-2"><Users className="w-4 h-4" /> 참여자 ({participants.length})</CardTitle></CardHeader>
               <CardContent>
-                {participants.length === 0 ? (
-                  <div className="text-center text-sm text-muted-foreground py-4">
-                    참여자를 기다리는 중이에요...
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {participants.map((p) => (
-                      <div key={p.id} className="flex items-center gap-2 text-sm">
-                        <div className="w-2 h-2 bg-dajaem-green rounded-full" />
-                        {p.display_name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {participants.length === 0 ? <div className="text-center text-sm text-muted-foreground py-4">참여자를 기다리는 중이에요...</div> : <div className="space-y-2 max-h-48 overflow-y-auto">{participants.map((p) => (<div key={p.id} className="flex items-center gap-2 text-sm"><div className="w-2 h-2 bg-dajaem-green rounded-full" />{p.display_name}</div>))}</div>}
               </CardContent>
             </Card>
 
-            {/* Session Analytics */}
-            <SessionAnalytics
-              participants={participants.map(p => ({
-                id: p.id,
-                display_name: p.display_name,
-                joined_at: p.joined_at,
-              }))}
-              questions={questions}
-              chatMessages={chatMessages}
-              reactionCounts={reactionCounts}
-              sessionStartTime={sessionStartTime}
-            />
+            <SessionAnalytics participants={participants.map(p => ({ id: p.id, display_name: p.display_name, joined_at: p.joined_at }))} questions={questions} chatMessages={chatMessages} reactionCounts={reactionCounts} sessionStartTime={sessionStartTime} />
           </div>
         </div>
       </div>
@@ -541,7 +391,6 @@ export default function HostView({
   );
 }
 
-// Sub-components
 function ConnectionStatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
     connected: { label: '연결됨', className: 'bg-dajaem-green/10 text-dajaem-green border-dajaem-green/30' },
@@ -552,65 +401,11 @@ function ConnectionStatusBadge({ status }: { status: string }) {
   return <Badge variant="outline" className={config.className}>{config.label}</Badge>;
 }
 
-function TimelineItem({
-  type,
-  index,
-  isActive,
-  onClick,
-}: {
-  type: SceneType;
-  index: number;
-  isActive: boolean;
-  onClick: () => void;
-}) {
-  const icons: Record<SceneType, string> = {
-    slides: '📊',
-    quiz: '🎯',
-    vote: '📊',
-    'this-or-that': '⚖️',
-    'word-cloud': '☁️',
-    personality: '🧠',
-    bingo: '🎱',
-    ladder: '🪜',
-    'balance-game': '⚖️',
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        flex-shrink-0 w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center gap-1
-        transition-all
-        ${isActive
-          ? 'border-dajaem-green bg-dajaem-green/10'
-          : 'border-gray-200 hover:border-dajaem-green/30 bg-white'
-        }
-      `}
-    >
-      <span className="text-lg">{icons[type]}</span>
-      <span className="text-xs text-muted-foreground">{index + 1}</span>
-    </button>
-  );
+function TimelineItem({ type, index, isActive, onClick }: { type: SceneType; index: number; isActive: boolean; onClick: () => void }) {
+  const icons: Record<SceneType, string> = { slides: '📊', quiz: '🎯', vote: '📊', 'this-or-that': '⚖️', 'word-cloud': '☁️', personality: '🧠', bingo: '🎱', ladder: '🪜', 'balance-game': '⚖️' };
+  return (<button onClick={onClick} className={`flex-shrink-0 w-16 h-16 rounded-lg border-2 flex flex-col items-center justify-center gap-1 transition-all ${isActive ? 'border-dajaem-green bg-dajaem-green/10' : 'border-gray-200 hover:border-dajaem-green/30 bg-white'}`}><span className="text-lg">{icons[type]}</span><span className="text-xs text-muted-foreground">{index + 1}</span></button>);
 }
 
-function SettingToggle({
-  label,
-  icon: Icon,
-  checked,
-  onCheckedChange,
-}: {
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <Label className="flex items-center gap-2 text-sm">
-        <Icon className="w-4 h-4 text-muted-foreground" />
-        {label}
-      </Label>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
-    </div>
-  );
+function SettingToggle({ label, icon: Icon, checked, onCheckedChange }: { label: string; icon: React.ComponentType<{ className?: string }>; checked: boolean; onCheckedChange: (checked: boolean) => void }) {
+  return (<div className="flex items-center justify-between"><Label className="flex items-center gap-2 text-sm"><Icon className="w-4 h-4 text-muted-foreground" />{label}</Label><Switch checked={checked} onCheckedChange={onCheckedChange} /></div>);
 }
