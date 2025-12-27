@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Users, Sparkles, ArrowLeft, Trophy, Home } from 'lucide-react';
+import { Play, Users, Sparkles, ArrowLeft, Trophy, Home, Languages, Zap } from 'lucide-react';
 import Confetti from 'react-confetti';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MultiplayerEntry } from '@/components/entry';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuizStore } from '../store/quizStore';
 import { defaultQuizzes, calculateScore } from '../data/quizzes';
 import HostView from './HostView';
@@ -15,8 +16,16 @@ import Leaderboard from './Leaderboard';
 import type { ParticipantAnswer } from '../types';
 import { AppHeader, AppFooter } from '@/components/layout';
 
-type ViewMode = 'home' | 'select-quiz' | 'waiting' | 'countdown' | 'playing' | 'leaderboard' | 'finished';
+// Chosung Quiz Components (dynamic import)
+import dynamic from 'next/dynamic';
+const ChosungQuizClient = dynamic(
+  () => import('@/app/chosung-quiz/ChosungQuizClient'),
+  { ssr: false, loading: () => <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full" /></div> }
+);
+
+type ViewMode = 'home' | 'select-quiz' | 'waiting' | 'countdown' | 'playing' | 'leaderboard' | 'finished' | 'chosung';
 type Role = 'host' | 'participant';
+type QuizMode = 'realtime' | 'chosung';
 
 export default function RealtimeQuizApp() {
   const router = useRouter();
@@ -24,6 +33,7 @@ export default function RealtimeQuizApp() {
   // View state
   const [viewMode, setViewMode] = useState<ViewMode>('home');
   const [role, setRole] = useState<Role | null>(null);
+  const [quizMode, setQuizMode] = useState<QuizMode>('realtime');
 
   // Form state
   const [sessionCode, setSessionCode] = useState('');
@@ -259,51 +269,151 @@ export default function RealtimeQuizApp() {
     return (
       <div className="min-h-screen bg-white flex flex-col">
         <AppHeader
-          title="실시간 퀴즈쇼"
-          description="Kahoot 스타일 실시간 퀴즈 게임"
+          title="퀴즈"
+          description="다양한 퀴즈로 즐기세요"
           icon={Trophy}
           iconGradient="from-yellow-500 to-orange-500"
           variant="compact"
         />
         <div className="flex-1 container mx-auto px-4 py-8">
-          <MultiplayerEntry
-            onHostStart={handleHostStart}
-            onParticipantJoin={handleParticipantJoin}
-            hostTitle="퀴즈 세션 만들기"
-            hostDescription="퀴즈를 선택하고 게임을 진행하세요"
-            participantTitle="퀴즈 참여"
-            participantDescription="코드를 입력하고 닉네임을 설정하세요"
-            hostButtonText="퀴즈 선택하기"
-            participantButtonText={isJoining ? "참여 중..." : "참여하기"}
-            featureBadges={['실시간 경쟁', '다양한 퀴즈', 'QR 코드 참여']}
-          />
-
-          {/* Feature Cards */}
-          <div className="max-w-lg mx-auto mt-12 grid gap-4">
-            <FeatureCard
-              icon={Trophy}
-              iconBg="bg-yellow-100"
-              iconColor="text-yellow-600"
-              title="실시간 경쟁"
-              description="Kahoot 스타일로 실시간 퀴즈 대결을 즐기세요."
-            />
-            <FeatureCard
-              icon={Sparkles}
-              iconBg="bg-purple-100"
-              iconColor="text-purple-600"
-              title="다양한 퀴즈"
-              description="일반 상식, IT, 역사 등 다양한 주제의 퀴즈를 제공합니다."
-            />
-            <FeatureCard
-              icon={Users}
-              iconBg="bg-green-100"
-              iconColor="text-green-600"
-              title="간편한 참여"
-              description="6자리 코드만 입력하면 앱 설치 없이 바로 참여할 수 있습니다."
-            />
+          {/* Quiz Mode Selector */}
+          <div className="max-w-lg mx-auto mb-8">
+            <Tabs value={quizMode} onValueChange={(v) => setQuizMode(v as QuizMode)}>
+              <TabsList className="grid w-full grid-cols-2 h-auto p-1">
+                <TabsTrigger
+                  value="realtime"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span className="font-semibold">실시간 퀴즈</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="chosung"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white"
+                >
+                  <Languages className="w-4 h-4" />
+                  <span className="font-semibold">초성 퀴즈</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
+
+          {/* Realtime Quiz Mode */}
+          {quizMode === 'realtime' && (
+            <>
+              <MultiplayerEntry
+                onHostStart={handleHostStart}
+                onParticipantJoin={handleParticipantJoin}
+                hostTitle="퀴즈 세션 만들기"
+                hostDescription="퀴즈를 선택하고 게임을 진행하세요"
+                participantTitle="퀴즈 참여"
+                participantDescription="코드를 입력하고 닉네임을 설정하세요"
+                hostButtonText="퀴즈 선택하기"
+                participantButtonText={isJoining ? "참여 중..." : "참여하기"}
+                featureBadges={['실시간 경쟁', '다양한 퀴즈', 'QR 코드 참여']}
+              />
+
+              {/* Feature Cards */}
+              <div className="max-w-lg mx-auto mt-12 grid gap-4">
+                <FeatureCard
+                  icon={Trophy}
+                  iconBg="bg-yellow-100"
+                  iconColor="text-yellow-600"
+                  title="실시간 경쟁"
+                  description="Kahoot 스타일로 실시간 퀴즈 대결을 즐기세요."
+                />
+                <FeatureCard
+                  icon={Sparkles}
+                  iconBg="bg-purple-100"
+                  iconColor="text-purple-600"
+                  title="다양한 퀴즈"
+                  description="일반 상식, IT, 역사 등 다양한 주제의 퀴즈를 제공합니다."
+                />
+                <FeatureCard
+                  icon={Users}
+                  iconBg="bg-green-100"
+                  iconColor="text-green-600"
+                  title="간편한 참여"
+                  description="6자리 코드만 입력하면 앱 설치 없이 바로 참여할 수 있습니다."
+                />
+              </div>
+            </>
+          )}
+
+          {/* Chosung Quiz Mode */}
+          {quizMode === 'chosung' && (
+            <>
+              <div className="max-w-lg mx-auto">
+                <Card className="border-2 border-purple-200 shadow-lg">
+                  <CardHeader className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Languages className="w-8 h-8 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl">초성 퀴즈</CardTitle>
+                    <CardDescription>
+                      한글 초성을 보고 정답을 맞춰보세요!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <Button
+                      onClick={() => setViewMode('chosung')}
+                      size="lg"
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      초성 퀴즈 시작
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Feature Cards */}
+              <div className="max-w-lg mx-auto mt-12 grid gap-4">
+                <FeatureCard
+                  icon={Languages}
+                  iconBg="bg-purple-100"
+                  iconColor="text-purple-600"
+                  title="한글 초성"
+                  description="ㅎㄱ, ㅅㄹ 같은 초성을 보고 단어를 맞춰보세요."
+                />
+                <FeatureCard
+                  icon={Sparkles}
+                  iconBg="bg-pink-100"
+                  iconColor="text-pink-600"
+                  title="다양한 카테고리"
+                  description="영화, 음식, K-POP, 속담 등 다양한 주제를 제공합니다."
+                />
+                <FeatureCard
+                  icon={Trophy}
+                  iconBg="bg-yellow-100"
+                  iconColor="text-yellow-600"
+                  title="힌트 시스템"
+                  description="3단계 힌트로 어려운 문제도 풀 수 있어요."
+                />
+              </div>
+            </>
+          )}
         </div>
         <AppFooter variant="compact" />
+      </div>
+    );
+  }
+
+  // 초성 퀴즈 모드
+  if (viewMode === 'chosung') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <div className="fixed top-4 left-4 z-50">
+          <Button
+            variant="outline"
+            onClick={() => setViewMode('home')}
+            className="bg-white/80 backdrop-blur-sm"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            돌아가기
+          </Button>
+        </div>
+        <ChosungQuizClient />
       </div>
     );
   }

@@ -143,7 +143,10 @@ useEffect(() => {
     - balance-game에 MultiplayerEntry 통합
     - 혼자/세션 모드 탭 전환 UI 추가
     - 기존 session/ 경로 활용
-  - [ ] `chosung-quiz` → `realtime-quiz` (예정)
+  - [x] `chosung-quiz` → `realtime-quiz` 통합 (2024-12-27)
+    - realtime-quiz에 실시간/초성 모드 탭 추가
+    - 초성 모드에서 chosung-quiz 컴포넌트 렌더링
+    - 기존 chosung-quiz 데이터/로직 100% 재사용
 - [x] 세션 모드 UI 통일 (MultiplayerEntry 패턴 적용)
   - [x] random-picker: UnifiedPickerApp에 MultiplayerEntry 적용
   - [x] realtime-quiz: MultiplayerEntry 적용됨
