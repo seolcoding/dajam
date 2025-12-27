@@ -8,14 +8,45 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatNumber } from '../utils/salaryCalculator';
-import { TrendingUp, DollarSign, ArrowDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { TrendingUp, DollarSign, ArrowDown, Link2, Check } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { encodeState } from '@/lib/hooks';
 
 export function ResultCard() {
-  const { breakdown } = useSalaryStore();
+  const store = useSalaryStore();
+  const { breakdown } = store;
   const [prevNetPay, setPrevNetPay] = useState<number | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // URL 공유 기능
+  const copyShareUrl = useCallback(async () => {
+    const shareState = {
+      m: store.inputMode, // mode
+      a: store.annualSalary, // annual
+      g: store.monthlyGross, // gross
+      t: store.taxFreeAmount, // taxFree
+      d: store.dependents, // dependents
+      c: store.children, // children
+      r: store.includeRetirement ? 1 : 0, // retirement
+    };
+
+    const encoded = encodeState(shareState);
+    const url = new URL(window.location.href);
+    url.searchParams.set('s', encoded);
+    url.searchParams.set('utm_source', 'share');
+
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback: select text
+      console.error('Failed to copy');
+    }
+  }, [store]);
 
   useEffect(() => {
     if (breakdown && breakdown.netPay !== prevNetPay) {
@@ -46,10 +77,30 @@ export function ResultCard() {
   return (
     <Card className="shadow-lg shadow-emerald-500/5 border-emerald-100">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-slate-800">
-          <DollarSign className="w-5 h-5 text-emerald-600" />
-          월 실수령액
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-slate-800">
+            <DollarSign className="w-5 h-5 text-emerald-600" />
+            월 실수령액
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyShareUrl}
+            className="h-8 gap-1.5 text-slate-500 hover:text-slate-700"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-green-500" />
+                <span className="text-xs">복사됨!</span>
+              </>
+            ) : (
+              <>
+                <Link2 className="w-4 h-4" />
+                <span className="text-xs">결과 공유</span>
+              </>
+            )}
+          </Button>
+        </div>
         <CardDescription className="text-slate-500">4대보험 및 세금 공제 후 금액</CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">

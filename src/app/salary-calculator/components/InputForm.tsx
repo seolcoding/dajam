@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useSalaryStore } from '../hooks/useSalaryStore';
 import {
   Card,
@@ -20,6 +22,17 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Calculator, Info } from 'lucide-react';
+import { decodeState } from '@/lib/hooks';
+
+interface SharedState {
+  m?: 'annual' | 'monthly';
+  a?: string;
+  g?: string;
+  t?: number;
+  d?: number;
+  c?: number;
+  r?: number;
+}
 
 export function InputForm() {
   const {
@@ -39,6 +52,32 @@ export function InputForm() {
     setIncludeRetirement,
     calculate,
   } = useSalaryStore();
+
+  const searchParams = useSearchParams();
+  const hasLoadedFromUrl = useRef(false);
+
+  // URL에서 상태 복원
+  useEffect(() => {
+    if (hasLoadedFromUrl.current) return;
+
+    const sharedParam = searchParams.get('s');
+    if (!sharedParam) return;
+
+    const shared = decodeState<SharedState>(sharedParam, {});
+
+    if (shared.m) setInputMode(shared.m);
+    if (shared.a) setAnnualSalary(shared.a);
+    if (shared.g) setMonthlyGross(shared.g);
+    if (shared.t !== undefined) setTaxFreeAmount(shared.t);
+    if (shared.d !== undefined) setDependents(shared.d);
+    if (shared.c !== undefined) setChildren(shared.c);
+    if (shared.r !== undefined) setIncludeRetirement(shared.r === 1);
+
+    hasLoadedFromUrl.current = true;
+
+    // 상태 로드 후 자동 계산
+    setTimeout(() => calculate(), 100);
+  }, [searchParams, setInputMode, setAnnualSalary, setMonthlyGross, setTaxFreeAmount, setDependents, setChildren, setIncludeRetirement, calculate]);
 
   const handleCalculate = () => {
     calculate();

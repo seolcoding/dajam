@@ -166,6 +166,15 @@ useEffect(() => {
   - `types/poll.ts` - PollReport 인터페이스 추가 (통합 분석용)
   - `utils/reportGenerator.ts` - 리포트 생성 유틸리티
   - HostView에 CSV/JSON 내보내기 버튼 추가
+- [x] 다크 모드 지원 (2024-12-27)
+  - `src/components/theme/ThemeProvider.tsx` - 테마 프로바이더
+  - `src/components/theme/ThemeToggle.tsx` - 테마 토글 컴포넌트
+  - light/dark/system 모드 지원
+  - localStorage 저장 및 시스템 테마 자동 감지
+- [x] URL 상태 공유 기능 (2024-12-27)
+  - `src/lib/hooks/useUrlState.ts` - URL 상태 인코딩/디코딩 훅
+  - salary-calculator에 적용: 계산 결과 URL 공유
+  - base64 인코딩으로 URL 길이 최소화
 - [ ] 랜덤 뽑기: 다양한 애니메이션 (물리엔진, 3D) - 추후 구현
 
 ### Phase 3: AI 기능
