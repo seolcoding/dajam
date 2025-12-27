@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { KakaoScript } from '@/components/common/KakaoScript';
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { ThemeProvider } from '@/components/theme';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -71,11 +72,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body className="min-h-screen bg-background font-sans antialiased">
         <GoogleAnalytics />
         <KakaoScript />
-        <AuthProvider>{children}</AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
         <Toaster
           position="top-center"
           richColors
