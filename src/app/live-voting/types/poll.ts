@@ -25,6 +25,8 @@ export interface Vote {
   pollId: string; // 투표 ID
   selection: number | number[]; // 선택 인덱스 (단일/복수/순위)
   timestamp: Date; // 투표 시간
+  participantId?: string; // 참가자 ID (취소 시 필요)
+  isCancelled?: boolean; // 취소 여부
 }
 
 /**
@@ -47,4 +49,29 @@ export interface HostState {
   results: PollResult[];
   totalVotes: number;
   isActive: boolean;
+}
+
+/**
+ * 투표 리포트 (통합 분석)
+ */
+export interface PollReport {
+  pollId: string;
+  title: string;
+  type: PollType;
+  options: string[];
+  createdAt: Date;
+  closedAt?: Date;
+  totalVotes: number;
+  cancelledVotes: number;
+  uniqueParticipants: number;
+  results: PollResult[];
+  timeline: Array<{
+    timestamp: Date;
+    cumulativeVotes: number;
+    optionBreakdown: Record<number, number>;
+  }>;
+  demographics?: {
+    anonymousVotes: number;
+    identifiedVotes: number;
+  };
 }

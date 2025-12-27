@@ -155,9 +155,18 @@ useEffect(() => {
 - [ ] 빙고 게임 Supabase 연동
 
 ### Phase 2: 향상 기능
-- [ ] 워드클라우드: 오타 수정, 유사어 묶기, 단어 추천
-- [ ] 랜덤 뽑기: 다양한 애니메이션 (물리엔진, 3D)
-- [ ] 투표: 익명, 취소, 통합 리포트
+- [x] 워드클라우드 향상 (2024-12-27)
+  - `utils/wordNormalizer.ts` - 단어 정규화 유틸리티
+  - 오타 수정: 영한 자판 변환, 일반 오타 패턴
+  - 유사어 묶기: 동의어 그룹핑 (감정, 날씨, 음식 등)
+  - 단어 추천: 초성 기반 자동완성
+  - HostView에 유사어 묶기 토글 추가
+- [x] 투표 향상 (2024-12-27)
+  - `types/poll.ts` - Vote에 participantId, isCancelled 필드 추가
+  - `types/poll.ts` - PollReport 인터페이스 추가 (통합 분석용)
+  - `utils/reportGenerator.ts` - 리포트 생성 유틸리티
+  - HostView에 CSV/JSON 내보내기 버튼 추가
+- [ ] 랜덤 뽑기: 다양한 애니메이션 (물리엔진, 3D) - 추후 구현
 
 ### Phase 3: AI 기능
 - [ ] 실시간 퀴즈: AI 퀴즈 생성

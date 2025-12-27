@@ -15,11 +15,15 @@ import {
   Sparkles,
   Cloud,
   Monitor,
+  Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import QRCodeLib from 'qrcode';
 import { useRouter } from 'next/navigation';
 import type { ColorScheme } from '../types';
+import { normalizeWordCounts, type NormalizedWordCount } from '../utils/wordNormalizer';
 
 interface HostViewProps {
   sessionCode: string;
@@ -39,7 +43,13 @@ export function HostView({
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [enableSynonymGrouping, setEnableSynonymGrouping] = useState(true);
   const cloudRef = useRef<HTMLDivElement>(null);
+
+  // 유사어 묶기 적용된 단어 목록
+  const displayWordCounts = enableSynonymGrouping
+    ? normalizeWordCounts(wordCounts)
+    : wordCounts.map((w) => ({ ...w, variants: [w.text] }));
 
   useEffect(() => {
     // Generate QR code
@@ -356,12 +366,32 @@ export function HostView({
           </div>
 
           {!isPresentationMode && (
-            <WordCloudStats words={wordCounts} totalEntries={entries.length} />
+            <>
+              <WordCloudStats words={displayWordCounts} totalEntries={entries.length} />
+
+              {/* 유사어 묶기 토글 */}
+              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg mb-4">
+                <div className="flex items-center gap-2">
+                  <Layers size={18} className="text-purple-600" />
+                  <Label htmlFor="synonym-grouping" className="text-sm font-medium text-gray-700">
+                    유사어 묶기
+                  </Label>
+                  <span className="text-xs text-gray-500">
+                    (비슷한 표현을 하나로 합침)
+                  </span>
+                </div>
+                <Switch
+                  id="synonym-grouping"
+                  checked={enableSynonymGrouping}
+                  onCheckedChange={setEnableSynonymGrouping}
+                />
+              </div>
+            </>
           )}
 
           <div ref={cloudRef} className="bg-gray-50 rounded-xl p-4 min-h-[500px]">
             <WordCloudRenderer
-              words={wordCounts}
+              words={displayWordCounts}
               colorScheme={session.settings.colorScheme}
               className="min-h-[450px]"
             />

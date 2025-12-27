@@ -19,6 +19,8 @@ import {
   PlayCircle,
   Wifi,
   WifiOff,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { useLiveVotingElement } from '../hooks/useLiveVotingElement';
 import { useLiveResults } from '../hooks/useLiveResults';
@@ -28,6 +30,7 @@ import { RealtimeIndicator } from '@/components/common/RealtimeIndicator';
 import { CopyableLink } from '@/components/common/CopyableLink';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { generatePollReport, exportReportToCsv, exportReportToJson } from '../utils/reportGenerator';
 
 interface HostViewProps {
   pollId: string;
@@ -117,6 +120,26 @@ export function HostView({ pollId }: HostViewProps) {
     if (isCloudMode) {
       await reopenPoll();
     }
+  };
+
+  // 리포트 내보내기
+  const handleExportReport = (format: 'csv' | 'json') => {
+    if (!activePoll) return;
+
+    const report = generatePollReport(activePoll, activeVotes);
+    const content = format === 'csv' ? exportReportToCsv(report) : exportReportToJson(report);
+    const mimeType = format === 'csv' ? 'text/csv;charset=utf-8' : 'application/json';
+    const extension = format === 'csv' ? 'csv' : 'json';
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `voting-report-${pollId}-${Date.now()}.${extension}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -404,7 +427,29 @@ export function HostView({ pollId }: HostViewProps) {
       {/* 결과 테이블 (일반 모드만) */}
       {!isPresentationMode && (
         <div className="max-w-7xl mx-auto mt-6 bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
-          <h3 className="text-2xl font-bold mb-6 text-gray-900">상세 결과</h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-2xl font-bold text-gray-900">상세 결과</h3>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportReport('csv')}
+                className="flex items-center gap-2"
+              >
+                <Download size={16} />
+                CSV 내보내기
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleExportReport('json')}
+                className="flex items-center gap-2"
+              >
+                <FileText size={16} />
+                JSON 내보내기
+              </Button>
+            </div>
+          </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>

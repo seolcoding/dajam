@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWordCloudStore } from '../store/wordCloudStore';
-import { Send, Check, Sparkles } from 'lucide-react';
+import { Send, Check, Sparkles, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { WordEntry, WordValidationResult } from '../types';
+import { getSuggestions, normalizeWord } from '../utils/wordNormalizer';
 
 interface ParticipantViewProps {
   sessionCode: string;
@@ -18,6 +19,28 @@ export function ParticipantView({ sessionCode, onSubmitWord }: ParticipantViewPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 입력 변경 시 추천 단어 업데이트
+  useEffect(() => {
+    if (inputWord.length >= 1) {
+      const newSuggestions = getSuggestions(inputWord, 5);
+      setSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  }, [inputWord]);
+
+  // 추천 단어 선택
+  const handleSelectSuggestion = (suggestion: string) => {
+    setInputWord(suggestion);
+    setShowSuggestions(false);
+    inputRef.current?.focus();
+  };
 
   if (!session) {
     return (
@@ -211,35 +234,67 @@ export function ParticipantView({ sessionCode, onSubmitWord }: ParticipantViewPr
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                value={inputWord}
-                onChange={(e) => {
-                  setInputWord(e.target.value);
-                  setValidationError(null);
-                }}
-                placeholder={
-                  canSubmitMore
-                    ? '단어를 입력하세요...'
-                    : '더 이상 입력할 수 없습니다'
-                }
-                disabled={!canSubmitMore || isSubmitting}
-                className="flex-1 text-lg h-14 px-4 border-2 focus:border-blue-500"
-                maxLength={session.settings.maxWordLength}
-                autoComplete="off"
-              />
-              <Button
-                type="submit"
-                disabled={!canSubmitMore || isSubmitting || !inputWord.trim()}
-                className="h-14 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg disabled:opacity-50"
-              >
-                {isSubmitting ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                ) : (
-                  <Send size={24} />
-                )}
-              </Button>
+            <div className="relative">
+              {/* 추천 단어 목록 */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-10">
+                  <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200">
+                    <Lightbulb size={16} className="text-amber-500" />
+                    <span className="text-sm font-medium text-gray-600">추천 단어</span>
+                  </div>
+                  <div className="p-2 flex flex-wrap gap-2">
+                    {suggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(suggestion)}
+                        className="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm font-medium transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  value={inputWord}
+                  onChange={(e) => {
+                    setInputWord(e.target.value);
+                    setValidationError(null);
+                  }}
+                  onFocus={() => {
+                    if (suggestions.length > 0) setShowSuggestions(true);
+                  }}
+                  onBlur={() => {
+                    // 딜레이로 클릭 이벤트 처리 후 숨김
+                    setTimeout(() => setShowSuggestions(false), 200);
+                  }}
+                  placeholder={
+                    canSubmitMore
+                      ? '단어를 입력하세요...'
+                      : '더 이상 입력할 수 없습니다'
+                  }
+                  disabled={!canSubmitMore || isSubmitting}
+                  className="flex-1 text-lg h-14 px-4 border-2 focus:border-blue-500"
+                  maxLength={session.settings.maxWordLength}
+                  autoComplete="off"
+                />
+                <Button
+                  type="submit"
+                  disabled={!canSubmitMore || isSubmitting || !inputWord.trim()}
+                  className="h-14 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  ) : (
+                    <Send size={24} />
+                  )}
+                </Button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-sm text-gray-600">
